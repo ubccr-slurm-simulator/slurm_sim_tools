@@ -1,0 +1,147 @@
+---
+title: "Analysing SLRUM Real and Simulated Output"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+```{r setup, echo=TRUE, results="hide",warning=TRUE,message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(lubridate)
+library(stringr)
+
+library(rPython)
+library(Rcpp)
+library(plyr)
+
+#some global locations
+top_dir <- "/home/mikola/slurm_simulator3/slurm_sim_tools/validation"
+
+real_top_dir <- "/home/mikola/slurm_simulator3/slurm_real/s3"
+sim_top_dir <- "/home/mikola/slurm_simulator3/sim/micro/results/StartSecondsBeforeFirstJob_45"
+
+setwd(top_dir)
+source("../Rutil/trace_job_util.R")
+
+source("micro_conf.R")
+```
+
+# Reads Data
+
+
+```{r}
+init_start_time <- as.POSIXct("2017-03-01")
+
+init_trace <- read.csv(file.path(top_dir,"test_trace.csv"))
+init_trace$sim_submit <- as.POSIXct(init_trace$sim_submit,format = "%Y-%m-%d %H:%M:%S")
+init_trace$sim_dependency <- ""
+
+dt <- min(as.integer(init_trace$sim_submit))-as.integer(init_start_time)
+print(paste("dt:",dt))
+init_trace$sim_submit<-init_trace$sim_submit-dt
+init_trace$sim_submit_ts <- as.integer(init_trace$sim_submit)
+
+
+
+sacct_r <- read_sacct_out(file.path(real_top_dir,"slurm_acct.out"),micro_nodes)
+sacct_r$ref_job_id <- as.integer(sub("\\.sh","",sacct_r$JobName))
+sacct_r$Slurm <- "Real"
+sacct_r$NTasks <- NULL
+sacct_r$ReqGRES <- NULL
+#shift time
+dt <- min(as.integer(sacct_r$Submit))-as.integer(init_start_time)
+print(paste("dt:",dt))
+sacct_r[,c("Submit","Eligible","Start","End")]<-sacct_r[,c("Submit","Eligible","Start","End")]-dt
+
+print(paste("Simulation time:",max(sacct_r$End)-min(sacct_r$Submit)))
+
+
+sacct_s <- read_sacct_out(file.path(sim_top_dir,"jobcomp.log"),micro_nodes)
+sacct_s$ref_job_id <- as.integer(sacct_s$JobName)
+sacct_s$Slurm <- "Simulated"
+
+#shift time
+dt <- min(as.integer(sacct_s$Submit))-as.integer(init_start_time)
+print(paste("dt:",dt))
+sacct_s[,c("Submit","Eligible","Start","End")]<-sacct_s[,c("Submit","Eligible","Start","End")]-dt
+
+print(paste("Simulation time:",max(sacct_s$End)-min(sacct_s$Submit)))
+
+sacctM <- merge(sacct_r,sacct_s,by="local_job_id",all=TRUE,suffixes = c("_r","_s"))
+sacctRB <- rbind(sacct_r,sacct_s)
+```
+
+## Checking that reference job_id matches
+
+```{r}
+print(paste("job id difference in real (which is ok):",sum(sacct_r$ref_job_id -sacct_r$local_job_id)))
+print(paste("job id difference in simulated:",sum(sacct_s$ref_job_id -sacct_s$local_job_id)))
+
+print(paste("users different between real and simulated:",sum(sacctM$User_r!=sacctM$User_s)))
+print(paste("timelimit different between real and simulated:",sum(sacctM$Timelimit_r!=sacctM$Timelimit_s)))
+print(paste("NCPUs different between real and simulated:",sum(sacctM$NCPUS_r!=sacctM$NCPUS_s)))
+```
+# Single simulation
+
+```{r , fig.width=20, fig.height=6}
+grid.arrange(
+    ggplot(data=sacctM)+
+         geom_point(aes(x=local_job_id,y=Submit_r,colour="Submit Time"))+
+         geom_segment(aes(x=local_job_id,y=Start_r,xend=local_job_id,yend=End_r,colour="Run Time"))+
+         geom_segment(aes(x=local_job_id,y=Start_s,xend=local_job_id,yend=End_s,colour="Run Time Sim"))+
+         scale_colour_manual("",values = c("red","blue", "green")),
+    ggplot(data=sacctM)+
+         geom_point(aes(x=local_job_id,y=(unclass(Start_s)-unclass(Start_r))/3600.0,colour="Submit Time")),
+    ncol=2
+)
+
+```
+
+# Proper Node Assignment
+```{r}
+sacctRB_withReq <- merge(sacctRB,init_trace,by.x="local_job_id",by.y="sim_job_id")
+
+#GPU Nodes
+jobs_in_quiestion <- sum(sacctRB_withReq$sim_gres!="")
+run_on_propernode <- sum(sacctRB_withReq$Nodes_G[sacctRB_withReq$sim_gres!=""]>0)
+print(paste("Jobs asked for GPU but ended up on non wrong nodes:",jobs_in_quiestion-run_on_propernode))
+
+#Big Mem Nodes
+jobs_in_quiestion <- sum(sacctRB_withReq$sim_req_mem>400000,na.rm = TRUE)
+run_on_propernode <- sum(sacctRB_withReq$Nodes_B[(!is.na(sacctRB_withReq$sim_req_mem)) & sacctRB_withReq$sim_req_mem>400000]>0)
+print(paste("Jobs asked for Big Mem but ended up on non wrong nodes:",jobs_in_quiestion-run_on_propernode))
+
+#CPU-N Nodes
+jobs_in_quiestion <- sum(sacctRB_withReq$sim_features=="CPU-N",na.rm = TRUE)
+run_on_propernode <- sum(sacctRB_withReq$Nodes_N[sacctRB_withReq$sim_features=="CPU-N"]>0)
+print(paste("Jobs asked for CPU-N but ended up on non wrong nodes:",jobs_in_quiestion-run_on_propernode))
+
+#CPU-M Nodes
+jobs_in_quiestion <- sum(sacctRB_withReq$sim_features=="CPU-M",na.rm = TRUE)
+run_on_propernode <- sum(sacctRB_withReq$Nodes_M[sacctRB_withReq$sim_features=="CPU-M"]>0)
+print(paste("Jobs asked for CPU-M but ended up on non wrong nodes:",jobs_in_quiestion-run_on_propernode))
+
+```
+
+# Utilization
+
+```{r}
+dt <- 60L
+util_s <- get_utilization(sacct_s,micro_nodes,dt)
+util_r <- get_utilization(sacct_r,micro_nodes,dt)
+util_s$Slurm <- "Simulated"
+util_r$Slurm <- "Real"
+
+util<-rbind(util_s,util_r)
+
+```
+
+
+```{r , fig.width=20, fig.height=6}
+ggplot(data=util)+
+    geom_line(aes(x=t,y=total_norm,colour=Slurm))
+
+```

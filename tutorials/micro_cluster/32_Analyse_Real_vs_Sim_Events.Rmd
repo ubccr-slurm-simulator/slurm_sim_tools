@@ -1,0 +1,173 @@
+---
+title: "Analysing SLRUM Real and Simulated Output"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+```{r setup, echo=TRUE, results="hide",warning=TRUE,message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(lubridate)
+library(stringr)
+library(stringi)
+library(rPython)
+library(Rcpp)
+library(plyr)
+
+#some global locations
+top_dir <- "/home/mikola/slurm_simulator3/slurm_sim_tools/validation"
+
+real_top_dir <- "/home/mikola/slurm_simulator3/slurm_real/5"
+sim_top_dir <- "/home/mikola/slurm_simulator3/sim/micro3/results"
+
+setwd(top_dir)
+source("../Rutil/trace_job_util.R")
+```
+
+# Reads Data
+
+```{r}
+sacct_r <- read_sacct_out(file.path(real_top_dir,"slurm_acct.out"))
+sacct_r$ref_job_id <- as.integer(sub("\\.sh","",sacct_r$JobName))
+sacct_r$Slurm <- "Real"
+sacct_r$NTasks <- NULL
+sacct_r$ReqGRES <- NULL
+sacct_r <- sacct_r[order(sacct_r$Start,sacct_r$local_job_id),]
+sacct_r$istart <- seq_along(sacct_r$Start)
+
+sacct_s <- read_sacct_out(file.path(sim_top_dir,"jobcomp.log"))
+sacct_s$ref_job_id <- as.integer(sacct_s$JobName)
+sacct_s$Slurm <- "Simulated"
+sacct_s <- sacct_s[order(sacct_s$Start,sacct_s$local_job_id),]
+sacct_s$istart <- seq_along(sacct_s$Start)
+
+#shift time
+dt <- min(as.integer(sacct_s$Submit)-as.integer(sacct_r$Submit))
+print(paste("dt:",dt))
+sacct_s[,c("Submit","Eligible","Start","End")]<-sacct_s[,c("Submit","Eligible","Start","End")]-dt
+
+sacctM <- merge(sacct_r,sacct_s,by="local_job_id",all=TRUE,suffixes = c("_r","_s"))
+sacctM <- sacctM[order(sacctM$Start_r),]
+
+sacctRB <- rbind(sacct_r,sacct_s)
+```
+
+```{r}
+bf_s <- read.csv(file.path(sim_top_dir,"simstat_backfill.csv"))
+colnames(bf_s)[colnames(bf_s) == 'output_time'] <- 't'
+for(col in c("t","last_cycle_when"))bf_s[,col] <- as.POSIXct(bf_s[,col],format = "%Y-%m-%d %H:%M:%S")
+#drop duplicates
+bf_s<-bf_s[bf_s$last_cycle_when>as.POSIXct("2001-01-01"),]
+bf_s<-bf_s[!duplicated(bf_s$last_cycle_when),]
+bf_s$t <- bf_s$last_cycle_when
+bf_s$run_sim_time <- bf_s$last_cycle/1000000.0
+bf_s$total_cycles <- seq_along(bf_s$t)
+bf_s$Slurm <- "Simulated"
+sdiag_r <- read.csv(file.path(real_top_dir,"sdiag.csv"))
+for(col in c("sdiag_output_time","data_since","backfil_stats__last_cycle_when"))sdiag_r[,col] <- as.POSIXct(sdiag_r[,col],format = "%Y-%m-%d %H:%M:%S")
+
+bf_r <- sdiag_r[sdiag_r$backfil_stats__last_cycle_when>as.POSIXct("2001-01-01"),c(
+    "backfil_stats__last_cycle_when",
+    "backfil_stats__last_cycle",
+    "backfil_stats__last_depth_cycle",
+    "backfil_stats__last_depth_cycle_try_sched",
+    "backfil_stats__last_queue_length",
+    "backfil_stats__total_cycles"
+)]
+colnames(bf_r) <- sub("backfil_stats__","",colnames(bf_r))
+#drop duplicates
+bf_r<-bf_r[!duplicated(bf_r$last_cycle_when),]
+bf_r$t <- bf_r$last_cycle_when
+bf_r$run_real_time <- bf_r$last_cycle/1000000.0
+bf_r$Slurm <- "Real"
+
+bf <- rbind(
+    bf_r[,c("last_cycle_when", "last_cycle", "run_real_time", "last_depth_cycle", "last_depth_cycle_try_sched", "total_cycles", "Slurm")],
+    bf_s[,c("last_cycle_when", "last_cycle", "run_real_time", "last_depth_cycle", "last_depth_cycle_try_sched", "total_cycles", "Slurm")]
+)
+bf <- bf[order(bf$last_cycle_when),]
+```
+
+# Start time
+
+```{r , fig.width=20, fig.height=6}
+
+sacctM$dStart<- sacctM$Start_s-sacctM$Start_r
+sacctM[,c("local_job_id","Start_r","Start_s","dStart","istart_r","istart_s")]
+```
+
+# Backfill running times
+```{r , fig.width=20, fig.height=6}
+
+print()
+```
+
+
+
+#Events from logs
+
+```{r}
+slurmctrld_log_filename_r <- file.path(real_top_dir,"slurmctld.log")
+slurmctrld_log_filename_s <- file.path(sim_top_dir,"slurmctld.log")
+
+grep_events_in_log <- function(filename,str_comp){
+  cmd <-paste0("grep '",str_comp,"' ",filename, " | cut -f 1 -d ' '")
+  out <- system(cmd,intern = TRUE)
+  out2 <- as.POSIXct(out,format = "[%Y-%m-%dT%H:%M:%OS]")
+  rm(cmd,out)
+  out2
+}
+
+grep_events_in_log2 <- function(filename,str_comp,str_extract,cols,conv){
+  cmd <-paste0("grep '",str_comp,"' ",filename)
+  out <- system(cmd,intern = TRUE)
+  p <- paste0("^\\[([^]]+)\\] ",str_extract)
+  out2 <- str_match(out,p)
+  out3 <- data.frame(out2[,2:ncol(out2)])
+  colnames(out3) <- c("t",cols)
+  out3$t <- as.POSIXct(out3$t,format = "%Y-%m-%dT%H:%M:%OS ")
+  
+  for(i in 2:ncol(out3)){
+    out3[,colnames(out3)[i]]<-conv[[i-1]](as.character(out3[,colnames(out3)[i]]))
+  }
+  
+  rm(cmd,out,out2)
+  out3
+}
+
+#sched_t <- grep_events_in_log(slurmctrld_log_filename, "debug:  sched: Running job scheduler")
+
+schedAlloc_r <- grep_events_in_log2(slurmctrld_log_filename_r,
+    str_comp="sched: Allocate JobID=",
+    str_extract="sched: Allocate JobID=([0-9]+)",
+    cols=c("job_id"),conv=c(as.integer))
+bfAlloc_r <- grep_events_in_log2(slurmctrld_log_filename_r,
+    str_comp="backfill: Started JobId=",
+    str_extract="backfill: Started JobId=([0-9]+)",
+    cols=c("job_id"),conv=c(as.integer))
+schedAlloc_s <- grep_events_in_log2(slurmctrld_log_filename_s,
+    str_comp="sched: Allocate JobID=",
+    str_extract="sched: Allocate JobID=([0-9]+)",
+    cols=c("job_id"),conv=c(as.integer))
+bfAlloc_s <- grep_events_in_log2(slurmctrld_log_filename_s,
+    str_comp="backfill: Started JobId=",
+    str_extract="backfill: Started JobId=([0-9]+)",
+    cols=c("job_id"),conv=c(as.integer))
+
+# out2 <- stri_split_lines(out)
+```
+
+
+```{r , fig.width=20, fig.height=6}
+
+sacctM$Sched_r <- sacctM$local_job_id %in% schedAlloc_r$job_id
+sacctM$Sched_s <- sacctM$local_job_id %in% schedAlloc_s$job_id
+
+
+sacctM[,c("local_job_id","Start_r","Start_s","dStart","istart_r","istart_s","Sched_r","Sched_s")]
+```
+
+

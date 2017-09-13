@@ -1,0 +1,90 @@
+---
+title: "Slurm Simulator: Installation"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This installation guide is tested on fresh installation of CenOS 7 (CentOS-7-x86_64-DVD-1611.iso KDE Plasma Workspaces with Development Tools)
+
+
+Since there are many absolute paths in slurm.conf, it can be helpfull to create a separate user for slurm named slurm
+
+#create work space for Slurm simulation activities
+mkdir slurm_sim_ws
+cd slurm_sim_ws
+
+#get Slurm Simulator source code
+Here the assamption is that slurm simulator is installed in maching with proper firewall setup ....
+
+git clone https://github.com/nsimakov/slurm_simulator.git
+
+cd slurm_simulator
+
+#ensure what slurm-17.02_Sim branch is used
+git branch                                                                        
+* slurm-17.02_Sim
+
+#if it is not the case checkout proper branch:
+git fetch
+git checkout slurm-17.02_Sim 
+
+
+#Prerequirements
+#install MySQL (MariaDB in this case)
+sudo yum install mariadb-server
+sudo yum install mariadb-devel
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+
+#Run mysql_secure_installation for more secure installation if needed
+#If machine is not accessible from the outside it is ok not to run it
+sudo mysql_secure_installation
+
+#Prepare builing directory
+cd ..
+mkdir bld_opt
+cd bld_opt
+
+#configure
+../slurm_simulator/configure --prefix=/home/slurm/slurm_sim_ws/slurm_opt --enable-simulator \
+    --enable-pam --without-munge --enable-front-end --with-mysql-config=/usr/bin/ --disable-debug \
+    CFLAGS="-g -O3 -D NDEBUG=1"
+    
+#check config.log and ensure that mysql is found:
+configure:4672: checking for mysql_config
+configure:4690: found /usr/bin//mysql_config
+#check that openssl is found:
+configure:24145: checking for OpenSSL directory
+configure:24213: gcc -o conftest -g -O3 -D NDEBUG=1 -pthread -I/usr/include  -L/usr/lib   conftest.c   -lcrypto >&5
+configure:24213: $? = 0
+configure:24213: ./conftest
+configure:24213: $? = 0
+configure:24234: result: /usr
+
+Slurm can work without MySQL or OpenSSL so if they are not slurm still can be configured, 
+however in most cases these libraries would be needed for simulation.
+
+#make and install
+make -j install
+
+#slurm_sim_tools
+
+#Prerequirements
+#python3
+sudo yum -y install install epel-release
+sudo yum -y install python34 python34-libs python34-devel python34-numpy python34-scipy python34-pip
+sudo pip3 install pymysql
+sudo pip3 install pandas
+
+#R
+sudo yum -y install R R-Rcpp R-Rcpp-devel
+sudo yum -y install python-devel
+wget https://download1.rstudio.org/rstudio-1.0.136-x86_64.rpm
+sudo yum -y install rstudio-1.0.136-x86_64.rpm
+#
+git clone https://github.com/nsimakov/slurm_sim_tools.git
+
+

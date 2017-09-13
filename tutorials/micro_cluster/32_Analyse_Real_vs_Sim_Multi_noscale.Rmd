@@ -1,0 +1,293 @@
+---
+title: "Analysing SLRUM Real and Simulated Output"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+```{r setup, echo=TRUE, results="hide",warning=TRUE,message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(lubridate)
+library(stringr)
+
+library(rPython)
+library(Rcpp)
+library(plyr)
+#library(cowplot)
+
+#some global locations
+top_dir <- "/home/mikola/slurm_simulator3/slurm_sim_tools/validation"
+
+real_top_dir <- "/home/mikola/slurm_simulator3/slurm_real"
+sim_top_dir <- "/home/mikola/slurm_simulator3/sim/micro3/results"
+
+setwd(top_dir)
+source("../Rutil/trace_job_util.R")
+
+source("micro_conf.R")
+```
+
+# Reads Data
+
+## Read almost real slurm
+```{r}
+init_start_time <- as.POSIXct("2017-03-01")
+sacct_ref <- NULL
+sacct_r <- data.frame()
+#for(sacct_out in c("3","5","4stewart","6stewart","8stewart"))
+for(sacct_out in c("s1","s2","s3","s4","s5","s6"))
+{
+    print(paste("Reading:",sacct_out))
+    sacct_r0 <- read_sacct_out(file.path(real_top_dir,sacct_out,"slurm_acct.out"),micro_nodes)
+    sacct_r0$ref_job_id <- as.integer(sub("\\.sh","",sacct_r0$JobName))
+    sacct_r0$Slurm <- "Real"
+    sacct_r0$RunID <- sacct_out
+    sacct_r0$NTasks <- NULL
+    sacct_r0$ReqGRES <- NULL
+    
+    sacct_r0<-sacct_r0[order(sacct_r0$ref_job_id),]
+    
+    print(paste0("job_id diff:",sum(abs(sacct_r0$ref_job_id-sacct_r0$local_job_id))))
+    
+    #shift time
+    dt <- min(as.integer(sacct_r0$Submit))-as.integer(init_start_time)
+    print(paste("dt:",dt))
+    sacct_r0[,c("Submit","Eligible","Start","End")]<-sacct_r0[,c("Submit","Eligible","Start","End")]-dt
+
+  
+    if(is.null(sacct_ref)){
+        sacct_ref<-sacct_r0
+    }
+    
+    sacct_r <- rbind(sacct_r,sacct_r0)
+}
+rm(sacct_r0)
+
+#sacct_s <- read_sacct_out(file.path(sim_top_dir,"jobcomp.log"))
+#sacct_s$ref_job_id <- as.integer(sacct_s$JobName)
+#sacct_s$Slurm <- "Simulated"
+
+#sacctM <- merge(sacct_r,sacct_s,by="local_job_id",all=TRUE,suffixes = c("_r","_s"))
+#sacctRB <- rbind(sacct_r,sacct_s)
+```
+
+## Read simulated slurm data
+```{r}
+
+sacct_s <- data.frame()
+
+sim_res_dirs <- list.files(file.path(sim_top_dir))
+
+for(sim_dir in sim_res_dirs)
+{
+    #print(paste("Reading from:",sim_dir))
+    sacct0 <- read_sacct_out(file.path(sim_top_dir,sim_dir,"jobcomp.log"),micro_nodes)
+    sacct0$ref_job_id <- as.integer(sacct0$JobName)
+    sacct0$Slurm <- "Simulated"
+    sacct0$RunID <- sim_dir
+    
+    sacct0<-sacct0[order(sacct0$ref_job_id),]
+  
+    #shift time
+    dt <- min(as.integer(sacct0$Submit))-as.integer(init_start_time)
+    sacct0[,c("Submit","Eligible","Start","End")]<-sacct0[,c("Submit","Eligible","Start","End")]-dt
+  
+  sacct_s <- rbind(sacct_s,sacct0)
+}
+rm(sacct0)
+```
+## Merge into single dataframe
+```{r}
+sacctRB <- rbind(sacct_s,sacct_r)
+
+
+```
+
+
+## Checking that reference job_id matches
+
+```{r}
+print(paste("job id difference in real:",sum(sacct_r$ref_job_id -sacct_r$local_job_id)))
+print(paste("job id difference in simulated:",sum(sacct_s$ref_job_id -sacct_s$local_job_id)))
+
+```
+# Start times averages
+
+```{r , fig.width=20, fig.height=8}
+sacctRB$StartTS<-as.integer(sacctRB$Start)
+sacct_ref$StartTS<-as.integer(sacct_ref$Start)
+
+StartMean_r <- aggregate(sacctRB$StartTS[sacctRB$Slurm=="Real"],by=list(sacctRB$local_job_id[sacctRB$Slurm=="Real"]),FUN=mean)
+colnames(StartMean_r)<-c("local_job_id","StartMean")
+
+StartMean_s <- aggregate(sacctRB$StartTS[sacctRB$Slurm=="Simulated"],by=list(sacctRB$local_job_id[sacctRB$Slurm=="Simulated"]),FUN=mean)
+colnames(StartMean_s)<-c("local_job_id","StartMean")
+
+StartMean_rs <- merge(StartMean_r,StartMean_s,by="local_job_id",suffixes = c("_r","_s"))
+
+StartMean_rs$dStart <- (StartMean_rs$StartMean_s-StartMean_rs$StartMean_r)/60
+
+print(paste("Start time difference:",mean(StartMean_rs$dStart),sd(StartMean_rs$dStart),max(StartMean_rs$dStart),"minutes"))
+
+```
+
+# Start times
+
+```{r , fig.width=20, fig.height=8}
+sacctRB$StartTS<-as.integer(sacctRB$Start)
+sacct_ref$StartTS<-as.integer(sacct_ref$Start)
+
+StartMean <- aggregate(sacctRB$StartTS[sacctRB$Slurm=="Real"],by=list(sacct_r$local_job_id),FUN=mean)
+colnames(StartMean)<-c("local_job_id","StartMean")
+Start <- merge(sacctRB[,c("local_job_id","StartTS","Slurm","RunID")],StartMean,by="local_job_id")
+Start$DiffStart <- (Start$StartTS-Start$StartMean)/3600.0
+
+sum(is.na(Start$DiffStart ))
+
+
+Start <- Start[order(Start$Slurm=="Real",Start$RunID,Start$local_job_id),]
+```
+```{r , fig.width=5, fig.height=7,dpi=300}
+StartRealSim <- merge(
+    subset(Start,Slurm=="Real"&RunID=="s1"),
+    subset(Start,Slurm=="Simulated"&RunID=="StartSecondsBeforeFirstJob_30"),
+    by="local_job_id",suffixes = c("_r","_s"))
+
+StartRealSim$dStart <- StartRealSim$DiffStart_s-StartRealSim$DiffStart_r
+#~delta~t_{start}
+p<-grid.arrange(
+ggplot()+ylab(expression(Delta~t["start"]~", hours"))+xlab("Job Id")+ggtitle("A")+
+    theme(plot.title = element_text(face="bold",hjust = -.09, vjust=0))+
+    geom_point(data=StartRealSim,aes(x=local_job_id,y=dStart),size=1)
+,
+ggplot()+ylab(expression(t["start"]-group("|",t["start"]^"real","|")~", hours"))+xlab("Job Id")+ggtitle("B")+
+    theme(legend.position = "bottom",legend.justification = "right",legend.margin=margin(-15),
+          plot.title = element_text(face="bold",hjust = -.11, vjust=0))+
+    geom_point(data=Start,aes(x=local_job_id,y=DiffStart,colour=Slurm,fill=Slurm,alpha=Slurm,size=Slurm,shape=Slurm))+
+    scale_alpha_manual(values = c(1.0,0.025))+
+    scale_size_manual(values = c(0.5,1.0))+
+    scale_shape_manual(values = c(21L,16L))+
+    scale_color_manual(values = c("orangered4","royalblue"))+
+    scale_fill_manual(values = c("orangered","royalblue"))+
+    guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
+,
+ggplot(data=Start,aes(x=DiffStart, ..density.. ,colour=Slurm))+ggtitle("C")+
+    xlab(expression(t["start"]-group("|",t["start"]^"real","|")~", hours"))+ylab("Density")+
+    theme(legend.position = "bottom",legend.justification = "right",legend.margin=margin(-15),
+          plot.title = element_text(face="bold",hjust = -.11, vjust=0))+
+    xlim(-2.5,2.5)+
+    geom_freqpoly(binwidth=0.05,size=1)+
+    scale_colour_manual(values = c("orangered","royalblue"))
+)
+#ggsave('micro_dstart.png',p)
+```
+
+```{r , fig.width=6, fig.height=4,dpi=300}
+grid.arrange(
+ggplot()+ylab("Start Time Difference, Hours")+xlab("Job Id")+
+    geom_point(data=Start[Start$Slurm=="Simulated",],aes(x=local_job_id,y=DiffStart),alpha=0.025,size=2,shape=16,color="royalblue",show.legend=TRUE)+
+    geom_point(data=Start[Start$Slurm=="Real"&Start$RunID %in% c("s1","s2","s3","s4","s5","s6"),],aes(x=local_job_id,y=DiffStart),alpha=1.0,size=1.0,fill="orangered", shape=21),
+ggplot(data=Start,aes(x=DiffStart,colour=Slurm))+xlab("Start Time Difference, Hours")+
+        geom_density()
+)
+
+```
+```{r , fig.width=20, fig.height=8}
+grid.arrange(
+    ggplot(data=Start)+ylab("hours")+xlab("job_id")+
+        geom_point(aes(x=local_job_id,y=DiffStart,colour=Slurm),alpha=1),
+    ggplot(data=Start[Start$Slurm=="Real",])+xlab("hours")+xlim(-6,6)+ggtitle("Almost Real")+
+        geom_density(aes(x=DiffStart),binwidth=0.1),
+    ggplot(data=Start[Start$Slurm=="Simulated",])+xlab("hours")+xlim(-6,6)+ggtitle("Simulated")+
+        geom_density(aes(x=DiffStart),binwidth=0.1),
+    ncol=1
+)
+#ggplot(data=Start)+xlab("hours")+
+#    geom_histogram(aes(x=StartTS,colour=Slurm))+ facet_wrap(~ Slurm)
+
+```
+
+# Utilization
+
+
+```{r}
+dt <- 60L
+
+Slurm_RunID <- unique(sacctRB[,c('Slurm','RunID')])
+
+
+
+utilRB<-do.call("rbind",apply(Slurm_RunID,1,FUN = function(x){
+    #print(x[['Slurm']])
+    u<-get_utilization(sacctRB[sacctRB$Slurm==x[["Slurm"]]&sacctRB$RunID==x[["RunID"]],],micro_nodes,dt)
+    u$Slurm<-x[["Slurm"]]
+    u$RunID<-x[["RunID"]]
+    u
+}))
+
+```
+
+
+```{r , fig.width=6, fig.height=3,dpi=300}
+p<-ggplot(data=utilRB[utilRB$RunID %in% c("s1","StartSecondsBeforeFirstJob_30"),])+
+    xlab("Time")+ylab("Utilization")+
+    theme(legend.position = "bottom",legend.justification = "right",legend.margin=margin(-15))+
+    geom_line(aes(x=t,y=total_norm,colour=Slurm),size=0.75,alpha=0.6)+
+    scale_color_manual(values = c("orangered","royalblue"))
+ggsave('util.png',p,width = 6,height = 3)
+p
+#
+```
+
+
+# Are distribution same ?
+```{r , fig.width=20, fig.height=4,dpi=300}
+dist<-layer_data(ggplot(data=Start,aes(x=DiffStart, ..density.. ,colour=Slurm))+xlim(-4,4)+
+    geom_freqpoly(binwidth=0.05,size=1),i=1L)
+
+dist1 <- subset(dist,group==1,c(x,density))
+dist2 <- subset(dist,group==2,c(x,density))
+dist12<-merge(dist1,dist2,by="x",suffixes = c("1","2"))
+
+plot(dist$x,dist$density,type="n")
+lines(dist12$x,dist12$density1,col="red")
+lines(dist12$x,dist12$density2,col="blue")
+```
+
+```{r , fig.width=20, fig.height=4,dpi=300}
+dr <- subset(Start,Slurm=="Real",DiffStart)$DiffStart
+ds <- subset(Start,Slurm=="Simulated",DiffStart)$DiffStart
+
+
+ggplot()+xlim(-4,4)+
+    geom_freqpoly(aes(x=dr, ..density..),binwidth=0.1,size=1,color="red")+
+    geom_freqpoly(aes(x=ds, ..density..),binwidth=0.1,size=1,color="blue")
+
+var.test(dr,ds)
+t.test(dr,ds, var.equal=FALSE, paired=FALSE)
+
+ks.test(dr, ds, exact = FALSE)
+```
+# Are distribution same ?
+```{r}
+
+dstart_ave<-as.data.frame(as.list(aggregate(DiffStart~Slurm+RunID,data=Start,FUN=mean)))
+
+da_r <- subset(dstart_ave,Slurm=="Real",DiffStart)$DiffStart
+da_s <- subset(dstart_ave,Slurm=="Simulated",DiffStart)$DiffStart
+
+
+var.test(da_r,da_s)
+t.test(da_r,da_s, var.equal=FALSE, paired=FALSE)
+
+ks.test(da_r, da_s, exact = TRUE)
+
+```
+```{r , fig.width=20, fig.height=4,dpi=300}
+
+plot(da_s)
+```
