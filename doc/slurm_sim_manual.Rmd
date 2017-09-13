@@ -1,6 +1,7 @@
 ---
-title: 'Slurm Simulator'
-author: 'Nikolay Simakov, Center for Computational Reseach, SUNY, University at Buffalo'
+title: "Slurm Simulator. Mini Tutorial/Installation/User Guide"
+author: "Nikolay Simakov, Center for Computational Reseach, SUNY, University at Buffalo"
+date: "09-13-2017"
 output:
   html_document:
     number_sections: yes
@@ -11,6 +12,15 @@ output:
     latex_engine: xelatex
 monofont: DejaVu Sans Mono
 ---
+
+Slurm simulator repositary:
+
+> [https://github.com/nsimakov/slurm_simulator](https://github.com/nsimakov/slurm_simulator)
+
+Toolkit and documentation for slurm simulator repositary:
+
+> [https://github.com/nsimakov/slurm_sim_tools](https://github.com/nsimakov/slurm_sim_tools)
+
 
 # Installation
 This installation guide is tested on fresh installation of CenOS 7 (CentOS-7-x86_64-DVD-1611.iso KDE Plasma Workspaces with Development Tools)
@@ -564,6 +574,7 @@ jobid,t,user,priority,age,fairshare,jobsize,partition,qos,nice,tres
 
 ## Load Libraries
 ```{r , echo=TRUE, results="hide",warning=TRUE,message=FALSE}
+library(dplyr)
 library(ggplot2)
 library(gridExtra)
 library(RSlurmSimTools)
