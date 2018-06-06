@@ -9,7 +9,7 @@
 last_job_id <- 1000L
 
 .onLoad <- function(libname, pkgname) {
-    last_job_id <<- 1000L
+    last_job_id <- 1000L
     #print("Hello")
     #print(system.file("python", package = "RSlurmSimTools") )
     rPython::python.load(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
@@ -109,7 +109,7 @@ sim_job <- function(job_id = NA,
         job_id <- last_job_id+1L
     }
     job_id <- as.integer(job_id)
-    last_job_id <<- job_id
+    last_job_id <- job_id
     
     
     wclimit <- as.integer(wclimit)
