@@ -4,7 +4,8 @@ library(RSlurmSimTools)
 
 # change working directory to this script directory
 top_dir <- NULL
-top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+#top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+top_dir <- getwd()
 print(top_dir)
 setwd(top_dir)
 
