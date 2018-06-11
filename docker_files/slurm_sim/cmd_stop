@@ -1,0 +1,51 @@
+#!/bin/bash
+
+kill_process(){
+  kill -SIGTERM $1
+  while [ -f /proc/$1 ];do sleep 1;done
+}
+
+stop_process(){
+    name=$1
+    pid_file=$2
+
+    if [ -f "${pid_file}" ]; then
+        echo "Stopping ${name}"
+        kill_process `cat ${pid_file}`
+    else
+        echo "${name} is not running"
+    fi
+}
+
+
+
+for var in "$@"
+do
+    case "$var" in
+    mysqld)
+        echo "Stopping mysqld"
+        mysqladmin shutdown
+        ;;
+    munged)
+        stop_process munged /run/munge/munged.pid
+        ;;
+    sshd)
+        stop_process sshd /run/sshd.pid
+        ;;
+    slurmdbd)
+        stop_process slurmdbd /run/slurmdbd.pid
+        ;;
+    slurmctld)
+        stop_process slurmctld /run/slurmctld.pid
+        ;;
+    slurmd)
+        stop_process slurmd /run/slurmd.pid
+        ;;
+    self_contained_slurm_wlm)
+        cmd_stop slurmd slurmctld slurmdbd mysqld sshd munged
+        ;;
+    *)
+        echo "unknown command ${var}"
+        ;;
+    esac
+done
