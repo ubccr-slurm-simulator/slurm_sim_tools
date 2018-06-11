@@ -1,0 +1,125 @@
+#!/bin/bash
+echo "Reach Entry Point"
+echo $$ > /var/run/enrypoint.pid
+
+set -e
+
+loop=0
+
+run_bash=0
+
+start_process(){
+    name=$1
+    command=$2
+    pid_file=$3
+
+    if [ ! -f "${pid_file}" ]; then
+        echo "Launching ${name}"
+        ${command}
+    elif [ ! -f "/proc/`cat ${pid_file}`" ]; then
+        echo "Launching ${name}"
+        ${command}
+    else
+        echo "${name} already running"
+    fi
+}
+
+# Start process and confirm it launches by looking for a
+# confirm_sentence in log_file.
+# Format:
+# start_process_w_confirm name command pid_file log_file confirm_sentence
+start_process_w_confirm(){
+    name=$1
+    command=$2
+    pid_file=$3
+    log_file=$4
+    confirm_sentence=$5
+    timeout_time=2
+
+    if [ -f "${pid_file}" ]; then
+        if [  -d "/proc/`cat ${pid_file}`" ]; then
+            echo "${name} already running"
+            return 1
+        fi
+    fi
+
+    if [ -f "${log_file}" ]; then
+        cat "${log_file}" >> "${log_file}.old"
+        rm "${log_file}"
+    fi
+
+    echo "Launching ${name}"
+    ${command}
+
+    for ((i=0; i < ${timeout_time}; i++))
+    {
+        if grep -q ${confirm_sentence} ${log_file} ; then
+            echo "${name} is up"
+            return 0
+        fi
+        sleep 1
+    }
+
+    echo "Something wrong with ${name}, can not find key-phrase in log"
+    return 1
+}
+
+
+for var in "$@"
+do
+    case "$var" in
+    mysqld)
+        echo "Launching mysqld"
+        trap "/sbin/shutdown.sh mysqld; exit" SIGHUP SIGINT SIGTERM
+        mysqld_safe &
+        mysqladmin --silent --wait=30 ping
+        ;;
+    munged)
+        start_process munged munged /run/munge/munged.pid
+        ;;
+    sshd)
+        start_process sshd /usr/sbin/sshd /run/sshd.pid
+        ;;
+    slurmdbd)
+        start_process_w_confirm slurmdbd /usr/sbin/slurmdbd /run/slurmdbd.pid \
+            /var/log/slurm/slurmdbd.log started
+        ;;
+    slurmctld)
+        start_process_w_confirm slurmctld /usr/sbin/slurmctld /run/slurmctld.pid \
+            /var/log/slurm/slurmctld.log started
+        ;;
+    slurmd)
+        start_process_w_confirm slurmd /usr/sbin/slurmd /run/slurmd.pid \
+            /var/log/slurm/slurmd.log started
+        ;;
+    self_contained_slurm_wlm)
+        cmd_start munged sshd mysqld slurmdbd slurmctld slurmd
+        ;;
+    bash)
+        echo "Launching bash"
+        run_bash=1
+        ;;
+    -loop)
+        loop=1
+        ;;
+    -set-no-exit-on-fail)
+        set +e
+        ;;
+    -set-exit-on-fail)
+        set -e
+        ;;
+    *)
+        echo "Executing ${var}"
+        ${var}
+        ;;
+    esac
+done
+
+if [ $run_bash -eq 1 ]; then
+    /bin/bash
+elif [ $loop -eq 1 ]; then
+    echo "All requested daemon launched"
+    while true; do
+        sleep 60
+    done
+fi
