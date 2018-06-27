@@ -269,7 +269,7 @@ write_trace <- function(trace_filename,trace){
         ),
         sim_req_mem_per_cpu=list(
             col_type="integer",
-            na_ok=FALSE
+            na_ok=TRUE
         ),
         sim_features=list(
             col_type="character",
@@ -281,7 +281,7 @@ write_trace <- function(trace_filename,trace){
         ),
         sim_shared=list(
             col_type="integer",
-            na_ok=FALSE
+            na_ok=TRUE
         ),
         sim_cancelled_ts=list(
             col_type="integer",
