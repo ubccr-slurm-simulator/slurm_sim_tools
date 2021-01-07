@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 import logging as log
-import pprint
+from pprint import pprint
 import shutil
 import pymysql
 import pwd
@@ -12,6 +12,12 @@ import pandas as pd
 import traceback
 import inspect
 from time import sleep,time
+import re
+import math
+import getpass
+import psutil
+import json
+from collections import OrderedDict
 
 slurmdbd_proc=None
 slurmdbd_out=None
@@ -45,19 +51,25 @@ def run_as_otheruser(username,args,**kwargs):
     user_uid       = pw_record.pw_uid
     user_gid       = pw_record.pw_gid
     env = os.environ.copy()
-    env[ 'HOME'     ]  = user_home_dir
-    env[ 'LOGNAME'  ]  = username
-    env[ 'PWD'      ]  = cwd  if 'cwd' not in kwargs else kwargs['env']
-    env[ 'USER'     ]  = username
+    env['HOME'     ]  = user_home_dir
+    env['LOGNAME'  ]  = username
+    env['PWD'      ]  = cwd  if 'cwd' not in kwargs else kwargs['cwd']
+    env['USER'     ]  = username
+    env['USERNAME' ]  = username
     if 'env' in kwargs:
         env.update(kwargs['env'])
     kwargs['env']=env
-    
+
+    #if username=="root":
+    #    args = ['sudo'] + args
+    #else:
     kwargs['preexec_fn']=demote(user_uid, user_gid)
     
     if 'cwd' not in kwargs:
         kwargs['cwd']=cwd
-    
+
+    #pprint(args)
+    #pprint(kwargs)
     
     process = subprocess.Popen(
         args, **kwargs
@@ -69,7 +81,9 @@ def slurm_conf_parser(slurm_conf_loc):
     if not os.path.isfile(slurm_conf_loc):
         raise Exception("Can not find slurm.conf at "+slurm_conf_loc)
     
-    params={}
+    params = {
+        'SlurmdUser': 'root'
+    }
     with open(slurm_conf_loc,'rt') as fin:
         lines=fin.readlines()
         for l in lines:
@@ -114,7 +128,7 @@ def signal_handler(m_signal, frame):
     
     sys.exit(0)
 
-def read_trace_and_prep_scripts(trace_file_name):
+def read_trace_and_prep_scripts_old(trace_file_name):
     global trace
     trace=pd.read_csv(trace_file_name)
     
@@ -148,12 +162,100 @@ def read_trace_and_prep_scripts(trace_file_name):
         with open(job.script_path,"wt") as fout:
             fout.write(script)
         shutil.chown(job.script_path,group="users")
-    
+
+
+def read_trace(trace_file_name):
+    global trace
+    trace=[]
+    #simulator_start_time = math.ceil(time())
+    with open(trace_file_name, "rt") as fin:
+        for line in fin:
+            event_command, event_details=line.split("|")
+            event_command = event_command.strip().split()
+            event_details = event_details.strip()
+
+            dt = int(event_command[event_command.index("-dt")+1])
+            etype = event_command[event_command.index("-e")+1]
+            if etype=="submit_batch_job":
+                etype = "SIM_SUBMIT_BATCH_JOB"
+                sbatch = event_details
+                # pull out --uid=user1
+                m = re.search("--uid=([A-Za-z0-9]+)", sbatch)
+                if m:
+                    user = m.group(1)
+                    sbatch = re.sub("--uid=[A-Za-z0-9]+", "", sbatch)
+                else:
+                    user = getpass.getuser()
+                # pull out -sim-walltime 10
+                m = re.search("-sim-walltime\s+([0-9]+)", sbatch)
+                if m:
+                    walltime = int(m.group(1))
+                    sbatch = re.sub("-sim-walltime\s+[0-9]+", "", sbatch)
+                else:
+                    walltime = 365*24*3600
+
+                # job id
+                m = re.search("-jid\s+([0-9]+)", sbatch)
+                if m:
+                    job_id = "jobid_" + m.group(1)
+                    sbatch = re.sub("-jid\s+[0-9]+", "", sbatch)
+                else:
+                    job_id = "jobid_None"
+                sbatch = "-J " + job_id + " " + sbatch
+
+
+                # pull out pseudo.job
+                sbatch = sbatch.replace("pseudo.job", "/usr/local/miniapps/sleep.job %d" % walltime)
+
+
+                payload = {
+                    'user': user,
+                    'walltime': walltime,
+                    'sbatch': sbatch
+                }
+            else:
+                payload = None
+
+
+            trace.append({"dt":dt,"etype":etype,"payload":payload})
+
+def get_process_realtimestat(p):
+    r = OrderedDict()
+    try:
+        r['cpu_times'] = p.cpu_times()._asdict()
+    except:
+        r['cpu_times'] = None
+
+    try:
+        r['cpu_percent'] = p.cpu_percent()
+    except:
+        r['cpu_percent'] = None
+
+    try:
+        r['memory_info'] = p.memory_info()._asdict()
+    except:
+        r['memory_info'] = None
+
+    try:
+        r['io_counters'] = p.io_counters()._asdict()
+    except:
+        r['io_counters'] = None
+
+    try:
+        r['num_threads'] = p.num_threads()
+    except:
+        r['num_threads'] = None
+
+    try:
+        r['threads'] = [t._asdict() for t in p.threads()]
+    except:
+        r['threads'] = None
+
+    return r
 
 def run_slurm(args):
-    
     #read trace
-    read_trace_and_prep_scripts(args.trace)
+    read_trace(args.trace)
     ##
     #start all slurm daemons
     slurm_conf_loc=os.path.join(args.etc,'slurm.conf')
@@ -164,9 +266,13 @@ def run_slurm(args):
     sbatch_loc=os.path.join(args.slurm,'bin','sbatch')
     sacctmgr_loc=os.path.join(args.slurm,'bin','sacctmgr')
     sacct_loc=os.path.join(args.slurm,'bin','sacct')
+    sinfo_loc=os.path.join(args.slurm,'bin','sinfo')
+    squeue_loc=os.path.join(args.slurm,'bin','squeue')
     monitor_loc=os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),"monitor_slurm.sh")
     
     results_dir=os.path.abspath(args.results)
+    results_perf_stat_loc=os.path.join(results_dir,'perf_stat.log')
+    results_perf_profile_loc = os.path.join(results_dir, 'perf_profile.log')
     
     #check files presence
     if not os.path.isfile(slurm_conf_loc):
@@ -191,6 +297,7 @@ def run_slurm(args):
     slurm_conf["SlurmdbdLogFile".lower()]=slurmdbd_conf["LogFile".lower()]
     
     SlurmUser=slurm_conf["SlurmUser".lower()]
+    SlurmdUser=slurm_conf["SlurmdUser".lower()]
         
     if 'PidFile'.lower() in slurmdbd_conf:
         slurm_conf["SlurmdbdPidFile".lower()]=slurmdbd_conf["PidFile".lower()]
@@ -270,7 +377,9 @@ def run_slurm(args):
     os.makedirs(results_dir, mode=0o755, exist_ok=True)
     os.system("chown -R "+SlurmUser+":"+SlurmUser+" "+os.path.dirname(results_dir))
     os.chdir(results_dir)
-    
+
+    perf_stat = open(results_perf_stat_loc, "wt")
+    perf_profile = open(results_perf_profile_loc, "wt")
     
     #make nessesary directories
     #/var/state/
@@ -311,8 +420,9 @@ def run_slurm(args):
     
     #start slurmd
     global slurmd_proc
-    slurmd_proc=subprocess.Popen([slurmd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
-                                   stdout=slurmd_out,stderr=slurmd_out)
+    slurmd_proc = run_as_otheruser(
+        SlurmdUser,[slurmd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
+        stdout=slurmd_out,stderr=slurmd_out)
     #let the slurmd to spin-off
     sleep(1)
     
@@ -322,48 +432,109 @@ def run_slurm(args):
                                        stdout=slurmctld_out,stderr=slurmctld_out)
     #let the slurmctrl to spin-off
     sleep(5)
+
+    # check that all nodes up
+    ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
+    for sline in ssinfo[1:]:
+        sfields = sline.split()
+        if sfields[4]=="down":
+            print("Nodes %s are down, resuming them" % sfields[5])
+            print(subprocess.check_output(
+                ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
+    print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
     
     #start monitor
     global monitor_proc    
-    monitor_proc=run_as_otheruser(SlurmUser,[monitor_loc],env={'SLURM_CONF':slurm_conf_loc})
+    monitor_proc=run_as_otheruser(SlurmUser,[monitor_loc], env={'SLURM_CONF':slurm_conf_loc,'SLURM_HOME':args.slurm})
     
     #print("start slurmd now: "+slurmd_loc+' -Dvv')
     
+    pslurmdbd = psutil.Process(pid=slurmdbd_proc.pid)
+    pslurmctld = psutil.Process(pid=slurmctld_proc.pid)
+    pslurmd = psutil.Process(pid=slurmd_proc.pid)
 
+    log.info("Current time %s" % time())
+    log.info("slurmdbd_create_time=%s" % pslurmdbd.create_time())
+    log.info("slurmctld_create_time=%s" % pslurmctld.create_time())
+    log.info("slurmd_create_time=%s" % pslurmd.create_time())
 
-    jobs_starts=int(time()+args.dtstart)
+    last_realtime_proc_time = time();
+    realtimestat = OrderedDict([
+        ('time', last_realtime_proc_time),
+        ('slurmdbd', get_process_realtimestat(pslurmdbd)),
+        ('slurmd', get_process_realtimestat(pslurmd)),
+        ('slurmctld', get_process_realtimestat(pslurmctld))
+    ])
+    perf_profile.write("[\n" + json.dumps(realtimestat, indent=" "))
+
+    jobs_starts=int(pslurmctld.create_time()+args.dtstart)
+
+    perf_stat.write(json.dumps(OrderedDict([
+        ('slurmdbd_create_time', pslurmdbd.create_time()),
+        ('slurmctld_create_time', pslurmctld.create_time()),
+        ('slurmd_create_time', pslurmd.create_time()),
+        ('jobs_starts', jobs_starts)]),
+        indent=" "))
     global trace
-    trace.sim_submit_ts+=jobs_starts
+
+    for i in range(len(trace)):
+        trace[i]['sim_submit_ts'] = jobs_starts + trace[i]['dt']
     ijob=0
     log.info("Starting job submittion")
-    
+
+    last_job_submit_time = time() + 2*365*24*3600
     try:
         while slurmctld_proc.poll() is None:
             if args.run_time>0 and time()-start>args.run_time:
                 break
             now=time()
-            Njobs=trace.shape[0]
-            while ijob<Njobs and trace.sim_submit_ts.iloc[ijob] < now:
-                user=trace.sim_username.iloc[ijob]
-                script_path=trace.script_path.iloc[ijob]
+            Njobs=len(trace)
+            # submit all jobs for which submit time is expired
+            while ijob<Njobs and trace[ijob]['sim_submit_ts'] < now:
+                user=trace[ijob]['payload']['user']
+                sbatch_args=trace[ijob]['payload']['sbatch']
                 #print("time to start"+str(trace.iloc[ijob]))
                 #
                 #
                 #subprocess.run(cmd, shell=True)
-                cmd="%s %s"%(sbatch_loc,script_path)
+                cmd="%s %s"%(sbatch_loc,sbatch_args)
                 print("Executing: "+cmd+" For user "+user)
-                sbatch_proc=run_as_otheruser(user,cmd,env={'SLURM_CONF':slurm_conf_loc}, shell=True)
+                sbatch_proc=run_as_otheruser(
+                    user,cmd,env={'SLURM_CONF':slurm_conf_loc}, shell=True,
+                    cwd="/home/" + user)
                 sbatch_proc.wait()
                 ijob+=1
+                if ijob >= Njobs:
+                    last_job_submit_time = time()
+            if time()-last_realtime_proc_time > 60:
+                last_realtime_proc_time = time()
+                realtimestat = OrderedDict([
+                    ('time', last_realtime_proc_time),
+                    ('slurmdbd', get_process_realtimestat(pslurmdbd)),
+                    ('slurmd', get_process_realtimestat(pslurmd)),
+                    ('slurmctld', get_process_realtimestat(pslurmctld))
+                ])
+                perf_profile.write(",\n" + json.dumps((realtimestat), indent=" "))
+            if last_job_submit_time + 30 < time():
+                # i.e. all jobs are submitted
+                if len(subprocess.check_output([squeue_loc], env={'SLURM_CONF':slurm_conf_loc}).splitlines()) <= 1:
+                    perf_stat.write("]\n")
+                    sleep(60)
+                    break
+
             sleep(0.5)
     except:
         traceback.print_exc()
     #now keep waiting
-    log.info("All jobs submittes keep waiting...")
-    if args.run_time<=0:
+    if args.run_time<0:
+        log.info("All jobs submitted keep waiting...")
         while 1:
             sleep(1)
+    if args.run_time==0:
+        log.info("All jobs submitted wrapping up")
     else:
+        if time()-start<args.run_time:
+            log.info("All jobs submitted keep waiting...")
         while time()-start<args.run_time:
             sleep(1)
     
@@ -382,7 +553,7 @@ def run_slurm(args):
         monitor_proc.kill()
     
     #get sacct
-    sacct_proc=run_as_otheruser(SlurmUser,sacct_loc+""" --clusters micro --allusers \
+    sacct_proc=run_as_otheruser(SlurmUser,sacct_loc + " --clusters " + slurm_conf["ClusterName".lower()] + """ --allusers \
     --parsable2 --allocations \
     --format jobid,jobidraw,cluster,partition,account,group,gid,\
 user,uid,submit,eligible,start,end,elapsed,exitcode,state,nnodes,\
@@ -451,7 +622,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
             help="script for sacctmgr to setup accounts")
     parser.add_argument('-rt', '--run-time', required=False, type=int, default=0,
-            help="total time for slurm to run in seconds")
+            help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
     parser.add_argument('-r', '--results', required=False, type=str, default="results",
             help="copy results to that directory")
     parser.add_argument('-v', '--verbose', action='store_true', 

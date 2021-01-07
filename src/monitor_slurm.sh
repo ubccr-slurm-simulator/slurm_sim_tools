@@ -1,6 +1,6 @@
 #!/bin/bash
 
-slurm_dir=/home/mikola/slurm_simulator3/slurm_real
+slurm_dir=${SLURM_HOME:-/usr}
 
 sdiag=${slurm_dir}/bin/sdiag
 squeue=${slurm_dir}/bin/squeue
