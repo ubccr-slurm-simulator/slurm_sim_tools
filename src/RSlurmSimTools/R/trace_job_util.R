@@ -12,7 +12,9 @@ last_job_id <- 1000L
     last_job_id <- 1000L
     #print("Hello")
     #print(system.file("python", package = "RSlurmSimTools") )
-    rPython::python.load(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
+    #reticulate::source_python("/home/nikolays/slurm_sim_ws/slurm_sim_tools/src/RSlurmSimTools/inst/python/hostlist.py")
+    reticulate::source_python(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
+    #rPython::python.load(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
     
     invisible()
 }
@@ -406,7 +408,7 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
     if(extract_node_list==TRUE){
         #python.load(file.path(rutil_dir,"..","src","hostlist.py"))
         #slurm_log$NodeListFull <- python.call("expand_hostlists_to_str",slurm_log$NodeList)
-        slurm_log$NodeListFull <- rPython::python.call("expand_hostlists_to_list",slurm_log$NodeList)
+        slurm_log$NodeListFull <- expand_hostlists_to_list(slurm_log$NodeList)
     }
 
     #convert memory
