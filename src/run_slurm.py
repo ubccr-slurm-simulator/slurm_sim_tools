@@ -220,6 +220,8 @@ def read_trace(trace_file_name):
             trace.append({"dt":dt,"etype":etype,"payload":payload})
 
 def get_process_realtimestat(p):
+    if p is None:
+        return None
     r = OrderedDict()
     try:
         r['cpu_times'] = p.cpu_times()._asdict()
@@ -420,9 +422,10 @@ def run_slurm(args):
     
     #start slurmd
     global slurmd_proc
-    slurmd_proc = run_as_otheruser(
-        SlurmdUser,[slurmd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
-        stdout=slurmd_out,stderr=slurmd_out)
+    if args.no_slurmd == False:
+        slurmd_proc = run_as_otheruser(
+            SlurmdUser,[slurmd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
+            stdout=slurmd_out,stderr=slurmd_out)
     #let the slurmd to spin-off
     sleep(1)
     
@@ -451,14 +454,14 @@ def run_slurm(args):
     
     pslurmdbd = psutil.Process(pid=slurmdbd_proc.pid)
     pslurmctld = psutil.Process(pid=slurmctld_proc.pid)
-    pslurmd = psutil.Process(pid=slurmd_proc.pid)
+    pslurmd = None if slurmd_proc is None else psutil.Process(pid=slurmd_proc.pid)
 
     log.info("Current time %s" % time())
     log.info("slurmdbd_create_time=%s" % pslurmdbd.create_time())
     log.info("slurmctld_create_time=%s" % pslurmctld.create_time())
-    log.info("slurmd_create_time=%s" % pslurmd.create_time())
+    log.info("slurmd_create_time=%s" % (None if pslurmd is None else pslurmd.create_time()))
 
-    last_realtime_proc_time = time();
+    last_realtime_proc_time = time()
     realtimestat = OrderedDict([
         ('time', last_realtime_proc_time),
         ('slurmdbd', get_process_realtimestat(pslurmdbd)),
@@ -472,7 +475,7 @@ def run_slurm(args):
     perf_stat.write(json.dumps(OrderedDict([
         ('slurmdbd_create_time', pslurmdbd.create_time()),
         ('slurmctld_create_time', pslurmctld.create_time()),
-        ('slurmd_create_time', pslurmd.create_time()),
+        ('slurmd_create_time', None if pslurmd is None else pslurmd.create_time()),
         ('jobs_starts', jobs_starts)]),
         indent=" "))
     global trace
@@ -610,7 +613,9 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--delete', action='store_true', 
             help="delete files from previous simulation")
     parser.add_argument('-nc', '--no-slurmctld', action='store_true', 
-            help="do not start slurmctld just clean-up and start slurmdbd")
+            help="do not start slurmctld")
+    parser.add_argument('-nd', '--no-slurmd', action='store_true',
+            help="do not start slurmd")
     parser.add_argument('-octld', '--octld', required=False, type=str, default="",
             help="redirect stdout and stderr of slurmctld to octrd")
     parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
