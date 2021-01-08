@@ -584,7 +584,7 @@ ncpus,reqcpus,reqmem,reqgres,timelimit,qos,nodelist,jobname,NTasks \
         slurmdbd_proc.kill()
     if slurmctld_proc!=None:
         slurmctld_proc.kill()
-    if slurmctld_proc!=None:
+    if slurmd_proc!=None:
         slurmd_proc.kill()
     
     
