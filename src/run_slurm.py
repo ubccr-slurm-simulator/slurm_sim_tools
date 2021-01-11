@@ -521,7 +521,7 @@ def run_slurm(args):
             if last_job_submit_time + 30 < time():
                 # i.e. all jobs are submitted
                 if len(subprocess.check_output([squeue_loc], env={'SLURM_CONF':slurm_conf_loc}).splitlines()) <= 1:
-                    perf_stat.write("]\n")
+                    perf_profile.write("\n]\n")
                     sleep(60)
                     break
 
