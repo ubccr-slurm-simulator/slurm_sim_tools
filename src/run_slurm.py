@@ -524,8 +524,11 @@ def run_slurm(args):
                     perf_profile.write("\n]\n")
                     sleep(60)
                     break
-
-            sleep(0.1)
+            if ijob < Njobs:
+                if trace[ijob]['sim_submit_ts']-time() > 0.2:
+                    sleep(0.1)
+            else:
+                sleep(0.5)
     except:
         traceback.print_exc()
     #now keep waiting
