@@ -10,4 +10,4 @@ License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.8),reticulate,stringr,lubridate
 LinkingTo: Rcpp
 SystemRequirements: python (>=2.7.10)
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1

@@ -342,6 +342,15 @@ write_trace <- function(trace_filename,trace){
     invisible()
 }
 
+expand_slurm_hostlists <- function(node_list, as_list=TRUE) {
+    node_list_expended <- expand_hostlists_to_list(node_list)
+    if(as_list) {
+        node_list_expended
+    } else {
+        sapply(jobscomp$node_list_full, FUN=function(x){paste(x,collapse = ',')})
+    }
+}
+
 extract_slurm_period <- function(v) {
     #v1 <- sub("^([0-9]{2}):([0-9]{2}):([0-9]{2})","0-\\1:\\2:\\3",t0)
     v2 <- as.integer(stringr::str_match(v,"(([0-9])+-)?([0-9]{2}):([0-9]{2}):([0-9]{2})")[,3:6])
@@ -465,6 +474,112 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
         dplyr::select(-c(SubmitS,EligibleS,StartS,EndS,ElapsedS,TimelimitS,ClusterS,
                          PartitionS,AccountS,GroupS,UserS,ExitCodeS,StateS,QOSS))
     return(slurm_log)
+}
+
+read_perf_stat <- function(filename, tz="GMT") {
+    perf_stat <- fromJSON(file = filename)
+    for(element in c("slurmdbd_create_time", "slurmd_create_time", "slurmctld_create_time", "jobs_starts")) {
+        if(element %in% names(perf_stat) & !is.null(perf_stat[[element]])) {
+            perf_stat[[element]] <- as.POSIXct(perf_stat[[element]], origin="1970-01-01", tz="GMT")
+            if(tz!="GMT") {
+                perf_stat[[element]] <- with_tz(perf_stat[[element]], tz)
+            }
+        } else {
+            perf_stat[[element]] <- NA
+        }
+    }
+    perf_stat
+}
+
+read_jobcomp_log <- function(filename, extract_node_list=FALSE, tz="GMT", init_time=NA) {
+    # read jobcomp.log file
+    con <- file(filename,"r")
+    lines <- readLines(con)
+    close(con)
+    rm(con)
+
+    jobcomp <- data.frame(job_id=rep.int(NA,length(lines)))
+
+    # JobId=1001
+    jobcomp$job_id <- as.integer(str_match(lines, "JobId=(\\S+)")[,2])
+    # Name=jobid_1001
+    jobcomp$ref_job_id <- as.integer(str_match(lines, "Name=jobid_(\\S+)")[,2])
+    # UserId=user5(1005)
+    tmp <- str_match(lines, "UserId=([A-Za-z0-9]+)\\(([0-9]+)\\)")
+    jobcomp$user <- tmp[,2]
+    jobcomp$user_id <- as.integer(tmp[,3])
+    # GroupId=user5(1005)
+    tmp <- str_match(lines, "GroupId=([A-Za-z0-9]+)\\(([0-9]+)\\)")
+    jobcomp$group <- tmp[,2]
+    jobcomp$group_id <- as.integer(tmp[,3])
+    # JobState=COMPLETED
+    jobcomp$job_state <- str_match(lines, "JobState=(\\S+)")[,2]
+    # Partition=normal
+    jobcomp$partition <- str_match(lines, "Partition=(\\S+)")[,2]
+    # TimeLimit=1
+    jobcomp$time_limit <- str_match(lines, "TimeLimit=(\\S+)")[,2]
+
+    # SubmitTime=2021-01-07T18:19:14
+    jobcomp$submit_time <- str_match(lines, "SubmitTime=(\\S+)")[,2]
+    # EligibleTime=2021-01-07T18:19:14
+    jobcomp$eligible_time <- str_match(lines, "EligibleTime=(\\S+)")[,2]
+    # StartTime=2021-01-07T18:19:14
+    jobcomp$start_time <- str_match(lines, "StartTime=(\\S+)")[,2]
+    # EndTime=2021-01-07T18:19:14
+    jobcomp$end_time <- str_match(lines, "EndTime=(\\S+)")[,2]
+
+    # NodeList=b1
+    jobcomp$node_list <- str_match(lines, "NodeList=(\\S+)")[,2]
+    # NodeCnt=1
+    jobcomp$nodes <- as.integer(str_match(lines, "NodeCnt=(\\S+)")[,2])
+    # ProcCnt=12
+    jobcomp$cpus <- as.integer(str_match(lines, "ProcCnt=(\\S+)")[,2])
+    # WorkDir=/home/user5
+    jobcomp$work_dir <- str_match(lines, "WorkDir=(\\S+)")[,2]
+    # ReservationName=
+    jobcomp$reservation_name <- str_match(lines, "ReservationName=(\\S*)")[,2]
+    # Gres=
+    jobcomp$gres <- str_match(lines, "Gres=(\\S*)")[,2]
+    # Account=account2
+    jobcomp$account <- str_match(lines, "Account=(\\S+)")[,2]
+    # QOS=normal
+    jobcomp$qos <- str_match(lines, "QOS=(\\S+)")[,2]
+    # WcKey=
+    jobcomp$wc_key <- str_match(lines, "WcKey=(\\S*)")[,2]
+    # Cluster=micro
+    jobcomp$cluster <- str_match(lines, "Cluster=(\\S+)")[,2]
+
+    # DerivedExitCode=0:0
+    jobcomp$derived_exit_code <- str_match(lines, "DerivedExitCode=(\\S+)")[,2]
+    # ExitCode=0:0
+    jobcomp$exit_code <- str_match(lines, "ExitCode=(\\S+)")[,2]
+
+    rm(tmp, lines)
+
+    #convert to proper format
+    for(col in c("submit_time","eligible_time","start_time","end_time")){
+        #jobcomp[[paste0(col,"S")]] <- jobcomp[[col]]
+        jobcomp[[col]] <- as.POSIXct(jobcomp[[col]],format = "%Y-%m-%dT%H:%M:%S", tz="GMT")
+        if(tz!="GMT") {
+            jobcomp[[col]] <- with_tz(jobcomp[[col]], tz)
+        }
+    }
+
+    if(!is.na(init_time)) {
+        for(col in c("submit_time","eligible_time","start_time","end_time")){
+            col_t <- paste0("t_", str_replace(col,"_time",""))
+            jobcomp[[col_t]] <- jobcomp[[col]] - init_time
+        }
+    }
+
+    if(extract_node_list==TRUE){
+        jobcomp$node_list_full <- expand_hostlists_to_list(jobcomp$node_list)
+    }
+
+    jobcomp$walltime <- jobcomp$end_time - jobcomp$start_time
+    jobcomp$waittime <- jobcomp$start_time - jobcomp$submit_time
+
+    jobcomp
 }
 
 get_utilization_old <- function(sacct0,node_desc,dt=60L)
