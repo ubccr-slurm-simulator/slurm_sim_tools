@@ -525,7 +525,7 @@ def run_slurm(args):
                     sleep(60)
                     break
 
-            sleep(0.5)
+            sleep(0.1)
     except:
         traceback.print_exc()
     #now keep waiting
