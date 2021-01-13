@@ -261,7 +261,7 @@ def system_info():
         import cpuinfo
         m_cpu = cpuinfo.get_cpu_info()
         m_cpu["cpu_physical"] = psutil.cpu_count(logical=False)
-        m_cpu["logical_physical"] = psutil.cpu_count(logical=True)
+        m_cpu["cpu_logical"] = psutil.cpu_count(logical=True)
     except:
         m_cpu = None
     try:
