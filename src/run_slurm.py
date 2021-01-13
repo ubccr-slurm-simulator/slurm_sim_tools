@@ -255,6 +255,29 @@ def get_process_realtimestat(p):
 
     return r
 
+
+def system_info():
+    try:
+        import cpuinfo
+        m_cpu = cpuinfo.get_cpu_info()
+        m_cpu["cpu_physical"] = psutil.cpu_count(logical=False)
+        m_cpu["logical_physical"] = psutil.cpu_count(logical=True)
+    except:
+        m_cpu = None
+    try:
+        import cpuinfo
+        m_mem = {k:v for k,v in psutil.virtual_memory()._asdict().items()
+                 if k in ('total','available')}
+    except:
+        m_mem = None
+
+    info = {
+        "cpu": m_cpu,
+        "memory": m_mem
+    }
+    return info
+
+
 def run_slurm(args):
     #read trace
     read_trace(args.trace)
@@ -380,7 +403,6 @@ def run_slurm(args):
     os.system("chown -R "+SlurmUser+":"+SlurmUser+" "+os.path.dirname(results_dir))
     os.chdir(results_dir)
 
-    perf_stat = open(results_perf_stat_loc, "wt")
     perf_profile = open(results_perf_profile_loc, "wt")
     
     #make nessesary directories
@@ -472,12 +494,15 @@ def run_slurm(args):
 
     jobs_starts=int(pslurmctld.create_time()+args.dtstart)
 
-    perf_stat.write(json.dumps(OrderedDict([
+    perf_stat=OrderedDict([
         ('slurmdbd_create_time', pslurmdbd.create_time()),
         ('slurmctld_create_time', pslurmctld.create_time()),
         ('slurmd_create_time', None if pslurmd is None else pslurmd.create_time()),
-        ('jobs_starts', jobs_starts)]),
-        indent=" "))
+        ('jobs_starts', jobs_starts),
+        ('system_info', system_info())])
+    with open(results_perf_stat_loc, "wt") as perf_stat_file:
+        perf_stat_file.write(json.dumps(perf_stat, indent=" "))
+
     global trace
 
     for i in range(len(trace)):
@@ -552,7 +577,10 @@ def run_slurm(args):
         log.info("slurmctld took "+str(slurmctld_run_time/60.0)+" minutes to run.")
     else:
         log.info("slurmctld took "+str(slurmctld_run_time/3600.0)+" hours to run.")
-        
+
+    perf_stat["slurmctld_walltime"] = slurmctld_run_time
+    with open(results_perf_stat_loc, "wt") as perf_stat_file:
+        perf_stat_file.write(json.dumps(perf_stat, indent=" "))
     
     
     if monitor_proc!=None:
