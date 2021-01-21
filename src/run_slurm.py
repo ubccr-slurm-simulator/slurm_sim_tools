@@ -18,7 +18,7 @@ import getpass
 import psutil
 import json
 from collections import OrderedDict
-from .sperf import get_process_realtimestat, system_info
+from sperf import get_process_realtimestat, system_info
 
 slurmdbd_proc=None
 slurmdbd_out=None
