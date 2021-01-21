@@ -9,9 +9,13 @@ import pymysql
 import signal
 import getpass
 from time import sleep,time
+import psutil
+import json
+from collections import OrderedDict
 from process_sprio import process_sprio
 from process_simstat import process_simstat
 
+from sperf import get_process_realtimestat, system_info
 
 slurmdbd_proc=None
 slurmdbd_out=None
@@ -170,15 +174,9 @@ def check_slurm_conf(slurm_conf,slurm_etc,slurm_bin_top,slurmdbd_conf):
         if slurm_conf["DefaultStoragePort".lower()]!=slurmdbd_conf["DbdPort".lower()]:
              error_count+=1
              log.error("DefaultStoragePort (%s) should match DbdPort (%s) but it does not!"%(slurm_conf["DefaultStoragePort".lower()],slurmdbd_conf["DbdPort".lower()]))
-        
-    
-    
-    
 
-
-    
-    
     return error_count
+
 
 def check_slurmdbd_conf(slurmdbd_conf,slurm_etc,slurm_bin_top):
     error_count=0
@@ -255,7 +253,16 @@ def run_sim(args):
     sim_conf_loc=os.path.join(args.etc,'sim.conf')
     slurmdbd_loc=os.path.join(args.slurm,'sbin','slurmdbd')
     slurmctld_loc=os.path.join(args.slurm,'sbin','slurmctld')
-    
+    sbatch_loc=os.path.join(args.slurm,'bin','sbatch')
+    sacctmgr_loc=os.path.join(args.slurm,'bin','sacctmgr')
+    sacct_loc=os.path.join(args.slurm,'bin','sacct')
+    sinfo_loc=os.path.join(args.slurm,'bin','sinfo')
+    squeue_loc=os.path.join(args.slurm,'bin','squeue')
+
+    results_dir=os.path.abspath(args.results)
+    results_perf_stat_loc=os.path.join(results_dir,'perf_stat.log')
+    results_perf_profile_loc = os.path.join(results_dir, 'perf_profile.log')
+
     #check files presence
     if not os.path.isfile(slurm_conf_loc):
         raise Exception("Can not find slurm.conf at "+slurm_conf_loc)
@@ -290,22 +297,22 @@ def run_sim(args):
         log.info("trancating db from previous runs")
         conn = pymysql.connect(host=slurmdbd_conf["StorageHost".lower()], 
                                user=slurmdbd_conf["StorageUser".lower()], 
-                               passwd=slurmdbd_conf["StoragePass".lower()], 
-                               db=slurmdbd_conf['StorageLoc'.lower()])
+                               passwd=slurmdbd_conf["StoragePass".lower()])
         cur = conn.cursor()
         
         trancate=[
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_day_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_hour_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_month_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_event_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_job_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_last_ran_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_resv_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_step_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_suspend_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_usage_day_table`',
-            'TRUNCATE TABLE `'+slurm_conf['clustername']+'_usage_hour_table`'
+            'DROP DATABASE IF EXISTS '+slurmdbd_conf['StorageLoc'.lower()]
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_day_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_hour_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_assoc_usage_month_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_event_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_job_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_last_ran_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_resv_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_step_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_suspend_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_usage_day_table`',
+            # 'TRUNCATE TABLE `'+slurm_conf['clustername']+'_usage_hour_table`'
         ]
         for t in trancate:
             print(t)
@@ -366,7 +373,15 @@ def run_sim(args):
             else:
                 raise Exception("shared memory from previous run still on system ("+filename+").Can not continue simulation."+\
                                 "remove files from it or run with -d to automatically delete files from previous simulation.")
-    
+    # remove previous results
+    if os.path.exists(results_dir):
+        if(args.delete):
+            log.info("deleting previous results dir: "+results_dir)
+            shutil.rmtree(results_dir)
+        else:
+            raise Exception("previous "+results_dir+" results directory is present on file-system. Can not continue simulation."+\
+                            "move it or run with flag -d to automatically delete it.")
+
     #check conf
     errors_in_conf=0
     errors_in_conf+=check_slurm_conf(slurm_conf,args.etc,args.slurm,slurmdbd_conf)
@@ -375,9 +390,11 @@ def run_sim(args):
     
     if errors_in_conf>0 and args.ignore_errors_in_conf==False:
         exit(1)
-        
-        
-        
+
+    # create results dir
+    os.makedirs(results_dir, mode=0o755, exist_ok=True)
+    os.chdir(results_dir)
+    perf_profile = open(results_perf_profile_loc, "wt")
     
     #start slurmdbd
     global slurmdbd_proc
@@ -391,7 +408,16 @@ def run_sim(args):
         slurmdbd_proc=subprocess.Popen([slurmdbd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
                                        stdout=slurmdbd_out,stderr=slurmdbd_out)
     #let the slurmdbd to spin-off
-    sleep(3)
+    sleep(5)
+
+    #load accounting datals
+    if args.acct_setup!="":
+        sacctmgr_proc=subprocess.Popen(sacctmgr_loc+' -i < '+args.acct_setup,
+            env={'SLURM_CONF':slurm_conf_loc},shell=True)
+        sacctmgr_proc.wait()
+
+        sleep(1)
+
     #start slurmctrl
     global slurmctld_proc
     global slurmctld_out
@@ -406,8 +432,37 @@ def run_sim(args):
             slurmctld_out=open(args.octld,"wt")
             slurmctld_proc=subprocess.Popen([slurmctld_loc,'-D'],env={'SLURM_CONF':slurm_conf_loc},
                                        stdout=slurmctld_out,stderr=slurmctld_out)
+        last_realtime_proc_time = time()
+        pslurmdbd = psutil.Process(pid=slurmdbd_proc.pid)
+        pslurmctld = psutil.Process(pid=slurmctld_proc.pid)
+        realtimestat = OrderedDict([
+            ('time', last_realtime_proc_time),
+            ('slurmdbd', get_process_realtimestat(pslurmdbd)),
+            ('slurmd', None),
+            ('slurmctld', get_process_realtimestat(pslurmctld))
+        ])
+        perf_profile.write("[\n" + json.dumps(realtimestat, indent=" "))
+        jobs_starts=int(pslurmctld.create_time()+args.dtstart)
+        perf_stat=OrderedDict([
+            ('slurmdbd_create_time', pslurmdbd.create_time()),
+            ('slurmctld_create_time', pslurmctld.create_time()),
+            ('slurmd_create_time', None),
+            ('jobs_starts', jobs_starts),
+            ('system_info', system_info())])
+        with open(results_perf_stat_loc, "wt") as perf_stat_file:
+            perf_stat_file.write(json.dumps(perf_stat, indent=" "))
+
         sleep(1)
         while slurmctld_proc.poll() is None:
+            if time()-last_realtime_proc_time > 60:
+                last_realtime_proc_time = time()
+                realtimestat = OrderedDict([
+                    ('time', last_realtime_proc_time),
+                    ('slurmdbd', get_process_realtimestat(pslurmdbd)),
+                    ('slurmd', None),
+                    ('slurmctld', get_process_realtimestat(pslurmctld))
+                ])
+                perf_profile.write(",\n" + json.dumps((realtimestat), indent=" "))
             sleep(1)
         slurmctld_run_time=time()-start
         if slurmctld_run_time <600.0:
@@ -416,6 +471,11 @@ def run_sim(args):
             log.info("slurmctld took "+str(slurmctld_run_time/60.0)+" minutes to run.")
         else:
             log.info("slurmctld took "+str(slurmctld_run_time/3600.0)+" hours to run.")
+
+        perf_profile.write("\n]\n")
+        perf_stat["slurmctld_walltime"] = slurmctld_run_time
+        with open(results_perf_stat_loc, "wt") as perf_stat_file:
+            perf_stat_file.write(json.dumps(perf_stat, indent=" "))
     else:
         sleep(1)
         log.info("you can start slurmctld now")
@@ -441,19 +501,10 @@ def run_sim(args):
         if os.path.exists(filename):
             os.remove(filename)
     log.info("Done with simulation")
-    results_dir=os.path.abspath(args.results)
     
     #copy files to results storage directory
     log.info("Copying results to :"+results_dir)
-    
-    if os.path.exists(results_dir):
-        if(args.delete):
-            log.info("deleting previous results dir: "+results_dir)
-            shutil.rmtree(results_dir)
-        else:
-            raise Exception("previous "+results_dir+" results directory is present on file-system. Can not continue simulation."+\
-                            "move it or run with flag -d to automatically delete it.")
-    os.makedirs(results_dir, mode=0o755, exist_ok=True)
+
     resfiles={}
     for param in ['JobCompLoc','SlurmctldLogFile',"sdiagFileOut","sprioFileOut","SimStats","sinfoFileOut","squeueFileOut"]:
         paraml=param.lower()
@@ -484,6 +535,13 @@ if __name__ == '__main__':
         help="top directory of slurm installation")
     parser.add_argument('-e', '--etc', required=True, type=str,
         help="etc directory for current simulation")
+    parser.add_argument('-t', '--trace', required=True, type=str,
+                        help="job trace events file")
+    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
+            help="script for sacctmgr to setup accounts")
+    parser.add_argument('-dtstart', '--dtstart', required=False, type=int,
+                        default=30,
+                        help="seconds before first job")
     parser.add_argument('-d', '--delete', action='store_true', 
             help="delete files from previous simulation")
     parser.add_argument('-nc', '--no-slurmctld', action='store_true', 
