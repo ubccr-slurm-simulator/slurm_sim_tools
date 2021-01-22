@@ -506,7 +506,7 @@ def run_sim(args):
     log.info("Copying results to :"+results_dir)
 
     resfiles={}
-    for param in ['JobCompLoc','SlurmctldLogFile',"sdiagFileOut","sprioFileOut","SimStats","sinfoFileOut","squeueFileOut"]:
+    for param in ['JobCompLoc','SlurmctldLogFile',"sdiagFileOut","sprioFileOut","SimStats","sinfoFileOut","squeueFileOut", "SlurmSchedLogFile"]:
         paraml=param.lower()
         if paraml in slurm_conf:
             log.info("copying resulting file "+slurm_conf[paraml]+" to "+results_dir)
