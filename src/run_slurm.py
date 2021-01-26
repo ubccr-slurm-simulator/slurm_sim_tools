@@ -188,10 +188,10 @@ def read_trace(trace_file_name):
                 else:
                     user = getpass.getuser()
                 # pull out -sim-walltime 10
-                m = re.search("-sim-walltime\s+([0-9]+)", sbatch)
+                m = re.search("-sim-walltime\s+([-0-9]+)", sbatch)
                 if m:
                     walltime = int(m.group(1))
-                    sbatch = re.sub("-sim-walltime\s+[0-9]+", "", sbatch)
+                    sbatch = re.sub("-sim-walltime\s+[-0-9]+", "", sbatch)
                 else:
                     walltime = 365*24*3600
 
