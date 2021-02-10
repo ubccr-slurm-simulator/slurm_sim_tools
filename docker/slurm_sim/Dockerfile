@@ -42,7 +42,9 @@ RUN \
 	echo "Done installing Mariadb" && \
 	yum -y install gcc-c++ && \
 	yum -y install install epel-release && \
-	yum -y install python34 python34-libs python34-devel python34-numpy python34-scipy python34-pip && \
+	yum -y install python36 python36-libs python36-devel python36-numpy python36-scipy python36-pip
+
+RUN \
 	pip3 install pymysql && \
 	pip3 install pandas && \
 	echo "Python all installed" && \
@@ -55,8 +57,8 @@ RUN \
         yum -y install sudo && \
         yum -y install wget && \
 	echo "Sudo, git, wget installed" && \
-        wget https://download2.rstudio.org/rstudio-server-rhel-1.1.453-x86_64.rpm && \
-        yum -y install rstudio-server-rhel-1.1.453-x86_64.rpm && \
+        wget https://download2.rstudio.org/server/centos6/x86_64/rstudio-server-rhel-1.2.5042-x86_64.rpm && \
+        sudo yum -y install rstudio-server-rhel-1.2.5042-x86_64.rpm && \
         yum -y install initscripts && \
 	echo "Rstudio server installed" && \
         yum -y install openssh openssh-server openssh-clients openssl-libs && \
