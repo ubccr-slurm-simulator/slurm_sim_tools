@@ -1,0 +1,1 @@
+Simple 4 node cluster with identical compute nodes.
