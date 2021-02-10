@@ -1,0 +1,168 @@
+#!/bin/bash
+
+# sometimes /usr/local/sbin is not in PATH
+export PATH="/usr/local/sbin:$PATH"
+
+# Install xdebug for php debugging
+# remote host is 127.0.0.1 and ssh tunnel:
+# ssh -N -R 9000:localhost:9000 -p 2210 root@localhost
+setup_xdebug(){
+    echo "xdebug setup"
+
+    cd
+    rpm -qa | grep php-pecl-xdebug > /dev/null 2>&1
+    if [ $? != 0 ]; then
+        yum install php-pecl-xdebug -y
+    fi
+
+    grep 'xdebug.remote_host' /etc/php.d/xdebug.ini > /dev/null 2>&1
+    if [ $? != 0 ]; then
+        cat <<EOT >> /etc/php.d/xdebug.ini
+xdebug.remote_enable=1
+xdebug.remote_autostart=1
+xdebug.remote_host=127.0.0.1
+xdebug.remote_port=9000
+EOT
+    fi
+}
+
+# Install SSHD, allow root to access
+setup_sshd(){
+    yum install -y openssh-server
+
+    mkdir /var/run/sshd
+
+    # Generate new key
+    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
+    ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
+    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N '' && \
+    echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+}
+
+# Install XDMoD with appkernel
+# source code of xdmod should be in /root/xdmod
+# source code of xdmod-appkernels in /root/xdmod/open_xdmod/modules/xdmod-appkernels
+setup_xdmod_install_xdmod_appkernels(){
+    if mount | grep " /root/xdmod "
+    then
+        echo "Using source code mounted to /root/xdmod"
+    else
+        echo "Getting XDMoD from github"
+        if [ -d "/root/xdmod" ]; then
+            echo "Deleting previous source code"
+            rm -rf /root/xdmod
+        fi
+        ENV_XDMOD_REPO=${ENV_XDMOD_REPO:-https://github.com/ubccr/xdmod.git}
+        ENV_XDMOD_BRANCH=${ENV_XDMOD_BRANCH:-x}
+        ENV_XDMOD_APPKERNEL_REPO=${ENV_XDMOD_APPKERNEL_REPO:-https://github.com/nsimakov/xdmod-appkernels.git}
+        ENV_XDMOD_APPKERNEL_BRANCH=${ENV_XDMOD_BRANCH:-x}
+        cd
+
+        if [ "$ENV_XDMOD_BRANCH" = "x" ]; then
+            git clone --single-branch "$XDMOD_REPO"
+        else
+            git clone --single-branch --branch "$ENV_XDMOD_BRANCH" "$ENV_XDMOD_REPO"
+        fi
+
+        cd /root/xdmod/open_xdmod/modules/
+        if [ "$ENV_XDMOD_APPKERNEL_BRANCH" = "x" ]; then
+            git clone --single-branch "$XDMOD_APPKERNEL_REPO"
+        else
+            git clone --single-branch --branch "$ENV_XDMOD_APPKERNEL_BRANCH" "$ENV_XDMOD_APPKERNEL_REPO"
+        fi
+    fi
+
+    cd /root/xdmod
+    # Install dependencies
+    composer install --no-progress
+
+    # Build RPMs
+    rm -rf open_xdmod/build/*
+    ~/bin/buildrpm xdmod xdmod-appkernels
+
+    # Install RPMS
+    export XDMOD_TEST_MODE=fresh_install
+    ./tests/ci/bootstrap.sh
+
+    # Turn on novice user mod
+    sed -i 's@novice_user = "off"@novice_user = "on"@' /etc/xdmod/portal_settings.ini
+}
+
+# Setup AKRR 1.0
+setup_akrr_1_0_1month(){
+    AKRRUSER_HOME=${AKRRUSER_HOME:-/root}
+    AKRRUSER=${AKRRUSER:-root}
+
+    cd $AKRRUSER_HOME
+    runuser -l $AKRRUSER -c 'wget https://github.com/nsimakov/akrr-test-artifacts/raw/master/akrr-1.0_1month.tar.xz'
+
+    runuser -l $AKRRUSER -c 'tar -xJf akrr-1.0_1month.tar.xz'
+
+    # Initiate database
+    mysql -u root << END
+create database mod_akrr;
+create database mod_appkernel;
+CREATE USER 'akrruser'@'localhost' IDENTIFIED BY 'akrruser';
+GRANT ALL ON mod_akrr.* TO 'akrruser'@'localhost';
+GRANT ALL ON mod_appkernel.* TO 'akrruser'@'localhost';
+GRANT SELECT ON modw.* TO 'akrruser'@'localhost';
+END
+
+    # Load historic db
+    xz -cd akrr/mod_akrr.sql.xz | mysql -u root mod_akrr
+    xz -cd akrr/mod_appkernel.sql.xz | mysql -u root mod_appkernel
+    # @todo Probably it is good idea to cleanup mod_appkernel from old results
+    # because we will reingest
+
+    # Add akkr to PATH
+    runuser -l $AKRRUSER -c "echo \"export PATH=/root/akrr/bin:\$PATH\" >> $AKRRUSER_HOME/.bashrc"
+
+    # Install dependencies
+    yum install -y python MySQL-python openssl curl
+    # akrr.sh start
+}
+
+# setup xdmod_appkernels module
+setup_xdmod_appkernels(){
+    # Configure xdmod appkernels and ingest
+    expect /root/xdmod/open_xdmod/modules/xdmod-appkernels/tests/ci/scripts/xdmod-appkernels-setup.tcl
+    echo
+
+    # Ingest AK runs
+    xdmod-akrr-ingestor -v -s "2019-01-01 15:10:10" -c -y -m
+    # Test report
+    appkernel_reports_manager -m centerdirector -v -d -e 2019-02-28
+    # cat /var/mail/root
+}
+
+# loop over arguments
+while (( "$#" ))
+do
+    case "$1" in
+    xdebug)
+        setup_xdebug
+        ;;
+    sshd)
+        setup_sshd
+        ;;
+    xdmod_install_xdmod_appkernels)
+        setup_xdmod_install_xdmod_appkernels
+        ;;
+    akrr-1.0_1month)
+        setup_akrr_1_0_1month
+        ;;
+    xdmod_appkernels)
+        setup_xdmod_appkernels
+        ;;
+    -set-no-exit-on-fail)
+        set +e
+        ;;
+    -set-exit-on-fail)
+        set -e
+        ;;
+    *)
+        echo "Unknown argument: $1"
+        ;;
+    esac
+    shift
+done

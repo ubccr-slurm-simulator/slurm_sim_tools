@@ -1,0 +1,194 @@
+#!/bin/bash
+echo "Reach Entry Point"
+if [ "$USER" = "root" ]; then
+    echo $$ > /var/run/enrypoint.pid
+fi
+
+# sometimes /usr/local/sbin is not in PATH
+export PATH="/usr/local/sbin:$PATH"
+
+set -e
+
+loop=0
+
+run_bash=0
+
+run_bash_slurm=0
+
+run_bash_user1=0
+
+SLURMDBD_LOG=${SLURMDBD_LOG:-/var/log/slurm/slurmdbd.log}
+SLURMDBD_PID=${SLURMDBD_PID:-/run/slurmdbd.pid}
+SLURMCTLD_LOG=${SLURMCTLD_LOG:-/var/log/slurm/slurmctld.log}
+SLURMCTLD_PID=${SLURMCTLD_PID:-/run/slurmctld.pid}
+SLURMD_LOG=${SLURMD_LOG:-/var/log/slurm/slurmd.log}
+SLURMD_PID=${SLURMD_PID:-/run/slurmd.pid}
+
+start_process(){
+    name=$1
+    command=$2
+    pid_file=$3
+    user=${4:-x}
+
+    launch=false
+
+    if [ ! -f "${pid_file}" ]; then
+        launch=true
+    elif [ ! -f "/proc/$(cat "${pid_file}")" ]; then
+        launch=true
+    fi
+
+    if [ "$launch" = true ] ;then
+        if [ "$user" = "x" ]; then
+            echo "Launching ${name}"
+            ${command}
+        else
+            echo "Launching ${name} as ${user} user"
+            sudo -u "${user}" "${command}"
+        fi
+    else
+        echo "${name} already running"
+    fi
+}
+
+# Start process and confirm it launches by looking for a
+# confirm_sentence in log_file.
+# Format:
+# start_process_w_confirm name command pid_file log_file confirm_sentence user
+start_process_w_confirm(){
+    name=$1
+    command=$2
+    pid_file=$3
+    log_file=$4
+    confirm_sentence=$5
+    user=${6:-x}
+    timeout_time=2
+
+    if [ -f "${pid_file}" ]; then
+        if [  -d "/proc/$(cat "${pid_file}")" ]; then
+            echo "${name} already running"
+            return 1
+        fi
+    fi
+
+    if [ -f "${log_file}" ]; then
+        cat "${log_file}" >> "${log_file}.old"
+        rm "${log_file}"
+    fi
+    
+    if [ "$user" = "x" ]; then
+        echo "Launching ${name}"
+        ${command}
+    else
+        echo "Launching ${name} as ${user} user"
+        sudo -u "${user}" "${command}"
+    fi
+
+    for ((i=0; i < timeout_time; i++))
+    {
+        if grep -q "${confirm_sentence}" "${log_file}" ; then
+            echo "${name} is up"
+            return 0
+        fi
+        sleep 1
+    }
+
+    echo "Something wrong with ${name}, can not find key-phrase in log"
+    ps -Af
+    echo ${log_file}
+    ls -l ${log_file}
+    cat ${log_file}
+    return 1
+}
+
+
+while (( "$#" ))
+do
+    case "$1" in
+    mysqld)
+        echo "Launching mysqld"
+
+        mysqld_safe &
+        mysqladmin --silent --wait=30 ping
+        trap "mysqladmin -u root -p shutdown; echo 'mysqld turned off;exit" SIGHUP SIGINT SIGTERM
+        ;;
+    munged)
+        start_process munged munged /run/munge/munged.pid munge
+        ;;
+    sshd)
+        start_process sshd /usr/sbin/sshd /run/sshd.pid
+        ;;
+    slurmdbd)
+        start_process_w_confirm slurmdbd /usr/sbin/slurmdbd ${SLURMDBD_PID} \
+            ${SLURMDBD_LOG} started
+        ;;
+    slurmctld)
+        start_process_w_confirm slurmctld /usr/sbin/slurmctld ${SLURMCTLD_PID} \
+            ${SLURMCTLD_LOG} started
+        ;;
+    slurmd)
+        start_process_w_confirm slurmd /usr/sbin/slurmd ${SLURMD_PID} \
+            ${SLURMD_LOG} started root
+        ;;
+    self_contained_slurm_wlm)
+        cmd_start munged sshd mysqld slurmdbd slurmctld slurmd
+        ;;
+    bash)
+        echo "Will launching bash at the end"
+        run_bash=1
+        ;;
+    bash_slurm)
+        echo "Will launching bash at the end as slurm"
+        run_bash_slurm=1
+        ;;
+    bash_user1)
+        echo "Will launching bash at the end as user1"
+        run_bash_user1=1
+        ;;
+    run_tests)
+        echo "Start Tests: $RUN_TESTS"
+        $RUN_TESTS
+        ;;
+    -c)
+        # from docker cmd skip to next
+        ;;
+    -loop)
+        loop=1
+        ;;
+    -set-no-exit-on-fail)
+        set +e
+        ;;
+    -set-exit-on-fail)
+        set -e
+        ;;
+    *)
+        echo "Executing $1"
+        eval "$1"
+        ;;
+    esac
+    shift
+done
+
+if [ -t 0 ] ; then
+    if [ $run_bash -eq 1 ]; then
+        /bin/bash
+    elif [ $run_bash_slurm -eq 1 ]; then
+        su - slurm
+    elif [ $run_bash_user1 -eq 1 ]; then
+        su - user1
+    elif [ $loop -eq 1 ]; then
+        echo "All requested daemon launched"
+        while true; do
+            sleep 60
+        done
+    fi
+else
+    echo "not interactive run"
+    if [ $loop -eq 1 ]; then
+        echo "All requested daemon launched"
+        while true; do
+            sleep 60
+        done
+    fi
+fi
+
