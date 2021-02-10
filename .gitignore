@@ -4,4 +4,7 @@
 .Ruserdata
 .project
 .pydevproject
-
+__pycache__
+/.idea
+.o
+.so
