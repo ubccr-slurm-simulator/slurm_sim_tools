@@ -4,11 +4,27 @@
 \alias{sim_job}
 \title{sim_job - Generates R-list with Resource Requested by Job}
 \usage{
-sim_job(job_id = NA, submit = "2001-01-01 00:00:00", wclimit = 0L,
-  duration = 0L, tasks = 0L, tasks_per_node = 0L, username = "user1",
-  qosname = "normal", partition = "normal", account = "account1",
-  req_mem = NA, req_mem_per_cpu = 0L, features = "", gres = "",
-  shared = 1L, cpus_per_task = 1L, dependency = "", cancelled = NA, ...)
+sim_job(
+  job_id = NA,
+  submit = "2001-01-01 00:00:00",
+  wclimit = 0L,
+  duration = 0L,
+  tasks = 0L,
+  tasks_per_node = 0L,
+  username = "user1",
+  qosname = "normal",
+  partition = "normal",
+  account = "account1",
+  req_mem = NA,
+  req_mem_per_cpu = 0L,
+  features = "",
+  gres = "",
+  shared = 1L,
+  cpus_per_task = 1L,
+  dependency = "",
+  cancelled = NA,
+  ...
+)
 }
 \arguments{
 \item{job_id}{Job ID. If it is not set then will use increamented \code{last_job_id values}. \emph{\emph{Default}}: NA}

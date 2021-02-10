@@ -559,10 +559,7 @@ read_jobcomp_log <- function(filename, extract_node_list=FALSE, tz="GMT", init_t
     #convert to proper format
     for(col in c("submit_time","eligible_time","start_time","end_time")){
         #jobcomp[[paste0(col,"S")]] <- jobcomp[[col]]
-        jobcomp[[col]] <- as.POSIXct(jobcomp[[col]],format = "%Y-%m-%dT%H:%M:%S", tz="GMT")
-        if(tz!="GMT") {
-            jobcomp[[col]] <- with_tz(jobcomp[[col]], tz)
-        }
+        jobcomp[[col]] <- as.POSIXct(jobcomp[[col]],format = "%Y-%m-%dT%H:%M:%S", tz=tz)
     }
 
     if(!is.na(init_time)) {
