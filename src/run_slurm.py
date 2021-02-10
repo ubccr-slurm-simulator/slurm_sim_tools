@@ -17,6 +17,7 @@ import math
 import getpass
 import psutil
 import json
+import datetime
 from collections import OrderedDict
 from sperf import get_process_realtimestat, system_info
 
@@ -202,7 +203,11 @@ def read_trace(trace_file_name):
                     sbatch = re.sub("-jid\s+[0-9]+", "", sbatch)
                 else:
                     job_id = "jobid_None"
-                sbatch = "-J " + job_id + " " + sbatch
+
+                # job name
+                m = re.search("-J\s+(\S+)", sbatch)
+                if not m:
+                    sbatch = "-J " + job_id + " " + sbatch
 
 
                 # pull out pseudo.job
@@ -436,9 +441,15 @@ def run_slurm(args):
     jobs_starts=pslurmctld.create_time()+args.dtstart
 
     perf_stat=OrderedDict([
-        ('slurmdbd_create_time', pslurmdbd.create_time()),
-        ('slurmctld_create_time', pslurmctld.create_time()),
-        ('slurmd_create_time', None if pslurmd is None else pslurmd.create_time()),
+        ('slurmdbd_create_time',
+         datetime.datetime.fromtimestamp(pslurmdbd.create_time()).strftime(
+             "%Y-%m-%dT%H:%M:%S.%f")),
+        ('slurmctld_create_time',
+         datetime.datetime.fromtimestamp(pslurmctld.create_time()).strftime(
+             "%Y-%m-%dT%H:%M:%S.%f")),
+        ('slurmd_create_time', None if pslurmd is None else datetime.datetime.fromtimestamp(
+            pslurmd.create_time()).strftime(
+             "%Y-%m-%dT%H:%M:%S.%f")),
         ('jobs_starts', jobs_starts),
         ('system_info', system_info())])
     with open(results_perf_stat_loc, "wt") as perf_stat_file:

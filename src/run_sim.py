@@ -11,6 +11,8 @@ import getpass
 from time import sleep,time
 import psutil
 import json
+import datetime
+import re
 from collections import OrderedDict
 from process_sprio import process_sprio
 from process_simstat import process_simstat
@@ -246,6 +248,32 @@ def check_sim_conf(sim_conf,slurm_etc,slurm_bin_top):
     
     return error_count
 
+def update_sim_conf(sim_conf,dtstart,tracefile):
+    with open(sim_conf, "rt") as fin:
+        lines = fin.readlines()
+
+    updated_dtstart = False
+    updated_tracefile = False
+    for i in range(len(lines)):
+        m = re.match("^SecondsBeforeFirstJob = [0-9.]+", lines[i])
+        if m:
+            updated_dtstart = True
+            lines[i] = "SecondsBeforeFirstJob = " + str(dtstart) + "\n"
+
+        m = re.match("^EventsFile = \S+", lines[i])
+        if m:
+            updated_tracefile = True
+            lines[i] = "EventsFile = " + str(tracefile) + "\n"
+    if not updated_dtstart:
+        lines.append("SecondsBeforeFirstJob = " + str(dtstart) + "\n")
+    if not updated_tracefile:
+        lines.append("EventsFile = " + str(tracefile) + "\n")
+
+    with open(sim_conf, "wt") as fout:
+        for l in lines:
+            fout.write(l)
+
+
 def run_sim(args):
     
     slurm_conf_loc=os.path.join(args.etc,'slurm.conf')
@@ -279,6 +307,9 @@ def run_sim(args):
     
     slurm_conf=slurm_conf_parser(slurm_conf_loc)
     slurmdbd_conf=slurm_conf_parser(slurmdbd_conf_loc)
+
+    # edit some config files
+    update_sim_conf(sim_conf_loc, args.dtstart, args.trace)
     sim_conf=slurm_conf_parser(sim_conf_loc)
     
     slurm_conf.update(sim_conf)
@@ -395,6 +426,7 @@ def run_sim(args):
     os.makedirs(results_dir, mode=0o755, exist_ok=True)
     os.chdir(results_dir)
     perf_profile = open(results_perf_profile_loc, "wt")
+
     
     #start slurmdbd
     global slurmdbd_proc
@@ -444,8 +476,8 @@ def run_sim(args):
         perf_profile.write("[\n" + json.dumps(realtimestat, indent=" "))
         jobs_starts=int(pslurmctld.create_time()+args.dtstart)
         perf_stat=OrderedDict([
-            ('slurmdbd_create_time', pslurmdbd.create_time()),
-            ('slurmctld_create_time', pslurmctld.create_time()),
+            ('slurmdbd_create_time', datetime.datetime.fromtimestamp(pslurmdbd.create_time()).strftime("%Y-%m-%dT%H:%M:%S.%f")),
+            ('slurmctld_create_time', datetime.datetime.fromtimestamp(pslurmctld.create_time()).strftime("%Y-%m-%dT%H:%M:%S.%f")),
             ('slurmd_create_time', None),
             ('jobs_starts', jobs_starts),
             ('system_info', system_info())])
