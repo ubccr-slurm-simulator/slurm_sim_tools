@@ -243,9 +243,14 @@ wclimit[wclimit>true_max] <- true_max
 
 duration_factor <- runif(N,min=-0.2,max=1.2)
 duration_factor[duration_factor<0.0] <- 0.0
-duration_factor[duration_factor>1.0] <- 1.0
+# in original it was set to 1.0
+# in current version it will be -1 so slurm should kill them due
+# to exceeding timelimit
+# duration_factor[duration_factor>1.0] <- 1.0
+duration_factor[duration_factor>1.0] <- -1.0
 
 duration <- as.integer(round(duration_factor*wclimit*60.0))
+duration[duration<0] <- -1
 
 trace$sim_wclimit <- wclimit
 trace$sim_duration <- duration
@@ -265,8 +270,99 @@ trace<-trace[order(trace$sim_submit_ts),]
 # Generate job ids
 trace$sim_job_id <- 1:N + 1000L
 
-#write job trace for Slurm Simulator
-write_trace(file.path(top_dir,"test.trace"),trace)
+#write old job trace for Slurm Simulator
+# write_trace(file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "test.trace"),trace)
 
 #write job trace as csv for reture reference
-write.csv(trace,"test_trace.csv")
+write.csv(trace, file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500.csv"))
+
+#new job trace as csv for reture reference
+
+head(trace)
+trace$dt <- trace$sim_submit_ts - min(trace$sim_submit_ts)
+
+
+
+
+seconds_to_slurm_duration <- function (seconds) {
+    seconds <- as.integer(seconds)
+    days <- seconds %/% (24L*3600L)
+    hms <- seconds %% (24L*3600L)
+    h <- hms %/% 3600L
+    ms <- hms %% 3600L
+    m <- ms %/% 60L
+    s <- ms %% 60L
+    if(days > 0L) {
+        sprintf("%d-%02d:%02d:%02d",days,h,m,s)
+    } else {
+        sprintf("%02d:%02d:%02d",h,m,s)
+    }
+
+}
+
+get_sim_event <- function (trace) {
+    sim_event <- rep.int("",nrow(trace))
+    for(i in 1:(nrow(trace))) {
+        event <- paste(
+            "-dt", trace$dt[i], "-e submit_batch_job |",
+            "-jid ", trace$sim_job_id[i],
+            "-sim-walltime", trace$sim_duration[i],
+            paste0("--uid=", trace$sim_username[i]),
+            "-t", seconds_to_slurm_duration(trace$sim_wclimit[i]*60L),
+            "-n", trace$sim_tasks[i],
+            paste0("--ntasks-per-node=", trace$sim_tasks_per_node[i]),
+            "-A", trace$sim_account[i],
+            "-p", trace$sim_partition[i],
+            "-q", trace$sim_qosname[i]
+            )
+        if (trace$sim_cpus_per_task[i] != 1L) {
+            event <- paste(event, paste0("--cpus-per-task=", trace$sim_tasks_per_node[i]))
+        }
+        if (trace$sim_cancelled_ts[i] != 0L) {
+            error("Job cancelling is not implemented yet")
+        }
+        if (trace$sim_dependency[i] != "") {
+            error("Job dependencies are not implemented yet")
+        }
+        if (trace$sim_shared[i] == 0) {
+            event <- paste(event, "--exclusive")
+        }
+        if (!is.na(trace$sim_req_mem[i])) {
+            if (trace$sim_req_mem_per_cpu[i]) {
+                event <- paste(event, paste0("--mem-per-cpu=", trace$sim_req_mem[i]))
+            } else {
+                event <- paste(event, paste0("--mem=", trace$sim_req_mem[i]))
+            }
+        }
+        if (trace$sim_features[i] != "") {
+            event <- paste(event, paste0("--constraint=", trace$sim_features[i]))
+        }
+        if (trace$sim_gres[i] != "") {
+            event <- paste(event, paste0("--gres=", trace$sim_gres[i]))
+        }
+        event <- paste(event, "pseudo.job")
+        sim_event[i] <- event
+    }
+    sim_event
+}
+trace$sim_event <- get_sim_event(trace)
+
+write(trace$sim_event, file = file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500.events"))
+
+
+trace$dt <- trace$dt %/% 30
+trace$sim_wclimit <- trace$sim_wclimit %/% 30
+trace$sim_wclimit[trace$sim_wclimit < 1L] <-1L
+trace$sim_duration <- trace$sim_duration %/% 30
+trace$sim_duration[trace$sim_duration<0] <- -1
+trace$sim_event <- get_sim_event(trace)
+
+write(trace$sim_event, file = file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500_shrinked.events"))
+
+# "",""
+
+#"","sim_job_id","sim_submit","sim_wclimit","sim_duration","sim_tasks","sim_tasks_per_node","sim_username",
+# "sim_submit_ts","sim_qosname","sim_partition","sim_account","sim_req_mem","sim_req_mem_per_cpu",
+# "sim_features","sim_gres","sim_shared","sim_cpus_per_task","sim_dependency","sim_cancelled_ts","freq"
+
+#"341",1001,2017-01-01 00:01:26,7,15,12,12,"user5",1483246886,"normal","normal","account2",NA,0,"","",1,1,"",0,0.8
