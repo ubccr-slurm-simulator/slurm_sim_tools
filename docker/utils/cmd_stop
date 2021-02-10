@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# sometimes /usr/local/sbin is not in PATH
+export PATH="/usr/local/sbin:$PATH"
+
+SLURMDBD_PID=${SLURMDBD_PID:-/run/slurmdbd.pid}
+SLURMCTLD_PID=${SLURMCTLD_PID:-/run/slurmctld.pid}
+SLURMD_PID=${SLURMD_PID:-/run/slurmd.pid}
+
+kill_process(){
+  kill -SIGTERM $1
+  while [ -f /proc/$1 ];do sleep 1;done
+}
+
+stop_process(){
+    name=$1
+    pid_file=$2
+
+    if [ -f "${pid_file}" ]; then
+        echo "Stopping ${name}"
+        kill_process `cat ${pid_file}`
+    else
+        echo "${name} is not running"
+    fi
+}
+
+
+
+for var in "$@"
+do
+    case "$var" in
+    mysqld)
+        echo "Stopping mysqld"
+        mysqladmin shutdown
+        ;;
+    munged)
+        stop_process munged /run/munge/munged.pid
+        ;;
+    sshd)
+        stop_process sshd /run/sshd.pid
+        ;;
+    slurmdbd)
+        stop_process slurmdbd ${SLURMDBD_PID}
+        ;;
+    slurmctld)
+        stop_process slurmctld ${SLURMCTLD_PID}
+        ;;
+    slurmd)
+        stop_process slurmd ${SLURMD_PID}
+        ;;
+    httpd)
+        httpd -k graceful-stop
+        ;;
+    akrr_v1)
+        echo "Stopping akrr v1.0"
+        AKRRUSER_HOME=${AKRRUSER_HOME:-/home/akrruser}
+        AKRRUSER=${AKRRUSER:-akrruser}
+        sudo -u $AKRRUSER /usr/bin/python2 $AKRRUSER_HOME/akrr/src/akrrscheduler.py stop
+        ;;
+    self_contained_slurm_wlm)
+        cmd_stop slurmd slurmctld slurmdbd mysqld sshd munged
+        ;;
+    *)
+        echo "unknown command ${var}"
+        ;;
+    esac
+done
+
