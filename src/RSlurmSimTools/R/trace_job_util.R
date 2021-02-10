@@ -12,7 +12,9 @@ last_job_id <- 1000L
     last_job_id <- 1000L
     #print("Hello")
     #print(system.file("python", package = "RSlurmSimTools") )
-    rPython::python.load(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
+    #reticulate::source_python("/home/nikolays/slurm_sim_ws/slurm_sim_tools/src/RSlurmSimTools/inst/python/hostlist.py")
+    reticulate::source_python(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
+    #rPython::python.load(file.path(system.file("python", package = "RSlurmSimTools"),"hostlist.py"))
     
     invisible()
 }
@@ -340,6 +342,15 @@ write_trace <- function(trace_filename,trace){
     invisible()
 }
 
+expand_slurm_hostlists <- function(node_list, as_list=TRUE) {
+    node_list_expended <- expand_hostlists_to_list(node_list)
+    if(as_list) {
+        node_list_expended
+    } else {
+        sapply(jobscomp$node_list_full, FUN=function(x){paste(x,collapse = ',')})
+    }
+}
+
 extract_slurm_period <- function(v) {
     #v1 <- sub("^([0-9]{2}):([0-9]{2}):([0-9]{2})","0-\\1:\\2:\\3",t0)
     v2 <- as.integer(stringr::str_match(v,"(([0-9])+-)?([0-9]{2}):([0-9]{2}):([0-9]{2})")[,3:6])
@@ -406,7 +417,7 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
     if(extract_node_list==TRUE){
         #python.load(file.path(rutil_dir,"..","src","hostlist.py"))
         #slurm_log$NodeListFull <- python.call("expand_hostlists_to_str",slurm_log$NodeList)
-        slurm_log$NodeListFull <- rPython::python.call("expand_hostlists_to_list",slurm_log$NodeList)
+        slurm_log$NodeListFull <- expand_hostlists_to_list(slurm_log$NodeList)
     }
 
     #convert memory
