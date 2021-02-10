@@ -32,7 +32,7 @@ The idea of simulator is to run simulator with various configuration to compare 
 ```{bash, eval=FALSE}
 /home/slurm                       - Slurm user home derectory
       └── slurm_sim_ws            - Slurm simulator work space
-          ├── bld_opt             - Slurm simulato building directory
+          ├── bld                 - Slurm simulator building directory
           ├── sim                 - Directory where simulation will be performed
           │   └── <system name>   - Directory where simulation of particular system will be performed
           │       └── <conf name> - Directory where simulation of particular configuration will be performed
@@ -71,7 +71,8 @@ sudo mysql_secure_installation
 
 Add slurm user to SQL, run in MySQL:
 ```{sql eval=FALSE}
-create user 'slurm'@'localhost' identified by 'slurm';                                                                                          grant all privileges on *.* to 'slurm'@'localhost' with grant option;
+create user 'slurm'@'localhost' identified by 'slurm';
+grant all privileges on *.* to 'slurm'@'localhost' with grant option;
 ```
 
 ## Slurm Simulator Toolkit Dependencies
