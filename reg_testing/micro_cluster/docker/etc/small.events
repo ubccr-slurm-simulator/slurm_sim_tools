@@ -1,0 +1,14 @@
+-dt 05 -e submit_batch_job | --uid=user1 -jid 1001 -t 0:30 -n 12 -N 1 -A account1 -p normal -q normal pseudo.job
+-dt 10 -e submit_batch_job | --uid=user1 -jid 1002 -sim-walltime 10 -t 2:20 -n 24 -N 2 -A account1 -p normal -q normal pseudo.job
+-dt 15 -e submit_batch_job | --uid=user2 -jid 1003 -sim-walltime 10 -t 2:30 -n 12 -N 1 -A account1 -p normal -q normal pseudo.job
+-dt 20 -e submit_batch_job | --uid=user3 -jid 1004 -sim-walltime 10 -t 2:20 -n 24 -N 2 -A account1 -p normal -q normal pseudo.job
+-dt 25 -e submit_batch_job | --uid=user1 -jid 1005 -sim-walltime 10 -t 2:30 -n 12 -N 1 -A account1 -p normal -q normal pseudo.job
+-dt 25 -e submit_batch_job | --uid=user1 -jid 1006 -sim-walltime 10 -t 2:30 -n 12 -N 1 --gres=gpu:2 -A account1 -p normal -q normal pseudo.job
+-dt 25 -e submit_batch_job | --uid=user1 -jid 1007 -sim-walltime 10 -t 2:30 -n 12 -N 1 --gres=gpu:2 -A account1 -p normal -q normal pseudo.job
+-dt 25 -e submit_batch_job | --uid=user1 -jid 1008 -sim-walltime 10 -t 2:30 -n 12 -N 1 --gres=gpu:2 -A account1 -p normal -q normal pseudo.job
+-dt 30 -e submit_batch_job | --uid=user2 -jid 1009 -sim-walltime 10 -t 2:20 -n 24 -N 2 -A account1 -p normal -q normal pseudo.job
+-dt 35 -e submit_batch_job | --uid=user3 -jid 1010 -sim-walltime 10 -t 2:30 -n 12 -N 1 -A account1 -p normal -q normal pseudo.job
+-dt 40 -e submit_batch_job | --uid=user4 -jid 1011 -sim-walltime 10 -t 2:20 -n 24 -N 2 -A account2 -p normal -q normal pseudo.job
+-dt 45 -e submit_batch_job | --uid=user5 -jid 1012 -sim-walltime 10 -t 2:30 -n 12 -N 1 -A account2 -p normal -q normal pseudo.job
+-dt 50 -e submit_batch_job | --uid=user1 -jid 1013 -sim-walltime 10 -t 2:20 -n 24 -N 2 -A account1 -p normal -q normal pseudo.job
+-dt 55 -e submit_batch_job | --uid=user2 -jid 1014 -sim-walltime 10 -t 2:30 -n 12 -N 1 -A account1 -p normal -q normal pseudo.job

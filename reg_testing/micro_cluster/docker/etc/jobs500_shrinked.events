@@ -1,0 +1,500 @@
+-dt 0 -e submit_batch_job | -jid  1001 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 1 -e submit_batch_job | -jid  1002 -sim-walltime 40 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 2 -e submit_batch_job | -jid  1003 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 16 -e submit_batch_job | -jid  1004 -sim-walltime 21 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 19 -e submit_batch_job | -jid  1005 -sim-walltime 2 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 19 -e submit_batch_job | -jid  1006 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 19 -e submit_batch_job | -jid  1007 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 22 -e submit_batch_job | -jid  1008 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 26 -e submit_batch_job | -jid  1009 -sim-walltime 2 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 26 -e submit_batch_job | -jid  1010 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 29 -e submit_batch_job | -jid  1011 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 32 -e submit_batch_job | -jid  1012 -sim-walltime 42 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 36 -e submit_batch_job | -jid  1013 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 36 -e submit_batch_job | -jid  1014 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 39 -e submit_batch_job | -jid  1015 -sim-walltime 18 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 40 -e submit_batch_job | -jid  1016 -sim-walltime 25 --uid=user1 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 42 -e submit_batch_job | -jid  1017 -sim-walltime 1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 42 -e submit_batch_job | -jid  1018 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 43 -e submit_batch_job | -jid  1019 -sim-walltime 34 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 43 -e submit_batch_job | -jid  1020 -sim-walltime 14 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 47 -e submit_batch_job | -jid  1021 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 53 -e submit_batch_job | -jid  1022 -sim-walltime 31 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 56 -e submit_batch_job | -jid  1023 -sim-walltime 8 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 56 -e submit_batch_job | -jid  1024 -sim-walltime 20 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 61 -e submit_batch_job | -jid  1025 -sim-walltime 28 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 62 -e submit_batch_job | -jid  1026 -sim-walltime 6 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 64 -e submit_batch_job | -jid  1027 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 66 -e submit_batch_job | -jid  1028 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 67 -e submit_batch_job | -jid  1029 -sim-walltime 40 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 69 -e submit_batch_job | -jid  1030 -sim-walltime 35 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 69 -e submit_batch_job | -jid  1031 -sim-walltime 19 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 71 -e submit_batch_job | -jid  1032 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 72 -e submit_batch_job | -jid  1033 -sim-walltime 7 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 78 -e submit_batch_job | -jid  1034 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 84 -e submit_batch_job | -jid  1035 -sim-walltime 4 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 84 -e submit_batch_job | -jid  1036 -sim-walltime 18 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 85 -e submit_batch_job | -jid  1037 -sim-walltime 10 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 85 -e submit_batch_job | -jid  1038 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 85 -e submit_batch_job | -jid  1039 -sim-walltime 19 --uid=user3 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 93 -e submit_batch_job | -jid  1040 -sim-walltime 10 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 94 -e submit_batch_job | -jid  1041 -sim-walltime 11 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 95 -e submit_batch_job | -jid  1042 -sim-walltime 12 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 95 -e submit_batch_job | -jid  1043 -sim-walltime 2 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 101 -e submit_batch_job | -jid  1044 -sim-walltime 7 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 103 -e submit_batch_job | -jid  1045 -sim-walltime 41 --uid=user2 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 103 -e submit_batch_job | -jid  1046 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 104 -e submit_batch_job | -jid  1047 -sim-walltime 16 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 104 -e submit_batch_job | -jid  1048 -sim-walltime 7 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 105 -e submit_batch_job | -jid  1049 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 107 -e submit_batch_job | -jid  1050 -sim-walltime 6 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 107 -e submit_batch_job | -jid  1051 -sim-walltime 16 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 112 -e submit_batch_job | -jid  1052 -sim-walltime 19 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 113 -e submit_batch_job | -jid  1053 -sim-walltime 21 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 114 -e submit_batch_job | -jid  1054 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 115 -e submit_batch_job | -jid  1055 -sim-walltime 27 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 117 -e submit_batch_job | -jid  1056 -sim-walltime 1 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 118 -e submit_batch_job | -jid  1057 -sim-walltime 39 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 119 -e submit_batch_job | -jid  1058 -sim-walltime 13 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 119 -e submit_batch_job | -jid  1059 -sim-walltime 5 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 120 -e submit_batch_job | -jid  1060 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 122 -e submit_batch_job | -jid  1061 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 123 -e submit_batch_job | -jid  1062 -sim-walltime 7 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 124 -e submit_batch_job | -jid  1063 -sim-walltime 8 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 125 -e submit_batch_job | -jid  1064 -sim-walltime 4 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 126 -e submit_batch_job | -jid  1065 -sim-walltime 2 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 127 -e submit_batch_job | -jid  1066 -sim-walltime 20 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 130 -e submit_batch_job | -jid  1067 -sim-walltime 8 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 131 -e submit_batch_job | -jid  1068 -sim-walltime 9 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 131 -e submit_batch_job | -jid  1069 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 134 -e submit_batch_job | -jid  1070 -sim-walltime 7 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 134 -e submit_batch_job | -jid  1071 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 137 -e submit_batch_job | -jid  1072 -sim-walltime 8 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 138 -e submit_batch_job | -jid  1073 -sim-walltime 5 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 139 -e submit_batch_job | -jid  1074 -sim-walltime 30 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 139 -e submit_batch_job | -jid  1075 -sim-walltime 15 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 140 -e submit_batch_job | -jid  1076 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 141 -e submit_batch_job | -jid  1077 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 141 -e submit_batch_job | -jid  1078 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 143 -e submit_batch_job | -jid  1079 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 145 -e submit_batch_job | -jid  1080 -sim-walltime 21 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 147 -e submit_batch_job | -jid  1081 -sim-walltime 18 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 149 -e submit_batch_job | -jid  1082 -sim-walltime 39 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 151 -e submit_batch_job | -jid  1083 -sim-walltime 19 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 152 -e submit_batch_job | -jid  1084 -sim-walltime 26 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 153 -e submit_batch_job | -jid  1085 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 154 -e submit_batch_job | -jid  1086 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 154 -e submit_batch_job | -jid  1087 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 155 -e submit_batch_job | -jid  1088 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 155 -e submit_batch_job | -jid  1089 -sim-walltime 2 --uid=user4 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 159 -e submit_batch_job | -jid  1090 -sim-walltime 10 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 163 -e submit_batch_job | -jid  1091 -sim-walltime 41 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 163 -e submit_batch_job | -jid  1092 -sim-walltime 8 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 165 -e submit_batch_job | -jid  1093 -sim-walltime 14 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 165 -e submit_batch_job | -jid  1094 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 168 -e submit_batch_job | -jid  1095 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 171 -e submit_batch_job | -jid  1096 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 172 -e submit_batch_job | -jid  1097 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 173 -e submit_batch_job | -jid  1098 -sim-walltime 36 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 173 -e submit_batch_job | -jid  1099 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 175 -e submit_batch_job | -jid  1100 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 176 -e submit_batch_job | -jid  1101 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 176 -e submit_batch_job | -jid  1102 -sim-walltime 36 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 178 -e submit_batch_job | -jid  1103 -sim-walltime 35 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 179 -e submit_batch_job | -jid  1104 -sim-walltime 38 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 182 -e submit_batch_job | -jid  1105 -sim-walltime 43 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 183 -e submit_batch_job | -jid  1106 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 185 -e submit_batch_job | -jid  1107 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 186 -e submit_batch_job | -jid  1108 -sim-walltime 25 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 190 -e submit_batch_job | -jid  1109 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 190 -e submit_batch_job | -jid  1110 -sim-walltime 27 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 192 -e submit_batch_job | -jid  1111 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 193 -e submit_batch_job | -jid  1112 -sim-walltime 53 --uid=user2 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 196 -e submit_batch_job | -jid  1113 -sim-walltime 13 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 197 -e submit_batch_job | -jid  1114 -sim-walltime 11 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 200 -e submit_batch_job | -jid  1115 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 202 -e submit_batch_job | -jid  1116 -sim-walltime 26 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 205 -e submit_batch_job | -jid  1117 -sim-walltime 59 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 206 -e submit_batch_job | -jid  1118 -sim-walltime 25 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 206 -e submit_batch_job | -jid  1119 -sim-walltime 32 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 215 -e submit_batch_job | -jid  1120 -sim-walltime 25 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 217 -e submit_batch_job | -jid  1121 -sim-walltime 58 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 218 -e submit_batch_job | -jid  1122 -sim-walltime 12 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 224 -e submit_batch_job | -jid  1123 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 224 -e submit_batch_job | -jid  1124 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 227 -e submit_batch_job | -jid  1125 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 228 -e submit_batch_job | -jid  1126 -sim-walltime 1 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 229 -e submit_batch_job | -jid  1127 -sim-walltime 4 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 230 -e submit_batch_job | -jid  1128 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 231 -e submit_batch_job | -jid  1129 -sim-walltime 27 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 233 -e submit_batch_job | -jid  1130 -sim-walltime 1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 234 -e submit_batch_job | -jid  1131 -sim-walltime 24 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 234 -e submit_batch_job | -jid  1132 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 239 -e submit_batch_job | -jid  1133 -sim-walltime 10 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 239 -e submit_batch_job | -jid  1134 -sim-walltime 9 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 240 -e submit_batch_job | -jid  1135 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 241 -e submit_batch_job | -jid  1136 -sim-walltime 38 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 241 -e submit_batch_job | -jid  1137 -sim-walltime 41 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 243 -e submit_batch_job | -jid  1138 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 245 -e submit_batch_job | -jid  1139 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 245 -e submit_batch_job | -jid  1140 -sim-walltime 31 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 249 -e submit_batch_job | -jid  1141 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 250 -e submit_batch_job | -jid  1142 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 253 -e submit_batch_job | -jid  1143 -sim-walltime 8 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 255 -e submit_batch_job | -jid  1144 -sim-walltime 20 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 256 -e submit_batch_job | -jid  1145 -sim-walltime 24 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 258 -e submit_batch_job | -jid  1146 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 258 -e submit_batch_job | -jid  1147 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 258 -e submit_batch_job | -jid  1148 -sim-walltime 5 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 260 -e submit_batch_job | -jid  1149 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 264 -e submit_batch_job | -jid  1150 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 267 -e submit_batch_job | -jid  1151 -sim-walltime 4 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 267 -e submit_batch_job | -jid  1152 -sim-walltime 16 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 270 -e submit_batch_job | -jid  1153 -sim-walltime 41 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 270 -e submit_batch_job | -jid  1154 -sim-walltime 3 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 270 -e submit_batch_job | -jid  1155 -sim-walltime 26 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 271 -e submit_batch_job | -jid  1156 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 271 -e submit_batch_job | -jid  1157 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 272 -e submit_batch_job | -jid  1158 -sim-walltime 12 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 274 -e submit_batch_job | -jid  1159 -sim-walltime 3 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 276 -e submit_batch_job | -jid  1160 -sim-walltime 56 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 279 -e submit_batch_job | -jid  1161 -sim-walltime 51 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 279 -e submit_batch_job | -jid  1162 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 281 -e submit_batch_job | -jid  1163 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 281 -e submit_batch_job | -jid  1164 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 285 -e submit_batch_job | -jid  1165 -sim-walltime 45 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 285 -e submit_batch_job | -jid  1166 -sim-walltime 1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 286 -e submit_batch_job | -jid  1167 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 286 -e submit_batch_job | -jid  1168 -sim-walltime 21 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 286 -e submit_batch_job | -jid  1169 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 288 -e submit_batch_job | -jid  1170 -sim-walltime 8 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 290 -e submit_batch_job | -jid  1171 -sim-walltime 2 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 293 -e submit_batch_job | -jid  1172 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 295 -e submit_batch_job | -jid  1173 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 299 -e submit_batch_job | -jid  1174 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 300 -e submit_batch_job | -jid  1175 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 300 -e submit_batch_job | -jid  1176 -sim-walltime 2 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 301 -e submit_batch_job | -jid  1177 -sim-walltime 13 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 305 -e submit_batch_job | -jid  1178 -sim-walltime 53 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 308 -e submit_batch_job | -jid  1179 -sim-walltime 24 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 311 -e submit_batch_job | -jid  1180 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 312 -e submit_batch_job | -jid  1181 -sim-walltime 37 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 312 -e submit_batch_job | -jid  1182 -sim-walltime 28 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 313 -e submit_batch_job | -jid  1183 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 316 -e submit_batch_job | -jid  1184 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 319 -e submit_batch_job | -jid  1185 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 320 -e submit_batch_job | -jid  1186 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 322 -e submit_batch_job | -jid  1187 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 323 -e submit_batch_job | -jid  1188 -sim-walltime 16 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 323 -e submit_batch_job | -jid  1189 -sim-walltime 3 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 323 -e submit_batch_job | -jid  1190 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 327 -e submit_batch_job | -jid  1191 -sim-walltime 4 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 329 -e submit_batch_job | -jid  1192 -sim-walltime 37 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 330 -e submit_batch_job | -jid  1193 -sim-walltime 22 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 332 -e submit_batch_job | -jid  1194 -sim-walltime 12 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 333 -e submit_batch_job | -jid  1195 -sim-walltime 8 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 335 -e submit_batch_job | -jid  1196 -sim-walltime 8 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 336 -e submit_batch_job | -jid  1197 -sim-walltime 7 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 337 -e submit_batch_job | -jid  1198 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 337 -e submit_batch_job | -jid  1199 -sim-walltime 13 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 340 -e submit_batch_job | -jid  1200 -sim-walltime 10 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 342 -e submit_batch_job | -jid  1201 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 343 -e submit_batch_job | -jid  1202 -sim-walltime 16 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 345 -e submit_batch_job | -jid  1203 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 346 -e submit_batch_job | -jid  1204 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 346 -e submit_batch_job | -jid  1205 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 347 -e submit_batch_job | -jid  1206 -sim-walltime 59 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 348 -e submit_batch_job | -jid  1207 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 348 -e submit_batch_job | -jid  1208 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 349 -e submit_batch_job | -jid  1209 -sim-walltime 13 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 349 -e submit_batch_job | -jid  1210 -sim-walltime 17 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 351 -e submit_batch_job | -jid  1211 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 352 -e submit_batch_job | -jid  1212 -sim-walltime 4 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 359 -e submit_batch_job | -jid  1213 -sim-walltime 19 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 359 -e submit_batch_job | -jid  1214 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 360 -e submit_batch_job | -jid  1215 -sim-walltime 23 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 362 -e submit_batch_job | -jid  1216 -sim-walltime 23 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 363 -e submit_batch_job | -jid  1217 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 366 -e submit_batch_job | -jid  1218 -sim-walltime 49 --uid=user5 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 370 -e submit_batch_job | -jid  1219 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 371 -e submit_batch_job | -jid  1220 -sim-walltime 11 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 380 -e submit_batch_job | -jid  1221 -sim-walltime 8 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 380 -e submit_batch_job | -jid  1222 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 381 -e submit_batch_job | -jid  1223 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 382 -e submit_batch_job | -jid  1224 -sim-walltime 10 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 382 -e submit_batch_job | -jid  1225 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 383 -e submit_batch_job | -jid  1226 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 385 -e submit_batch_job | -jid  1227 -sim-walltime 8 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 386 -e submit_batch_job | -jid  1228 -sim-walltime 6 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 387 -e submit_batch_job | -jid  1229 -sim-walltime 27 --uid=user3 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 389 -e submit_batch_job | -jid  1230 -sim-walltime 37 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 389 -e submit_batch_job | -jid  1231 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 390 -e submit_batch_job | -jid  1232 -sim-walltime 5 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 390 -e submit_batch_job | -jid  1233 -sim-walltime 5 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 390 -e submit_batch_job | -jid  1234 -sim-walltime 12 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 395 -e submit_batch_job | -jid  1235 -sim-walltime 33 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 398 -e submit_batch_job | -jid  1236 -sim-walltime 52 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 399 -e submit_batch_job | -jid  1237 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 401 -e submit_batch_job | -jid  1238 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 402 -e submit_batch_job | -jid  1239 -sim-walltime 4 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 404 -e submit_batch_job | -jid  1240 -sim-walltime 11 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 405 -e submit_batch_job | -jid  1241 -sim-walltime 16 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 410 -e submit_batch_job | -jid  1242 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 412 -e submit_batch_job | -jid  1243 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 413 -e submit_batch_job | -jid  1244 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 413 -e submit_batch_job | -jid  1245 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 415 -e submit_batch_job | -jid  1246 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 418 -e submit_batch_job | -jid  1247 -sim-walltime 30 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 420 -e submit_batch_job | -jid  1248 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 420 -e submit_batch_job | -jid  1249 -sim-walltime 12 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 421 -e submit_batch_job | -jid  1250 -sim-walltime 8 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 425 -e submit_batch_job | -jid  1251 -sim-walltime 13 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 426 -e submit_batch_job | -jid  1252 -sim-walltime 38 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 426 -e submit_batch_job | -jid  1253 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 428 -e submit_batch_job | -jid  1254 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 430 -e submit_batch_job | -jid  1255 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 430 -e submit_batch_job | -jid  1256 -sim-walltime 28 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 432 -e submit_batch_job | -jid  1257 -sim-walltime 27 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 432 -e submit_batch_job | -jid  1258 -sim-walltime 3 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 432 -e submit_batch_job | -jid  1259 -sim-walltime 23 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 438 -e submit_batch_job | -jid  1260 -sim-walltime 4 --uid=user1 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 444 -e submit_batch_job | -jid  1261 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 444 -e submit_batch_job | -jid  1262 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 448 -e submit_batch_job | -jid  1263 -sim-walltime 15 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 450 -e submit_batch_job | -jid  1264 -sim-walltime 5 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 451 -e submit_batch_job | -jid  1265 -sim-walltime 11 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 453 -e submit_batch_job | -jid  1266 -sim-walltime 48 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 453 -e submit_batch_job | -jid  1267 -sim-walltime 9 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 458 -e submit_batch_job | -jid  1268 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 458 -e submit_batch_job | -jid  1269 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 459 -e submit_batch_job | -jid  1270 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 460 -e submit_batch_job | -jid  1271 -sim-walltime 6 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 461 -e submit_batch_job | -jid  1272 -sim-walltime 10 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 462 -e submit_batch_job | -jid  1273 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 463 -e submit_batch_job | -jid  1274 -sim-walltime 6 --uid=user5 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 465 -e submit_batch_job | -jid  1275 -sim-walltime 46 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 466 -e submit_batch_job | -jid  1276 -sim-walltime 20 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 467 -e submit_batch_job | -jid  1277 -sim-walltime 30 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 470 -e submit_batch_job | -jid  1278 -sim-walltime 52 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 472 -e submit_batch_job | -jid  1279 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 473 -e submit_batch_job | -jid  1280 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 474 -e submit_batch_job | -jid  1281 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 474 -e submit_batch_job | -jid  1282 -sim-walltime 8 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 475 -e submit_batch_job | -jid  1283 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 475 -e submit_batch_job | -jid  1284 -sim-walltime 19 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 475 -e submit_batch_job | -jid  1285 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 476 -e submit_batch_job | -jid  1286 -sim-walltime 19 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 480 -e submit_batch_job | -jid  1287 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 484 -e submit_batch_job | -jid  1288 -sim-walltime 22 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 484 -e submit_batch_job | -jid  1289 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 486 -e submit_batch_job | -jid  1290 -sim-walltime 36 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 489 -e submit_batch_job | -jid  1291 -sim-walltime 8 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 489 -e submit_batch_job | -jid  1292 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 492 -e submit_batch_job | -jid  1293 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 493 -e submit_batch_job | -jid  1294 -sim-walltime 3 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 493 -e submit_batch_job | -jid  1295 -sim-walltime 38 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 495 -e submit_batch_job | -jid  1296 -sim-walltime 7 --uid=user2 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 497 -e submit_batch_job | -jid  1297 -sim-walltime 18 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 498 -e submit_batch_job | -jid  1298 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 502 -e submit_batch_job | -jid  1299 -sim-walltime 2 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 504 -e submit_batch_job | -jid  1300 -sim-walltime 30 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 504 -e submit_batch_job | -jid  1301 -sim-walltime 4 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 505 -e submit_batch_job | -jid  1302 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 507 -e submit_batch_job | -jid  1303 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 510 -e submit_batch_job | -jid  1304 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 510 -e submit_batch_job | -jid  1305 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 512 -e submit_batch_job | -jid  1306 -sim-walltime 17 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 512 -e submit_batch_job | -jid  1307 -sim-walltime 1 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 512 -e submit_batch_job | -jid  1308 -sim-walltime 3 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 512 -e submit_batch_job | -jid  1309 -sim-walltime 32 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 514 -e submit_batch_job | -jid  1310 -sim-walltime 31 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 516 -e submit_batch_job | -jid  1311 -sim-walltime 32 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 517 -e submit_batch_job | -jid  1312 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 521 -e submit_batch_job | -jid  1313 -sim-walltime 22 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 523 -e submit_batch_job | -jid  1314 -sim-walltime 20 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 524 -e submit_batch_job | -jid  1315 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 524 -e submit_batch_job | -jid  1316 -sim-walltime 29 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 526 -e submit_batch_job | -jid  1317 -sim-walltime 13 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 528 -e submit_batch_job | -jid  1318 -sim-walltime 11 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 532 -e submit_batch_job | -jid  1319 -sim-walltime 3 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 533 -e submit_batch_job | -jid  1320 -sim-walltime 25 --uid=user5 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 534 -e submit_batch_job | -jid  1321 -sim-walltime 16 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 536 -e submit_batch_job | -jid  1322 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 537 -e submit_batch_job | -jid  1323 -sim-walltime 14 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 537 -e submit_batch_job | -jid  1324 -sim-walltime 7 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 539 -e submit_batch_job | -jid  1325 -sim-walltime 8 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 541 -e submit_batch_job | -jid  1326 -sim-walltime 31 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 545 -e submit_batch_job | -jid  1327 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 546 -e submit_batch_job | -jid  1328 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 547 -e submit_batch_job | -jid  1329 -sim-walltime 1 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 547 -e submit_batch_job | -jid  1330 -sim-walltime 11 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 551 -e submit_batch_job | -jid  1331 -sim-walltime 2 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 552 -e submit_batch_job | -jid  1332 -sim-walltime 1 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 553 -e submit_batch_job | -jid  1333 -sim-walltime 34 --uid=user4 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 556 -e submit_batch_job | -jid  1334 -sim-walltime 5 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 556 -e submit_batch_job | -jid  1335 -sim-walltime 10 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 560 -e submit_batch_job | -jid  1336 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 566 -e submit_batch_job | -jid  1337 -sim-walltime 21 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 568 -e submit_batch_job | -jid  1338 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 570 -e submit_batch_job | -jid  1339 -sim-walltime 34 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 571 -e submit_batch_job | -jid  1340 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 572 -e submit_batch_job | -jid  1341 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 573 -e submit_batch_job | -jid  1342 -sim-walltime 22 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 576 -e submit_batch_job | -jid  1343 -sim-walltime 6 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 580 -e submit_batch_job | -jid  1344 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 581 -e submit_batch_job | -jid  1345 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 583 -e submit_batch_job | -jid  1346 -sim-walltime 16 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 584 -e submit_batch_job | -jid  1347 -sim-walltime 4 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 587 -e submit_batch_job | -jid  1348 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 587 -e submit_batch_job | -jid  1349 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 588 -e submit_batch_job | -jid  1350 -sim-walltime 15 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 588 -e submit_batch_job | -jid  1351 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 594 -e submit_batch_job | -jid  1352 -sim-walltime 7 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 594 -e submit_batch_job | -jid  1353 -sim-walltime 6 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 594 -e submit_batch_job | -jid  1354 -sim-walltime 30 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 595 -e submit_batch_job | -jid  1355 -sim-walltime 33 --uid=user2 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 597 -e submit_batch_job | -jid  1356 -sim-walltime 2 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 602 -e submit_batch_job | -jid  1357 -sim-walltime 5 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 602 -e submit_batch_job | -jid  1358 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 603 -e submit_batch_job | -jid  1359 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 603 -e submit_batch_job | -jid  1360 -sim-walltime 16 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 604 -e submit_batch_job | -jid  1361 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 605 -e submit_batch_job | -jid  1362 -sim-walltime 30 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 605 -e submit_batch_job | -jid  1363 -sim-walltime 12 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 613 -e submit_batch_job | -jid  1364 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 614 -e submit_batch_job | -jid  1365 -sim-walltime 4 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 616 -e submit_batch_job | -jid  1366 -sim-walltime 28 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 616 -e submit_batch_job | -jid  1367 -sim-walltime 12 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 619 -e submit_batch_job | -jid  1368 -sim-walltime 12 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 620 -e submit_batch_job | -jid  1369 -sim-walltime 32 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 620 -e submit_batch_job | -jid  1370 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 623 -e submit_batch_job | -jid  1371 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 623 -e submit_batch_job | -jid  1372 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 624 -e submit_batch_job | -jid  1373 -sim-walltime 8 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 625 -e submit_batch_job | -jid  1374 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 627 -e submit_batch_job | -jid  1375 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 628 -e submit_batch_job | -jid  1376 -sim-walltime 9 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 629 -e submit_batch_job | -jid  1377 -sim-walltime 36 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 631 -e submit_batch_job | -jid  1378 -sim-walltime 23 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 631 -e submit_batch_job | -jid  1379 -sim-walltime 14 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 633 -e submit_batch_job | -jid  1380 -sim-walltime 32 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 635 -e submit_batch_job | -jid  1381 -sim-walltime 24 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 636 -e submit_batch_job | -jid  1382 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 638 -e submit_batch_job | -jid  1383 -sim-walltime 41 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 643 -e submit_batch_job | -jid  1384 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 644 -e submit_batch_job | -jid  1385 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 645 -e submit_batch_job | -jid  1386 -sim-walltime 29 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 646 -e submit_batch_job | -jid  1387 -sim-walltime 46 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 647 -e submit_batch_job | -jid  1388 -sim-walltime 40 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 652 -e submit_batch_job | -jid  1389 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 656 -e submit_batch_job | -jid  1390 -sim-walltime 5 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 656 -e submit_batch_job | -jid  1391 -sim-walltime 13 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 656 -e submit_batch_job | -jid  1392 -sim-walltime 9 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 657 -e submit_batch_job | -jid  1393 -sim-walltime 17 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 660 -e submit_batch_job | -jid  1394 -sim-walltime 1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 661 -e submit_batch_job | -jid  1395 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 664 -e submit_batch_job | -jid  1396 -sim-walltime 21 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 665 -e submit_batch_job | -jid  1397 -sim-walltime 26 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 665 -e submit_batch_job | -jid  1398 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 666 -e submit_batch_job | -jid  1399 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 668 -e submit_batch_job | -jid  1400 -sim-walltime 3 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 669 -e submit_batch_job | -jid  1401 -sim-walltime 4 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 670 -e submit_batch_job | -jid  1402 -sim-walltime 25 --uid=user1 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 672 -e submit_batch_job | -jid  1403 -sim-walltime 28 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 672 -e submit_batch_job | -jid  1404 -sim-walltime 4 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 673 -e submit_batch_job | -jid  1405 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 674 -e submit_batch_job | -jid  1406 -sim-walltime 11 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 674 -e submit_batch_job | -jid  1407 -sim-walltime 9 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 676 -e submit_batch_job | -jid  1408 -sim-walltime 34 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 678 -e submit_batch_job | -jid  1409 -sim-walltime 10 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 680 -e submit_batch_job | -jid  1410 -sim-walltime 14 --uid=user2 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 681 -e submit_batch_job | -jid  1411 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 684 -e submit_batch_job | -jid  1412 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 684 -e submit_batch_job | -jid  1413 -sim-walltime 3 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 686 -e submit_batch_job | -jid  1414 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 686 -e submit_batch_job | -jid  1415 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 687 -e submit_batch_job | -jid  1416 -sim-walltime 4 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 687 -e submit_batch_job | -jid  1417 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 688 -e submit_batch_job | -jid  1418 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 689 -e submit_batch_job | -jid  1419 -sim-walltime 42 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 691 -e submit_batch_job | -jid  1420 -sim-walltime 34 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 692 -e submit_batch_job | -jid  1421 -sim-walltime 14 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 695 -e submit_batch_job | -jid  1422 -sim-walltime 44 --uid=user5 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 699 -e submit_batch_job | -jid  1423 -sim-walltime 11 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 699 -e submit_batch_job | -jid  1424 -sim-walltime 9 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 700 -e submit_batch_job | -jid  1425 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 701 -e submit_batch_job | -jid  1426 -sim-walltime 31 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 704 -e submit_batch_job | -jid  1427 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 706 -e submit_batch_job | -jid  1428 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 707 -e submit_batch_job | -jid  1429 -sim-walltime 6 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 712 -e submit_batch_job | -jid  1430 -sim-walltime 36 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 713 -e submit_batch_job | -jid  1431 -sim-walltime -1 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 715 -e submit_batch_job | -jid  1432 -sim-walltime 31 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 716 -e submit_batch_job | -jid  1433 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 717 -e submit_batch_job | -jid  1434 -sim-walltime -1 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 722 -e submit_batch_job | -jid  1435 -sim-walltime 2 --uid=user2 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 723 -e submit_batch_job | -jid  1436 -sim-walltime 25 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 723 -e submit_batch_job | -jid  1437 -sim-walltime 15 --uid=user3 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 726 -e submit_batch_job | -jid  1438 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 727 -e submit_batch_job | -jid  1439 -sim-walltime 14 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 730 -e submit_batch_job | -jid  1440 -sim-walltime 9 --uid=user5 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 731 -e submit_batch_job | -jid  1441 -sim-walltime 27 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 731 -e submit_batch_job | -jid  1442 -sim-walltime 5 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 732 -e submit_batch_job | -jid  1443 -sim-walltime 27 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 734 -e submit_batch_job | -jid  1444 -sim-walltime 26 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 739 -e submit_batch_job | -jid  1445 -sim-walltime 45 --uid=user4 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 743 -e submit_batch_job | -jid  1446 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 743 -e submit_batch_job | -jid  1447 -sim-walltime 18 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 744 -e submit_batch_job | -jid  1448 -sim-walltime 43 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 744 -e submit_batch_job | -jid  1449 -sim-walltime 10 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 746 -e submit_batch_job | -jid  1450 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 750 -e submit_batch_job | -jid  1451 -sim-walltime 59 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 750 -e submit_batch_job | -jid  1452 -sim-walltime 3 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 752 -e submit_batch_job | -jid  1453 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 756 -e submit_batch_job | -jid  1454 -sim-walltime 48 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 757 -e submit_batch_job | -jid  1455 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 758 -e submit_batch_job | -jid  1456 -sim-walltime 16 --uid=user5 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 758 -e submit_batch_job | -jid  1457 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 761 -e submit_batch_job | -jid  1458 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 766 -e submit_batch_job | -jid  1459 -sim-walltime 27 --uid=user1 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 766 -e submit_batch_job | -jid  1460 -sim-walltime 7 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 768 -e submit_batch_job | -jid  1461 -sim-walltime 22 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 769 -e submit_batch_job | -jid  1462 -sim-walltime 15 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 769 -e submit_batch_job | -jid  1463 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 770 -e submit_batch_job | -jid  1464 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 771 -e submit_batch_job | -jid  1465 -sim-walltime 3 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 773 -e submit_batch_job | -jid  1466 -sim-walltime 7 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 774 -e submit_batch_job | -jid  1467 -sim-walltime 45 --uid=user1 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 778 -e submit_batch_job | -jid  1468 -sim-walltime 19 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 783 -e submit_batch_job | -jid  1469 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 783 -e submit_batch_job | -jid  1470 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 784 -e submit_batch_job | -jid  1471 -sim-walltime 17 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 785 -e submit_batch_job | -jid  1472 -sim-walltime 4 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 785 -e submit_batch_job | -jid  1473 -sim-walltime 10 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 786 -e submit_batch_job | -jid  1474 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 788 -e submit_batch_job | -jid  1475 -sim-walltime 15 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 789 -e submit_batch_job | -jid  1476 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 795 -e submit_batch_job | -jid  1477 -sim-walltime 6 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 798 -e submit_batch_job | -jid  1478 -sim-walltime 23 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 799 -e submit_batch_job | -jid  1479 -sim-walltime 3 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 799 -e submit_batch_job | -jid  1480 -sim-walltime 41 --uid=user2 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 801 -e submit_batch_job | -jid  1481 -sim-walltime 30 --uid=user2 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 802 -e submit_batch_job | -jid  1482 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 806 -e submit_batch_job | -jid  1483 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 809 -e submit_batch_job | -jid  1484 -sim-walltime 0 --uid=user1 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 810 -e submit_batch_job | -jid  1485 -sim-walltime 37 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 818 -e submit_batch_job | -jid  1486 -sim-walltime 17 --uid=user4 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 820 -e submit_batch_job | -jid  1487 -sim-walltime 10 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 820 -e submit_batch_job | -jid  1488 -sim-walltime 40 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 821 -e submit_batch_job | -jid  1489 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 822 -e submit_batch_job | -jid  1490 -sim-walltime 42 --uid=user5 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 822 -e submit_batch_job | -jid  1491 -sim-walltime 9 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 822 -e submit_batch_job | -jid  1492 -sim-walltime 9 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 824 -e submit_batch_job | -jid  1493 -sim-walltime 11 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 824 -e submit_batch_job | -jid  1494 -sim-walltime 12 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 827 -e submit_batch_job | -jid  1495 -sim-walltime 26 --uid=user4 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account2 -p normal -q normal pseudo.job
+-dt 830 -e submit_batch_job | -jid  1496 -sim-walltime 23 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 834 -e submit_batch_job | -jid  1497 -sim-walltime 7 --uid=user3 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 835 -e submit_batch_job | -jid  1498 -sim-walltime 8 --uid=user1 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 836 -e submit_batch_job | -jid  1499 -sim-walltime 12 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal pseudo.job
+-dt 836 -e submit_batch_job | -jid  1500 -sim-walltime 3 --uid=user5 -t 00:01:00 -n 36 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
