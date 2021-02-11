@@ -2,7 +2,9 @@
 library(RSlurmSimTools)
 
 # change working directory to script location
-top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+top_dir <- tryCatch(
+    dirname(sys.frame(1)$ofile),
+    error=function(cond) {return(dirname(rstudioapi::getActiveDocumentContext()$path))})
 setwd(top_dir)
 
 #library(ggplot2)

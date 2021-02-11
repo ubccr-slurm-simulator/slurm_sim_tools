@@ -1,7 +1,7 @@
 ---
-title: "Slurm Simulator. Mini Tutorial/Installation/User Guide"
+title: "Slurm Simulator. Mini Tutorial/Installation/User Guide. Version 1.2"
 author: "Nikolay Simakov, Center for Computational Reseach, SUNY, University at Buffalo"
-date: "09-13-2017"
+date: "02-10-2020"
 output:
   html_document:
     number_sections: yes
@@ -13,26 +13,56 @@ output:
 monofont: DejaVu Sans Mono
 ---
 
-Slurm simulator repositary:
+We are working on new version of slurm simulator but, for now,
+the working version of Slurm Simulator is based on old Slurm 17.11.
 
-> [https://github.com/nsimakov/slurm_simulator](https://github.com/nsimakov/slurm_simulator)
+Slurm simulator repository:
 
-Toolkit and documentation for slurm simulator repositary:
+> [https://github.com/ubccr-slurm-simulator/slurm_simulator](https://github.com/ubccr-slurm-simulator/slurm_simulator)
+> branch: slurm-17-11_Sim
 
-> [https://github.com/nsimakov/slurm_sim_tools](https://github.com/nsimakov/slurm_sim_tools)
+Toolkit and documentation for slurm simulator repository:
+
+> [https://github.com/ubccr-slurm-simulator/slurm_sim_tools](https://github.com/ubccr-slurm-simulator/slurm_sim_tools)
+> branch: slurm-17-11_Sim
+
+# Overview
+
+Slurm is an open source job scheduling system that is widely used in many small and large-scale HPC resources,
+including almost all current XSEDE resources. Like all resource management programs, Slurm is highly tuneable,
+with many parametric settings that can significantly influence job throughput, overall system utilization and
+job wait times. Unfortunately, in many cases it is difficult to judge how modification of these parameters will
+affect the overall performance of the HPC resource.  For example, a given policy choice which changes a single
+Slurm parameter may have unintended and perhaps undesirable consequences for the overall performance of the
+HPC system.  Also, it may take days or even weeks to see what, if any, impact certain changes have on the
+scheduler performance and operation. For these reasons, attempting to tune system performance or implement new
+policy choices through changes in the Slurm parameters on a production HPC system is not practical.  In a real sense,
+HPC center personnel are often times operating in the dark with respect to tuning the Slurm parameter space to
+optimize job throughput or resource efficiency.  The ability to simulate a Slurm operating environment can therefore
+provide a means to improve an existing production system or predict the performance of a newly planned HPC system,
+without impacting the production instance of Slurm
+
+We have developed a standalone Slurm Simulator, which runs on a workstation or a single HPC node, that allows
+time accelerated simulation of workloads on HPC resources. Based on a modification of the actual Slurm code,
+the simulator can be used to study the effects of different Slurm parameters on HPC resource performance and
+to optimize these parameters to fit a particular need or policy, for example, maximizing throughput for a
+particular range of job sizes.  In the current implementation, the Slurm simulator can model historic or
+synthetic workloads of a single cluster.  For small clusters, the simulator can simulate as many as 17 days
+per hour depending on the job composition, and the Slurm configuration.
+
+1. N.A. Simakov, R.L. DeLeon, M.D. Innus, M.D. Jones, J.P. White, S.M. Gallo, A.K. Patra, and T.R. Furlani. (2018) A Slurm Simulator: Implementation and Parametric Analysis. In: Jarvis S., Wright S., Hammond S. (eds) High Performance Computing Systems. Performance Modeling, Benchmarking, and Simulation. PMBS 2017. Lecture Notes in Computer Science, vol 10724. Springer, Cham. https://link.springer.com/chapter/10.1007/978-3-319-72971-8_10
+
+2.	N.A. Simakov, R.L. DeLeon, M.D. Innus, M.D. Jones, J.P. White, S.M. Gallo, A.K. Patra, and T.R. Furlani. 2018. Slurm Simulator: Improving Slurm Scheduler Performance on Large HPC systems by Utilization of Multiple Controllers and Node Sharing. In Proceedings of the Practice and Experience on Advanced Research Computing (PEARC '18). ACM, New York, NY, USA, Article 25, 8 pages. DOI: https://doi.org/10.1145/3219104.3219111
 
 
-# Installation
-This installation guide is tested on fresh installation of CenOS 7 (CentOS-7-x86_64-DVD-1611.iso KDE Plasma Workspaces with Development Tools)
-
-Since there are many absolute paths in slurm.conf, it can be helpful to create a separate user for slurm named *slurm* and use it for Slurm Simulator.
+# Directories Layout
 
 The idea of simulator is to run simulator with various configuration to compare them and choose one which is more suitable for particular situation. Because of this there are going to be multiple configurations with multiple outcomes. Therefore it is convenient to keep slurm binaries separately from the configuration and logs from the simulated run. The following directory structure is  recommended used here (the respective directories will be created on appropriate steps during the tutorial)
 
 ```{bash, eval=FALSE}
 /home/slurm                       - Slurm user home derectory
       └── slurm_sim_ws            - Slurm simulator work space
-          ├── bld_opt             - Slurm simulato building directory
+          ├── bld                 - Slurm simulator building directory
           ├── sim                 - Directory where simulation will be performed
           │   └── <system name>   - Directory where simulation of particular system will be performed
           │       └── <conf name> - Directory where simulation of particular configuration will be performed
@@ -44,11 +74,65 @@ The idea of simulator is to run simulator with various configuration to compare 
           └── slurm_simulator     - Slurm simulator source code
 ```
 
-# Installing Dependencies
+# Installation
 
-## Slurm Simulator Dependencies
+## Using Prebuild Docker Container
 
-### Install MySQL (MariaDB in this case)
+To simplify installation process we created a docker image with slurm simulator and job traces creation tools.
+
+If you are not familiar with Docker, it allows distribution of application with all dependencies with build it virtualization you can run linux containers on Mac or Windows Pro platforms.
+To get started install Docker Desktop/Engine from [https://www.docker.com/](https://www.docker.com/).
+
+Pull slurm simulater image from DockerHub:
+
+```{bash, eval=FALSE}
+docker pull nsimakov/ub-slurm-sim:v1.2
+```
+
+To start interactive session with container:
+```{bash, eval=FALSE}
+docker run -it -p 8787:8787 --name slurm-sim -h slurm-sim nsimakov/ub-slurm-sim:v1.2
+```
+
+The container will start all nessesary services and get to interactive bash session. Rstudio server will run on 8787 port. Go to [http://localhost:8787/](http://localhost:8787/) to start Rstudio session.
+
+Additional terminals to container can be started as:
+
+```{bash, eval=FALSE}
+docker exec -it slurm-sim bash
+```
+
+Alternatively the container can be started in detached mode (i.e. background)
+
+```{bash, eval=FALSE}
+docker run -it -p 8787:8787 --name slurm-sim -h slurm-sim nsimakov/ub-slurm-sim:v1.2
+```
+
+> Cheetsheet for some useful docker commands:
+> ```docker container ls -a``` - list all conteiners
+> ```docker container stop slurm-sim``` - stop slurm-sim conteiners
+> ```docker container start slurm-sim``` - start slurm-sim conteiners
+> ```docker container kill slurm-sim``` - kill slurm-sim conteiners
+> ```docker container rm slurm-sim``` - remove slurm-sim conteiners, all content of conteiner will be erased
+
+
+## Installation from Source Code
+
+This installation guide is tested in docker container installation based on  CenOS 7 image.
+
+Since there are many absolute paths in slurm.conf, it can be helpful to create a separate user for slurm named *slurm* and use it for Slurm Simulator.
+
+### Installing Dependencies
+
+Install git and gcc compilers:
+
+```{bash, eval=FALSE}
+yum -y install git gcc-c++
+```
+
+#### Slurm Simulator Dependencies
+
+#### Install MySQL (MariaDB in this case)
 
 Install maria-db server and developer packages:
 ```{bash, eval=FALSE}
@@ -64,26 +148,38 @@ sudo systemctl start mariadb
 
 Run mysql_secure_installation for more secure installation if needed. 
 If SQL server is not accessible from the outside it is ok not to run it
+
 ```{bash, eval=FALSE}
 sudo mysql_secure_installation
 ```
 
-
 Add slurm user to SQL, run in MySQL:
+
 ```{sql eval=FALSE}
-create user 'slurm'@'localhost' identified by 'slurm';                                                                                          grant all privileges on *.* to 'slurm'@'localhost' with grant option;
+create user 'slurm'@'localhost' identified by 'slurm';
+grant all privileges on *.* to 'slurm'@'localhost' with grant option;
 ```
 
-## Slurm Simulator Toolkit Dependencies
-### Python
+#### Other Dependencies
+
+```{bash, eval=FALSE}
+sudo yum install openssh openssh-server openssh-clients openssl-libs
+```
+
+### Slurm Simulator Toolkit Dependencies
+
+#### Python
+
 Install python3 with pymysql and pandas packages: 
 ```{bash, eval=FALSE}
 sudo yum -y install install epel-release
-sudo yum -y install python34 python34-libs python34-devel python34-numpy python34-scipy python34-pip
-sudo pip3 install pymysql
-sudo pip3 install pandas
+sudo yum -y install python36 python36-libs python36-devel python36-numpy python36-scipy python36-pip && \
+pip3 install pymysql && \
+pip3 install pandas
 ```
-### R
+
+#### R
+
 Install R:
 ```{bash, eval=FALSE}
 sudo yum -y install R R-Rcpp R-Rcpp-devel
@@ -93,8 +189,8 @@ sudo yum install texlive-*
 
 Install R-Studio:
 ```{bash, eval=FALSE}
-wget https://download1.rstudio.org/rstudio-1.0.136-x86_64.rpm
-sudo yum -y install rstudio-1.0.136-x86_64.rpm
+wget https://download1.rstudio.org/desktop/centos7/x86_64/rstudio-1.4.1103-x86_64.rpm
+sudo yum -y install rstudio-1.4.1103-x86_64.rpm
 ```
 
 In R-Studio or plain R install depending packages:
@@ -107,11 +203,10 @@ install.packages("rPython")
 install.packages("stringr")
 install.packages("dplyr")
 install.packages("rstudioapi")
-# install R Slurm Simulator Toolkit
-install.packages("~/slurm_sim_ws/slurm_sim_tools/src/RSlurmSimTools", repos = NULL, type="source")
+
 ```
 
-# Prepering Slurm Simulator Workspace
+### Prepering Slurm Simulator Workspace
 
 Create work space for Slurm simulation activities:
 ```{bash, eval=FALSE}
@@ -122,45 +217,47 @@ cd slurm_sim_ws
 mkdir sim
 ```
 
-# Installing Slurm Simulator
+### Installing Slurm Simulator
 
 Obtain Slurm Simulator source code with git:
 ```{bash, eval=FALSE}
-git clone https://github.com/nsimakov/slurm_simulator.git
+git clone --depth 1 --branch slurm-17-11_Sim https://github.com/ubccr-slurm-simulator/slurm_simulator.git
 cd slurm_simulator
 ```
 
-Ensure what slurm-17.02_Sim branch is used:
+Ensure what slurm-17.11_Sim branch is used:
 ```{bash, eval=FALSE}
 git branch
 ```
+
 ```
 Output:
-* slurm-17.02_Sim
+* slurm-17.11_Sim
 ```
 
 If it is not the case checkout proper branch:
 ```{bash, eval=FALSE}
 git fetch
-git checkout slurm-17.02_Sim 
+git checkout slurm-17.11_Sim
 ```
-
 
 Prepare building directory
 ```{bash,eval=FALSE}
 cd ..
-mkdir bld_opt
-cd bld_opt
+mkdir -p bld/opt
+cd bld/opt
 ```
 
 Run configure:
+
 ```{bash,eval=FALSE}
-../slurm_simulator/configure --prefix=/home/slurm/slurm_sim_ws/slurm_opt --enable-simulator \
+../../slurm_simulator/configure --prefix=/home/slurm/slurm_sim_ws/slurm_opt --enable-simulator \
     --enable-pam --without-munge --enable-front-end --with-mysql-config=/usr/bin/ --disable-debug \
     CFLAGS="-g -O3 -D NDEBUG=1"
 ```
 
 Check config.log and ensure that MySQL is found:
+
 ```{bash,eval=FALSE}
 configure:4672: checking for mysql_config
 configure:4690: found /usr/bin//mysql_config
@@ -181,18 +278,21 @@ Slurm can work without MySQL or OpenSSL so if they are not found slurm still can
 However in most cases these libraries would be needed for simulation.
 
 Compile and install binaries:
+
 ```{bash,eval=FALSE}
 make -j install
 ```
 
-# Installing Slurm Simulator Toolkit
+### Installing Slurm Simulator Toolkit
 
 Obtain Slurm Simulator Toolkit with git:
 ```{bash,eval=FALSE}
 cd ~/slurm_sim_ws
 git clone https://github.com/nsimakov/slurm_sim_tools.git
-```
 
+# install R Slurm Simulator Toolkit
+Rscript ~/slurm_sim_ws/slurm_sim_tools/docker/slurm_sim/install_rslurmsimtools.R
+```
 
 
 # Gerenal Overview
@@ -201,15 +301,13 @@ The files needed for this tutorial are located at slurm_sim_tools/tutorials/micr
 
 In order to perform Slurm simulation, one need to:
 
-* Install Slurm in **simulation mode** (see installation guide)
+* Install Slurm in **simulation mode** (see installation guide above)
 * Create Slurm Configuration
 * Create job trace file with jobs description for simulation
 * Run Simulation
 * Analyse the Results
 
 Number of R and python scripts were created to assist in different stages.
-
-
 
 
 # Micro-Cluster
@@ -226,16 +324,12 @@ GPU node | g1 | 12 | CPU-G | 48GiB | 2
 Big memory | b1 | 12 | CPU-G | 512GiB | -
 
 
-# Installation Note
-
-Slurm Simulator is a fork of original Slurm. Follow installation guide to install it.
-
 The following directory layout is assumed from installation.
 
 ```{bash, eval=FALSE}
 /home/slurm                   - Slurm user home derectory
       └── slurm_sim_ws        - Slurm simulator work space
-          ├── bld_opt         - Slurm simulato building directory
+          ├── bld/opt         - Slurm simulator building directory
           ├── sim             - Directory where simulation will be performed
           │   └── micro       - Directory where simulation of Micro-Cluster will be performed
           ├── slurm_opt       - Slurm simulator binary installation directory
@@ -265,15 +359,14 @@ cd ~/slurm_sim_ws
 ~/slurm_sim_ws/slurm_sim_tools/src/cp_slurm_conf_dir.py -o -s ~/slurm_sim_ws/slurm_opt \
     ~/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster/etc ~/slurm_sim_ws/sim/micro/baseline
 ```
+
 Output:
 ```
-[2017-04-27 15:16:22,800]-[INFO]: Creating directory: /home/slurm/slurm_sim_ws/sim/micro/baseline
-[2017-04-27 15:16:22,800]-[INFO]: Copying files from \
-    /home/slurm/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster/etc \
-    to sim/micro/baseline/etc
-[2017-04-27 15:16:22,803]-[INFO]: Updating sim/micro/baseline/etc/slurm.conf
-[2017-04-27 15:16:22,804]-[INFO]: Updating sim/micro/baseline/etc/slurmdbd.conf
-[2017-04-27 15:16:22,805]-[INFO]: Updating sim/micro/baseline/etc/sim.conf
+[2021-02-10 21:06:19,443]-[INFO]: Creating directory: /home/slurm/slurm_sim_ws/sim/micro/baseline
+[2021-02-10 21:06:19,443]-[INFO]: Copying files from /home/slurm/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster/etc to /home/slurm/slurm_sim_ws/sim/micro/baseline/etc
+[2021-02-10 21:06:19,444]-[INFO]: Updating /home/slurm/slurm_sim_ws/sim/micro/baseline/etc/slurm.conf
+[2021-02-10 21:06:19,445]-[INFO]: Updating /home/slurm/slurm_sim_ws/sim/micro/baseline/etc/slurmdbd.conf
+[2021-02-10 21:06:19,445]-[INFO]: Updating /home/slurm/slurm_sim_ws/sim/micro/baseline/etc/sim.conf
 ```
 
 sim/micro/baseline now contains etc directory with Slurm configuration. The paths in _etc/slurm.conf_ and _etc/slurmdbd.conf_ are updated to place outputs within _~/slurm_sim_ws/sim/micro/baseline_.
@@ -299,6 +392,7 @@ user5:1005
 # Populate SlurmDB
 
 Start slurmdbd in foreground mode:
+
 ```{bash, eval=FALSE}
 SLURM_CONF=/home/slurm/slurm_sim_ws/sim/micro/baseline/etc/slurm.conf /home/slurm/slurm_sim_ws/slurm_opt/sbin/slurmdbd -Dvvvv
 ```
@@ -339,7 +433,7 @@ In this simulation there are 5 users which uses 2 accounts. _user1_, _user2_ and
 
 Job trace file contains information about jobs to be submitted to the simulator it defines time to be submitted and resource requests similarly to normal Slurm batch job submission.
 
-Here we use R to generate job traces. In this tutorial there are two R script which do that job: _11_prep_jobs_for_testrun.R_ and _12_prep_jobs_for_testrun.R_. The first one generate several small trace files where all jobs are manually entered and it is good to test Slurm Simulator. The second script generates job trace file with large number of jobs to simulate load which would involve competition between jobs for resource allocation.
+Here we use R to generate job traces. In this tutorial there are two R script which do that job: _11_prep_jobs_for_testrun.R_ and _12_prep_jobs_for_testrun.R_ (in ~/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster). The first one generate several small trace files where all jobs are manually entered and it is good to test Slurm Simulator. The second script generates job trace file with large number of jobs to simulate load which would involve competition between jobs for resource allocation.
 
 _RSlurmSimTools_ library provides various routines for job trace generation and results analysis. _write_trace_ function takes _data.frame_ _trace_ with resource requests as input and write it to file for future use in Slurm Simulator. _data.frame_ _trace_ has single job per row format and columns specify the requested resources by that job. There are large number of parameters supported by Simulator. Entering all of them manually can be overwhelming. To help with that function _sim_job_ generate list with requested resources for single job, all of its arguments has default values and thus by specifying only what is different can shorten the time for job trace generation. Multiple of such lists can be combine to form a single job trace file.
 
@@ -537,8 +631,11 @@ cd ~/slurm_sim_ws/sim/micro/baseline
 Results from simulation are located in their location as specified in Slurm Configuration. Some of the most interesting files are copied to results directory (specified by -r argument, default is "results"). Examine, jobcomp.log file it has sacct like format and can be loaded to R right away. 
 
 ## Recorded Output
-jobcomp.log  sdiag.out  simstat_backfill.csv  simstat.out  sinfo.out  slurmctld.log  sprio.csv  sprio.out  squeue.out
-squeue.out
+
+There are number of outputs from slurm simulator:
+
+squeue.out - squeue output on regular intervals:
+```
 ###############################################################################
 t: Sun Jan  1 00:03:01 2017
              JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
@@ -547,8 +644,11 @@ t: Sun Jan  1 00:03:01 2017
 t: Sun Jan  1 00:04:01 2017
              JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
               1001    normal     1001    user5  R       1:46      1 m1
-              
-sinfo.out sinfo like output
+```
+
+sinfo.out - sinfo like output:
+
+```
 ###############################################################################
 t: Sun Jan  1 00:01:30 2017
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
@@ -559,8 +659,11 @@ t: Sun Jan  1 00:02:01 2017
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
    normal    up   infinite     10   idle b1,g1,m[1-4],n[1-4]
     debug    up   infinite      2   idle n[1-2]
+```
 
-sprio.out sprio like output
+sprio.out sprio like output:
+
+```
 ###############################################################################
 t: Sun Jan  1 00:24:01 2017
           JOBID     USER   PRIORITY        AGE  FAIRSHARE    JOBSIZE  PARTITION        QOS        NICE                 TRES
@@ -571,6 +674,7 @@ jobid,t,user,priority,age,fairshare,jobsize,partition,qos,nice,tres
 1021,2017-01-01 00:23:01,user4,1070697,0,40697,30000,1000000,0,0,NA
 1021,2017-01-01 00:24:01,user4,1070697,0,40697,30000,1000000,0,0,NA
 1025,2017-01-01 00:24:01,user1,1085394,0,45394,40000,1000000,0,0,NA
+```
 
 ## Load Libraries
 ```{r , echo=TRUE, results="hide",warning=TRUE,message=FALSE}

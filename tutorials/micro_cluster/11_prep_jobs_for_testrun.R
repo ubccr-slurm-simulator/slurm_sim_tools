@@ -3,8 +3,9 @@ library(RSlurmSimTools)
 
 
 # change working directory to this script directory
-top_dir <- NULL
-top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+top_dir <- tryCatch(
+    dirname(sys.frame(1)$ofile),
+    error=function(cond) {return(dirname(rstudioapi::getActiveDocumentContext()$path))})
 print(top_dir)
 setwd(top_dir)
 
@@ -15,7 +16,7 @@ trace <- data.frame(
     sim_tasks = c(1L,2L,3L),
     sim_cpus_per_task = c(1L,1L,1L),
     sim_tasks_per_node = c(12L,12L,12L),
-    sim_submit_ts = c(),
+    sim_submit_ts = c(1483232461L,1483232561L,1483232571L),
     sim_duration = c(60L,30L,40L),
     sim_wclimit = c(300L,100L,200L),
     sim_qosname = c("normal","normal","normal"),
