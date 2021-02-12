@@ -3,7 +3,9 @@ library(RSlurmSimTools)
 
 # change working directory to script location
 #top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
-top_dir <- getwd() # gets current directory they are in
+top_dir <- tryCatch(
+    dirname(sys.frame(1)$ofile),
+    error=function(cond) {return(dirname(rstudioapi::getActiveDocumentContext()$path))})
 setwd(top_dir)
 
 #library(ggplot2)
@@ -266,7 +268,76 @@ trace<-trace[order(trace$sim_submit_ts),]
 trace$sim_job_id <- 1:N + 1000L
 
 #write job trace for Slurm Simulator
-write_trace(file.path(top_dir,"test.trace"),trace)
+write_trace(file.path(top_dir, "jobs500org.trace"), trace)
 
 #write job trace as csv for reture reference
-write.csv(trace,"test_trace.csv")
+write.csv(trace, "jobs500org.csv")
+
+head(trace)
+trace$dt <- trace$sim_submit_ts - min(trace$sim_submit_ts)
+
+
+seconds_to_slurm_duration <- function (seconds) {
+    seconds <- as.integer(seconds)
+    days <- seconds %/% (24L*3600L)
+    hms <- seconds %% (24L*3600L)
+    h <- hms %/% 3600L
+    ms <- hms %% 3600L
+    m <- ms %/% 60L
+    s <- ms %% 60L
+    if(days > 0L) {
+        sprintf("%d-%02d:%02d:%02d",days,h,m,s)
+    } else {
+        sprintf("%02d:%02d:%02d",h,m,s)
+    }
+
+}
+
+get_sim_event <- function (trace) {
+    sim_event <- rep.int("",nrow(trace))
+    for(i in 1:(nrow(trace))) {
+        event <- paste(
+            "-dt", trace$dt[i], "-e submit_batch_job |",
+            "-jid ", trace$sim_job_id[i],
+            "-sim-walltime", trace$sim_duration[i],
+            paste0("--uid=", trace$sim_username[i]),
+            "-t", seconds_to_slurm_duration(trace$sim_wclimit[i]*60L),
+            "-n", trace$sim_tasks[i],
+            paste0("--ntasks-per-node=", trace$sim_tasks_per_node[i]),
+            "-A", trace$sim_account[i],
+            "-p", trace$sim_partition[i],
+            "-q", trace$sim_qosname[i]
+            )
+        if (trace$sim_cpus_per_task[i] != 1L) {
+            event <- paste(event, paste0("--cpus-per-task=", trace$sim_tasks_per_node[i]))
+        }
+        if (trace$sim_cancelled_ts[i] != 0L) {
+            error("Job cancelling is not implemented yet")
+        }
+        if (trace$sim_dependency[i] != "") {
+            error("Job dependencies are not implemented yet")
+        }
+        if (trace$sim_shared[i] == 0) {
+            event <- paste(event, "--exclusive")
+        }
+        if (!is.na(trace$sim_req_mem[i])) {
+            if (trace$sim_req_mem_per_cpu[i]) {
+                event <- paste(event, paste0("--mem-per-cpu=", trace$sim_req_mem[i]))
+            } else {
+                event <- paste(event, paste0("--mem=", trace$sim_req_mem[i]))
+            }
+        }
+        if (trace$sim_features[i] != "") {
+            event <- paste(event, paste0("--constraint=", trace$sim_features[i]))
+        }
+        if (trace$sim_gres[i] != "") {
+            event <- paste(event, paste0("--gres=", trace$sim_gres[i]))
+        }
+        event <- paste(event, "pseudo.job")
+        sim_event[i] <- event
+    }
+    sim_event
+}
+trace$sim_event <- get_sim_event(trace)
+
+write(trace$sim_event, file = "jobs500org.events")

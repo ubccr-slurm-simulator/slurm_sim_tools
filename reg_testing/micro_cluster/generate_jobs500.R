@@ -3,7 +3,9 @@ library(RSlurmSimTools)
 
 # change working directory to script location
 #top_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
-top_dir <- getwd() # gets current directory they are in
+top_dir <- tryCatch(
+    dirname(sys.frame(1)$ofile),
+    error=function(cond) {return(dirname(rstudioapi::getActiveDocumentContext()$path))})
 setwd(top_dir)
 
 #library(ggplot2)
@@ -274,7 +276,7 @@ trace$sim_job_id <- 1:N + 1000L
 # write_trace(file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "test.trace"),trace)
 
 #write job trace as csv for reture reference
-write.csv(trace, file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500.csv"))
+write.csv(trace, "jobs500.csv")
 
 #new job trace as csv for reture reference
 
@@ -347,7 +349,7 @@ get_sim_event <- function (trace) {
 }
 trace$sim_event <- get_sim_event(trace)
 
-write(trace$sim_event, file = file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500.events"))
+write(trace$sim_event, file = "jobs500.events")
 
 
 trace$dt <- trace$dt %/% 30
@@ -357,7 +359,7 @@ trace$sim_duration <- trace$sim_duration %/% 30
 trace$sim_duration[trace$sim_duration<0] <- -1
 trace$sim_event <- get_sim_event(trace)
 
-write(trace$sim_event, file = file.path(top_dir, "reg_testing/micro_cluster/docker/etc", "jobs500_shrinked.events"))
+write(trace$sim_event, file = "jobs500_shrinked.events")
 
 # "",""
 
