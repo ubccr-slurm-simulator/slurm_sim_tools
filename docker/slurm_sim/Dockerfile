@@ -10,7 +10,7 @@ RUN yum -y update && \
 	yum -y install mariadb-server && \
 	yum -y install mariadb-devel && \
 	echo "Done installing Mariadb" && \
-	yum -y install texlive-* && \
+	yum -y install texlive-* dejavu-* && \
 	echo "texlive installed" && \
 	yum -y install openssh openssh-server openssh-clients openssl-libs && \
 	echo "openssh installed"
@@ -70,7 +70,6 @@ RUN useradd -d /home/slurm -ms /bin/bash slurm && \
 USER slurm
 WORKDIR /home/slurm
 # instal slurm simulator
-COPY --chown=slurm:slurm slurm-simulator /home/slurm/slurm_sim_ws/slurm_sim_tools/
 RUN \
 	cd /home/slurm/slurm_sim_ws && \
     git clone  --depth 1 --branch slurm-17-11_Sim https://github.com/ubccr-slurm-simulator/slurm_simulator.git && \
@@ -81,7 +80,7 @@ RUN \
 CFLAGS="-g -O3 -D NDEBUG=1" && \
     make -j install
 
-COPY --chown=slurm:slurm doc src tutorials README.md /home/slurm/slurm_sim_ws/slurm_sim_tools/
+COPY --chown=slurm:slurm . /home/slurm/slurm_sim_ws/slurm_sim_tools/
 
 # instal RSlurmSimTools
 RUN rm -rf /home/slurm/slurm_sim_ws/slurm_sim_tools/.idea && \
