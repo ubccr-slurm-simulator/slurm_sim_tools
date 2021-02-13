@@ -523,12 +523,8 @@ AfterJobLaunchTimeIncreament=0
 
 BFBetweenJobsChecksTimeIncreament=0
 
-#bf_model_real_prefactor=0.0003755
-bf_model_real_prefactor=1.0
-bf_model_real_power=1.0
-#bf_model_sim_prefactor=6.208e-05
-bf_model_sim_power=1.0
-bf_model_sim_power=1.0
+# Time scale for backfill scheduler
+SpeedScale=6.0
 
 
 sdiagPeriod=60
@@ -681,12 +677,13 @@ jobid,t,user,priority,age,fairshare,jobsize,partition,qos,nice,tres
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
+library(lubridate)
 library(RSlurmSimTools)
 ```
 
 ## Load Data
 
-```{r}
+```{r warning=TRUE,message=FALSE}
 #Read jobs execution log
 sacct_base <- read_sacct_out("~/slurm_sim_ws/sim/micro/baseline/log/jobcomp.log")
 #Read backfill stats
@@ -766,7 +763,7 @@ First initiate now simulation directory from baseline
     ~/slurm_sim_ws/sim/micro/baseline/etc ~/slurm_sim_ws/sim/micro/bf3
 ```
 
-Change bf_max_job_user from 3 to 20 in ~/slurm_sim_ws/sim/micro/baseline/etc/slurm.conf.
+Change bf_max_job_user from 3 to 20 in ~/slurm_sim_ws/sim/micro/bf3/etc/slurm.conf.
 
 Now rerun simulator
 
@@ -777,9 +774,9 @@ cd ~/slurm_sim_ws/sim/micro/bf3
 
 # Analyse Results
 
-Now we can analyse and compare the changes with baseline
+Now we can analyze and compare the changes with baseline
 
-```{r}
+```{r warning=TRUE,message=FALSE}
 #Read jobs execution log
 sacct_base <- read_sacct_out("~/slurm_sim_ws/sim/micro/baseline/log/jobcomp.log")
 sacct_base$RunID<-"baseline"
@@ -833,7 +830,10 @@ print(paste(
 print(100*quantile(dStart$dStart)/mean(c(dStart$WaitTime_base,dStart$WaitTime_alt)))
 ```
 
-That is for this artificial load decrease of bf_max_job_user from 20 to 3, lead to 2.3% shorter waiting time and maximal difference in start time was 6.6 hours.
+That is for this artificial load decrease of bf_max_job_user from 20 to 3, lead to 4.2% shorter waiting time.
+
+Please keep in mind that scheduling in Slurm is stochastic process and to draw any inference multiple simulations are needed. Simulator has less variability due to smaller effects of external factors. To mimic variability of actual Slurm StartSecondsBeforeFirstJob option will affect time difference between jobs submit time and main/backfill scheduler starting time.
+
 
 Lets examine backfill performance.
 
@@ -852,7 +852,7 @@ grid.arrange(
     ncol=2)
 ```
 
-Utilization of resource over time, lets also play with aggrigation duration
+Utilization of resource over time, lets also play with aggregation duration
 
 ```{r, fig.width=4, fig.height=3}
 util<-data.frame()
@@ -868,5 +868,73 @@ ggplot(data=util)+xlab("Time")+ylab("Utilization")+
     geom_line(aes(x=t,y=total_norm,color=RunID))
 ```
 Utilization is practically the same
+
+
+# Backfill Scheduler Time Calibration
+
+Slurm simulator uses two techniques for time acceleration. Real time speed-up 
+during backfill scheduler execution (controlled by SpeedScale option in sim.conf) and 
+opportunistic time stepping 
+(when there is no events). The backfill scheduler time-based performance is crucial 
+for various aspects of Slurm utilization. Therefore it is important to has adequate 
+time-wise simulation of backfiller. In sumalation mode the backfiller is 5-10 times faster
+than real slurm. This is due to lack of thread locks, aggressive optimization without assertion, lack of user requesting tons of RPC requests. SpeedScale option scales real time of simulation
+to account for this effects. 
+In practice we found that for small unoccupied system it is around 5 for middium and large busy system it is around 10.
+
+In this tutorial SpeedScale is set to 5. Here we will examine how the simulated backfiller
+execution time compared to actual perfomance with that parameter.
+
+
+
+```{r}
+#Read jobs execution log
+sacct_base <- read_sacct_out("~/slurm_sim_ws/sim/micro/baseline/log/jobcomp.log")
+sacct_base$RunID<-"sim"
+
+sacct_real <- read_jobcomp_log_as_sacct_log("~/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster/real_slurm_run/jobcomp.log")
+sacct_real$RunID<-"real"
+
+# correct for time difference (real slurm was rerun on a different day when original run)
+dt <- lubridate::as.duration(sacct_real$Submit[1] %--% sacct_base$Submit[1])
+for(col in c("Submit","Eligible","Start","End")){
+    sacct_real[[col]] <- sacct_real[[col]] + dt
+}
+
+sacct <- rbind(sacct_real,sacct_real)
+
+#Read backfill stats
+bf_base <- read_simstat_backfill("~/slurm_sim_ws/sim/micro/baseline/results/simstat_backfill.csv") %>%
+    select(t,last_depth_cycle_try_sched, run_sim_time, run_real_time)
+
+bf_base$RunID<-"sim"
+bf_real <- read_backfill_from_sdiag("~/slurm_sim_ws/slurm_sim_tools/tutorials/micro_cluster/real_slurm_run/sdiag.csv") %>%
+    select(t,last_depth_cycle_try_sched, run_sim_time=run_time, run_real_time=run_time)
+
+bf_real$RunID<-"real"
+bf_real$t <- bf_real$t + dt
+bf <- rbind(bf_base,bf_real)
+
+rm(sacct_base,sacct_real,bf_base,bf_real)
+```
+
+
+```{r, fig.width=7, fig.height=4}
+grid.arrange(
+    
+    ggplot(bf,aes(x=t,y=run_sim_time,colour=RunID))+ggtitle("Simulated")+
+        geom_point(size=1,alpha=0.25),
+    ggplot(bf,aes(x=last_depth_cycle_try_sched,y=run_sim_time,colour=RunID))+ggtitle("Simulated")+
+        geom_point(size=1,alpha=0.25),
+    
+    ggplot(bf,aes(x=t,y=run_real_time,colour=RunID))+ggtitle("Simulated Actual")+
+        geom_point(size=1,alpha=0.25),
+    ggplot(bf,aes(x=last_depth_cycle_try_sched,y=run_real_time,colour=RunID))+ggtitle("Simulated Actual")+
+        geom_point(size=1,alpha=0.25),
+    ncol=2)
+```
+
+You can see that in left bottom plot, the actual run time of backfiller is smaller for simulation. 
+SpeedScale parameter of 5 has reasonable matching with real performance of backfiller as can be judged from top plots.
 
 
