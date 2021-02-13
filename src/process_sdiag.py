@@ -64,13 +64,19 @@ def process_sdiag_output(filename=None,lines=None):
     date_fields=[
         'sdiag_output_time',
         'data_since',
-        'backfil_stats__last_cycle_when'
+        'backfil_stats__last_cycle_when',
+        'jobs_running_ts'
     ]
     for k in date_fields:
-        if k not in r:
+        if k not in r and k not in ['jobs_running_ts']:
+            # jobs_running_ts is newer field
             print(k+" is not in "+filename)
         else:
-            d=datetime.datetime.strptime(r[k],'%a %b %d %H:%M:%S %Y')
+            v=r[k]
+            if v.count("(")>0:
+                # it also has (epoch at the end)
+                v=r[k][:r[k].index("(")].strip()
+            d=datetime.datetime.strptime(v,'%a %b %d %H:%M:%S %Y')
             r[k]=str(d)
             r[k+'_ts']=int(d.timestamp())
         

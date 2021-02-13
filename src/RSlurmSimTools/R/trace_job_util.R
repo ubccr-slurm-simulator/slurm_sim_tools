@@ -363,16 +363,95 @@ extract_slurm_period <- function(v) {
 }
 
 
+process_sacct_out <- function(slurm_log,nodes_desc=NULL,extract_node_list=FALSE) {
+    #convert to proper format
+    for(col in c("Submit","Eligible","Start","End")){
+        slurm_log[[col]] <- as.POSIXct(slurm_log[[paste0(col,"S")]],format = "%Y-%m-%dT%H:%M:%S")
+    }
 
-read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
-    #slurm_log <- read.table(filename, header = TRUE, sep = "|",as.is = TRUE)
+    #duration
+    for(col in c("Elapsed","Timelimit")){
+        slurm_log[,col] <- extract_slurm_period(slurm_log[[paste0(col,"S")]])
+    }
+
+    #factor
+    for(col in c("Cluster","Partition","Account","Group","User", "ExitCode","State","QOS")){
+        slurm_log[,col] <- factor(slurm_log[[paste0(col,"S")]])
+    }
+
+    #state
+    slurm_log$StateS <- as.character(slurm_log$StateS)
+    slurm_log$StateS[grepl("CANCELLED",slurm_log$StateS)] <- "CANCELLED"
+    slurm_log$State <- as.factor(slurm_log$StateS)
+
+    #extract node list
+    if(extract_node_list==TRUE){
+        #python.load(file.path(rutil_dir,"..","src","hostlist.py"))
+        #slurm_log$NodeListFull <- python.call("expand_hostlists_to_str",slurm_log$NodeList)
+        slurm_log$NodeListFull <- expand_hostlists_to_list(slurm_log$NodeList)
+    }
+
+    #convert memory
+    slurm_log$ReqMem[slurm_log$ReqMem=="0n"] <- "0Mn"
+    reqmem <- stringr::str_match_all(slurm_log$ReqMem, "([\\.0-9]+)([MG])([nc])")
+
+    reqmem_size <- sapply(reqmem,function(r){
+        as.integer(r[[2]])
+    })
+    reqmem_unit <- sapply(reqmem,function(r)r[[3]])
+    reqmem_perwhat <- sapply(reqmem,function(r)r[[4]])
+    #convert to MB
+    reqmem_size[reqmem_unit=="G"] <- reqmem_size[reqmem_unit=="G"]*1024
+
+    slurm_log$ReqMemSize <- reqmem_size
+    slurm_log$ReqMemPerNode <- reqmem_perwhat=="n"
+
+    slurm_log$ReqMem <- NULL
+
+    #set proper NA
+    #slurm_log$ReqGRES[slurm_log$ReqGRES==""] <- NA
+    if(!is.null(nodes_desc)){
+      nr <- max(sapply(nodes_desc,function(n){length(n$Nodes)}))
+
+      nodes_mat <- sapply(nodes_desc,function(n){c(n$Nodes,rep(NA,nr-length(n$Nodes)))})
+
+      #assing nodes
+      nodes_types_used <- sapply(slurm_log$NodeListFull,function(nodes){
+        apply(nodes_mat,2,function(v){length(intersect(v,nodes))})
+      })
+
+      slurm_log <- cbind(slurm_log,t(nodes_types_used))
+    }
+
+    slurm_log$SubmitTS <- as.integer(slurm_log$Submit)
+    slurm_log$StartTS <- as.integer(slurm_log$Start)
+    slurm_log$EndTS <- as.integer(slurm_log$End)
+
+
+    slurm_log$WaitHours <- as.integer(slurm_log$Start-slurm_log$Submit)/3600.0
+    slurm_log$WaitHours[slurm_log$WaitHours<0.0] <- slurm_log$WaitHours[slurm_log$WaitHours<0.0]+1
+
+    slurm_log$WallHours <- as.integer(slurm_log$Elapsed)/3600.0
+    slurm_log$NodeHours <- slurm_log$WallHours*slurm_log$NodeCount
+
+    #shift 0 value for log scales
+    slurm_log$WaitHours4log <- slurm_log$WaitHours
+    slurm_log$WaitHours4log[slurm_log$WaitHours4log<1/60]<-1/60
+    #shift 0 value for log scales
+    slurm_log$WallHours4log <- slurm_log$WallHours
+    slurm_log$WallHours4log[slurm_log$WallHours4log<1/60]<-1/60
+
+    slurm_log <- dplyr::arrange(slurm_log,SubmitTS)%>%
+        dplyr::select(-c(SubmitS,EligibleS,StartS,EndS,ElapsedS,TimelimitS,ClusterS,
+                         PartitionS,AccountS,GroupS,UserS,ExitCodeS,StateS,QOSS))
+    return(slurm_log)
+}
+
+
+read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE) {
+
     slurm_log <- data.table::fread(filename,sep="|",header=TRUE)
-    
-    #for(col in c("Submit","Eligible","Start","End","Elapsed","Timelimit",
-    #             "Cluster","Partition","Account","Group","User", "ExitCode","State","QOS")){
-        #cat(paste0(col,"S=",col,",\n"))
-        #cat(paste0(col,"S,"))
-    #}
+
     slurm_log <-  dplyr::rename(slurm_log,
         JobId=JobID,
         local_job_id=JobIDRaw,
@@ -392,89 +471,89 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
         StateS=State,
         QOSS=QOS
     )
-    
-    #convert to proper format
-    for(col in c("Submit","Eligible","Start","End")){
-        slurm_log[[col]] <- as.POSIXct(slurm_log[[paste0(col,"S")]],format = "%Y-%m-%dT%H:%M:%S")
-    }
-    
-    #duration
-    for(col in c("Elapsed","Timelimit")){
-        slurm_log[,col] <- extract_slurm_period(slurm_log[[paste0(col,"S")]])
-    }
-    
-    #factor
-    for(col in c("Cluster","Partition","Account","Group","User", "ExitCode","State","QOS")){
-        slurm_log[,col] <- factor(slurm_log[[paste0(col,"S")]])
-    }
-    
-    #state
-    slurm_log$StateS <- as.character(slurm_log$StateS)
-    slurm_log$StateS[grepl("CANCELLED",slurm_log$StateS)] <- "CANCELLED"
-    slurm_log$State <- as.factor(slurm_log$StateS)
-    
-    #extract node list
-    if(extract_node_list==TRUE){
-        #python.load(file.path(rutil_dir,"..","src","hostlist.py"))
-        #slurm_log$NodeListFull <- python.call("expand_hostlists_to_str",slurm_log$NodeList)
-        slurm_log$NodeListFull <- expand_hostlists_to_list(slurm_log$NodeList)
-    }
 
-    #convert memory
-    slurm_log$ReqMem[slurm_log$ReqMem=="0n"] <- "0Mn"
-    reqmem <- stringr::str_match_all(slurm_log$ReqMem, "([\\.0-9]+)([MG])([nc])")
-    
-    reqmem_size <- sapply(reqmem,function(r){
-        as.integer(r[[2]])
-    })
-    reqmem_unit <- sapply(reqmem,function(r)r[[3]])
-    reqmem_perwhat <- sapply(reqmem,function(r)r[[4]])
-    #convert to MB
-    reqmem_size[reqmem_unit=="G"] <- reqmem_size[reqmem_unit=="G"]*1024
-    
-    slurm_log$ReqMemSize <- reqmem_size
-    slurm_log$ReqMemPerNode <- reqmem_perwhat=="n"
-    
-    slurm_log$ReqMem <- NULL
-    
-    #set proper NA
-    #slurm_log$ReqGRES[slurm_log$ReqGRES==""] <- NA
-    if(!is.null(nodes_desc)){
-      nr <- max(sapply(nodes_desc,function(n){length(n$Nodes)}))
-      
-      nodes_mat <- sapply(nodes_desc,function(n){c(n$Nodes,rep(NA,nr-length(n$Nodes)))})
-      
-      #assing nodes
-      nodes_types_used <- sapply(slurm_log$NodeListFull,function(nodes){
-        apply(nodes_mat,2,function(v){length(intersect(v,nodes))})
-      })
-      
-      slurm_log <- cbind(slurm_log,t(nodes_types_used))
-    }
-    
-    slurm_log$SubmitTS <- as.integer(slurm_log$Submit)
-    slurm_log$StartTS <- as.integer(slurm_log$Start)
-    slurm_log$EndTS <- as.integer(slurm_log$End)
-    
-    
-    slurm_log$WaitHours <- as.integer(slurm_log$Start-slurm_log$Submit)/3600.0
-    slurm_log$WaitHours[slurm_log$WaitHours<0.0] <- slurm_log$WaitHours[slurm_log$WaitHours<0.0]+1
-    
-    slurm_log$WallHours <- as.integer(slurm_log$Elapsed)/3600.0
-    slurm_log$NodeHours <- slurm_log$WallHours*slurm_log$NodeCount
-    
-    #shift 0 value for log scales
-    slurm_log$WaitHours4log <- slurm_log$WaitHours
-    slurm_log$WaitHours4log[slurm_log$WaitHours4log<1/60]<-1/60
-    #shift 0 value for log scales
-    slurm_log$WallHours4log <- slurm_log$WallHours
-    slurm_log$WallHours4log[slurm_log$WallHours4log<1/60]<-1/60
-    
-    slurm_log <- dplyr::arrange(slurm_log,SubmitTS)%>%
-        dplyr::select(-c(SubmitS,EligibleS,StartS,EndS,ElapsedS,TimelimitS,ClusterS,
-                         PartitionS,AccountS,GroupS,UserS,ExitCodeS,StateS,QOSS))
-    return(slurm_log)
+    slurm_log <-process_sacct_out(slurm_log,nodes_desc=nodes_desc,extract_node_list=extract_node_list)
+    slurm_log
 }
+
+read_jobcomp_log_as_sacct_log <- function(filename,nodes_desc=NULL,extract_node_list=FALSE) {
+    # read jobcomp.log file
+    con <- file(filename,"r")
+    lines <- readLines(con)
+    close(con)
+    rm(con)
+
+    jobcomp <- data.frame(JobId=rep.int(NA,length(lines)))
+
+    # JobId=1001
+    jobcomp$JobId <- as.integer(stringr::str_match(lines, "JobId=(\\S+)")[,2])
+    jobcomp$local_job_id <- jobcomp$JobId
+    # Cluster=micro
+    jobcomp$ClusterS <- stringr::str_match(lines, "Cluster=(\\S+)")[,2]
+    # Partition=normal
+    jobcomp$PartitionS <- stringr::str_match(lines, "Partition=(\\S+)")[,2]
+    # Account=account2
+    jobcomp$AccountS <- stringr::str_match(lines, "Account=(\\S+)")[,2]
+    # GroupId=user5(1005)
+    tmp <- stringr::str_match(lines, "GroupId=([A-Za-z0-9]+)\\(([0-9]+)\\)")
+    jobcomp$GroupS <- tmp[,2]
+    jobcomp$GID <- as.integer(tmp[,3])
+    tmp <- stringr::str_match(lines, "UserId=([A-Za-z0-9]+)\\(([0-9]+)\\)")
+    # UserId=user5(1005)
+    jobcomp$UserS <- tmp[,2]
+    jobcomp$UID <- as.integer(tmp[,3])
+    # SubmitTime=2021-01-07T18:19:14
+    jobcomp$SubmitS <- stringr::str_match(lines, "SubmitTime=(\\S+)")[,2]
+    # EligibleTime=2021-01-07T18:19:14
+    jobcomp$EligibleS <- stringr::str_match(lines, "EligibleTime=(\\S+)")[,2]
+    # StartTime=2021-01-07T18:19:14
+    jobcomp$StartS <- stringr::str_match(lines, "StartTime=(\\S+)")[,2]
+    # EndTime=2021-01-07T18:19:14
+    jobcomp$EndS <- stringr::str_match(lines, "EndTime=(\\S+)")[,2]
+    jobcomp$ElapsedS <- "00:00:00"
+    # ExitCode=0:0
+    jobcomp$ExitCodeS <- stringr::str_match(lines, "ExitCode=(\\S+)")[,2]
+    # JobState=COMPLETED
+    jobcomp$StateS <- stringr::str_match(lines, "JobState=(\\S+)")[,2]
+    # NodeCnt=1
+    jobcomp$NodeCount <- as.integer(stringr::str_match(lines, "NodeCnt=(\\S+)")[,2])
+    # ProcCnt=12
+    jobcomp$NCPUS <- as.integer(stringr::str_match(lines, "ProcCnt=(\\S+)")[,2])
+    jobcomp$ReqCPUS <- jobcomp$NCPUS
+    jobcomp$ReqMem <- "0Gn"
+    # TimeLimit=1
+    jobcomp$TimelimitS <- "00:00:00"
+    jobcomp$TimelimitOrg <- stringr::str_match(lines, "TimeLimit=(\\S+)")[,2]
+    # NodeList=b1
+    jobcomp$NodeList <- stringr::str_match(lines, "NodeList=(\\S+)")[,2]
+    # QOS=normal
+    jobcomp$QOSS <- stringr::str_match(lines, "QOS=(\\S+)")[,2]
+    jobcomp$ScheduledBy <- NA
+    # Name=jobid_1001
+    jobcomp$JobName <- stringr::str_match(lines, "Name=(\\S+)")[,2]
+
+    # WorkDir=/home/user5
+    # jobcomp$work_dir <- str_match(lines, "WorkDir=(\\S+)")[,2]
+    # ReservationName=
+    # jobcomp$reservation_name <- str_match(lines, "ReservationName=(\\S*)")[,2]
+    # Gres=
+    # jobcomp$gres <- str_match(lines, "Gres=(\\S*)")[,2]
+    # WcKey=
+    # jobcomp$wc_key <- str_match(lines, "WcKey=(\\S*)")[,2]
+    # DerivedExitCode=0:0
+    # jobcomp$derived_exit_code <- str_match(lines, "DerivedExitCode=(\\S+)")[,2]
+
+
+    rm(tmp, lines)
+
+    jobcomp <-process_sacct_out(jobcomp,nodes_desc=nodes_desc,extract_node_list=extract_node_list)
+
+    jobcomp$Elapsed <- lubridate::as.duration(interval(start = jobcomp$Start, end = jobcomp$End))
+    jobcomp$Timelimit <- lubridate::duration(minute = as.integer(jobcomp$TimelimitOrg))
+    jobcomp$TimelimitOrg <- NULL
+    jobcomp
+}
+
 
 get_utilization_old <- function(sacct0,node_desc,dt=60L)
 {
@@ -658,5 +737,22 @@ read_simstat_backfill <- function(filename)
     bf_s$t <- bf_s$last_cycle_when
     bf_s$run_sim_time <- bf_s$last_cycle/1000000.0
     
+    return(bf_s)
+}
+
+read_backfill_from_sdiag <- function(filename)
+{
+    bf_s <- read.csv(filename)
+    bf_s <- bf_s[,grep("backfil_stats__", colnames(bf_s), value=T)]
+    colnames(bf_s) <- sub("backfil_stats__","",colnames(bf_s))
+    colnames(bf_s)[colnames(bf_s) == 'output_time'] <- 't'
+    bf_s$t <- bf_s$last_cycle_when
+    for(col in c("t","last_cycle_when"))bf_s[,col] <- as.POSIXct(bf_s[,col],format = "%Y-%m-%d %H:%M:%S")
+    #drop duplicates
+    bf_s<-bf_s[bf_s$last_cycle_when>as.POSIXct("2001-01-01"),]
+    bf_s<-bf_s[!duplicated(bf_s$last_cycle_when),]
+    bf_s$t <- bf_s$last_cycle_when
+    bf_s$run_time <- bf_s$last_cycle/1000000.0
+
     return(bf_s)
 }
