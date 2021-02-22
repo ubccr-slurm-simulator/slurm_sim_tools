@@ -171,7 +171,15 @@ def read_trace(trace_file_name):
     trace=[]
     #simulator_start_time = math.ceil(time())
     with open(trace_file_name, "rt") as fin:
-        for line in fin:
+        for m_line in fin:
+            line = m_line.strip()
+            if len(line)==0:
+                # skip empty line
+                continue
+            if line[0]=="#":
+                # skip comment
+                continue
+
             event_command, event_details=line.split("|")
             event_command = event_command.strip().split()
             event_details = event_details.strip()
