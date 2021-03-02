@@ -108,7 +108,7 @@ def init_records(filename):
 
 def add_record(job_id, metric, t, value):
     global file_records_out
-    record = (job_id, metric, t, value)
+    record = (job_id, metric, t, str(value))
     global verbose
     if verbose:
         print("%-6s %-32s %-26s %-32s" % record)
@@ -243,6 +243,15 @@ def process_slurmctrd_log(log_filename,csv_filename):
         if re.search("backfill: beginning", window[0]):
             m_t, m_ts = get_datatime(window[0])
             add_record("NA", "backfill", m_ts,"start")
+        if re.search("backfill: reached end of job queue", window[0]):
+            m_t, m_ts = get_datatime(window[0])
+            add_record("NA", "backfill", m_ts, "end")
+        m = re.search("backfill: completed testing ([0-9]+)\(([0-9]+)\) jobs, usec=([0-9.]+)", window[0])
+        if m:
+            m_t, m_ts = get_datatime(window[0])
+            add_record("NA", "backfill_cycle_n", m_ts, m.group(2))
+            add_record("NA", "backfill_cycle_time", m_ts, float(m.group(3))*1e6)
+        # backfill: completed testing 2(2) jobs, usec=1773
 
         if re.search("sched: Running job scheduler", window[0]):
             m_t, m_ts = get_datatime(window[0])
