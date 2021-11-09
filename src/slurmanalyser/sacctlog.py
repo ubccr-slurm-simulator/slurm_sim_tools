@@ -5,6 +5,285 @@ import logging as log
 import multiprocessing as mp
 import sys
 import tqdm
+import numpy as np
+import pandas as pd
+import re
+
+from slurmanalyser.utils import get_file_open
+
+import array
+
+re_duration_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2})"
+re_datetime_str = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+re_dur_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown)"
+re_dur_empty_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown|)"
+re_datetime_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown)"
+re_datetime_empty_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown|)"
+re_exitcode_str = r"\d+:\d+"
+re_exitcode_empty_str = r"(?:\d+:\d+|)"
+re_digits_empty_str = r"(?:[0-9]+|)"
+re_digits_str = r"[0-9]+"
+re_any_nospec_str = r"[^|\n]*"
+re_any_str = r".*"
+
+re_duration = re.compile(re_duration_str)
+re_datetime = re.compile(re_datetime_str)
+re_dur_unk = re.compile(re_dur_unk_str)
+re_dur_empty_unk = re.compile(re_dur_empty_unk_str)
+re_datetime_unk = re.compile(re_datetime_unk_str)
+re_datetime_empty_unk = re.compile(re_datetime_empty_unk_str)
+re_exitcode = re.compile(re_exitcode_str)
+re_exitcode_empty = re.compile(re_exitcode_empty_str)
+re_digits_empty = re.compile(re_digits_empty_str)
+
+cols_pattern = {
+    'Container': re_any_nospec_str,
+    "ConsumedEnergy": re_digits_empty_str,
+    "ConsumedEnergyRaw": re_digits_empty_str,
+    "CPUTime": re_duration_str,
+    "CPUTimeRAW": re_digits_str,
+    "DBIndex": re_digits_str,
+    "DerivedExitCode": re_exitcode_empty_str,
+    "Elapsed": re_duration_str,
+    "ElapsedRaw": re_digits_str,
+    "Eligible": re_datetime_unk_str,
+    "End": re_datetime_unk_str,
+    "ExitCode": re_exitcode_empty_str,
+    "Flags": re_any_nospec_str,
+    "GID": re_digits_empty_str,
+    "JobID": re_any_nospec_str,
+    "JobIDRaw": re_any_nospec_str,
+    "JobName": re_any_str,
+    "Layout": re_any_nospec_str,
+}
+ConsumedEnergy_ExitCode = re.compile("\|".join((cols_pattern[c] for c in ('ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
+'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode'))))
+
+columns_dump1 = ['Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
+'AveDiskRead', 'AveDiskWrite', 'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment', 'Constraints',
+'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
+'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags', 'GID', 'Group', 'JobID', 'JobIDRaw', 'JobName',
+'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite', 'MaxDiskWriteNode',
+'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
+'MaxVMSize', 'MaxVMSizeNode', 'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS',
+'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq', 'ReqCPUFreqMin',
+'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation',
+'ReservationId', 'Reserved', 'ResvCPU', 'ResvCPURAW', 'Start', 'State', 'Submit', 'SubmitLine', 'Suspended',
+'SystemCPU', 'SystemComment', 'Timelimit', 'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax',
+'TRESUsageInMaxNode', 'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask',
+'TRESUsageInTot', 'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
+'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User',
+'UserCPU', 'WCKey', 'WCKeyID', 'WorkDir']
+
+
+def get_colnames_from_sacclog(filename):
+    m_open = get_file_open(filename)
+    with m_open(filename, 'rt') as fin:
+        line = next(fin).rstrip()
+        colnames = line.split("|")
+    return colnames
+
+
+def parse_sacclog_iter(filename, colnames=None):
+    """
+    return list of lists parsed from sacct logs, take care of | in JobNames as well as
+    | in both Constraints and JobNames in certain dumps
+    @param filename:
+    @param colnames:
+    @return:
+    """
+    # cdef int ncols
+    # cdef int iline
+    # cdef int i
+    # cdef int ipos
+    # cdef int icol_jobname
+    # cdef int icol_constraints
+    # cdef int iConsumedEnergy
+    # cdef int iConsumedEnergyRaw
+    # cdef int iCPUTime
+    # cdef int iCPUTimeRAW
+    # cdef int iElapsed
+    # cdef int iElapsedRaw
+    # cdef int iEligible
+    # cdef int iEnd
+    # cdef int iExitCode
+    # cdef int count
+    # cdef int extra_pipe
+    # cdef int matches
+    # cdef int i_start
+    # cdef int ipos_start
+    # cdef int pipe_removed
+    # cdef array.array col_pos
+
+    m_open = get_file_open(filename)
+
+    with m_open(filename, 'rt') as fin:
+        if colnames is None:
+            line = next(fin).rstrip()
+            colnames = line.split("|")
+
+        iline = 1
+        ncols = len(colnames)
+        col_pos = array.array('l', [0] * (ncols + 1))
+        if colnames == columns_dump1:
+            # dump schema 1. columns Constraint and JobName can contain |
+            print("dump schema 1")
+            icol_jobname = colnames.index("JobName")
+            icol_constraints = colnames.index("Constraints")
+            # ConsumedEnergy=|0|
+            iConsumedEnergy = colnames.index("ConsumedEnergy")
+            # ConsumedEnergyRaw=|0|
+            iConsumedEnergyRaw = colnames.index("ConsumedEnergyRaw")
+            # CPUTime=|06:12:45|
+            iCPUTime = colnames.index("CPUTime")
+            # CPUTimeRAW=|22365|
+            iCPUTimeRAW = colnames.index("CPUTimeRAW")
+            # DBIndex=|13263062|
+            # Elapsed=|06:12:45|
+            iElapsed = colnames.index("Elapsed")
+            # ElapsedRaw=|22365|
+            iElapsedRaw = colnames.index("ElapsedRaw")
+            # Eligible=|2021-09-30T21:52:50|
+            iEligible = colnames.index("Eligible")
+            # End=|2021-10-01T04:05:35|
+            iEnd = colnames.index("End")
+            # ExitCode=|0:0|
+            iExitCode = colnames.index("ExitCode")
+
+            count = 0
+            for line in fin:
+                # no | in comment or jobname
+                extra_pipe = line.count("|") - (ncols-1)
+                iline += 1
+                if extra_pipe == 0:
+                    yield line.rstrip().split("|")
+                    continue
+                # positions to colmment
+                i = 0
+                ipos = -1
+                col_pos[i] = ipos
+                while i < icol_constraints:
+                    i += 1
+                    ipos = line.find("|", ipos + 1)
+                    col_pos[i] = ipos
+                #'Comment', 'Constraints', 'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime'
+                i_start = i
+                ipos_start = ipos
+                pipe_removed = 0
+                while True:
+                    while i <= icol_jobname:
+                        i += 1
+                        ipos = line.find("|", ipos + 1)
+                        col_pos[i] = ipos
+                    # the above need to be redone untill some types of field matches
+                    matches = 0
+                    # Comment=||
+                    # Constraints=||
+                    # Container=||
+                    # ConsumedEnergy=|0|
+                    s = line[col_pos[iConsumedEnergy] + 1:col_pos[iConsumedEnergy + 1]]
+                    matches += s == "" or s.isdigit()
+                    # ConsumedEnergyRaw=|0|
+                    s = line[col_pos[iConsumedEnergyRaw] + 1:col_pos[iConsumedEnergyRaw + 1]]
+                    matches += s == "" or s.isdigit()
+                    # CPUTime=|06:12:45|
+                    # s = line[col_pos[iCPUTime] + 1:col_pos[iCPUTime + 1]]
+                    matches += bool(re_dur_empty_unk.fullmatch(line, col_pos [iCPUTime] + 1, col_pos[iCPUTime + 1]))
+                    # CPUTimeRAW=|22365|
+                    s = line[col_pos[iCPUTimeRAW] + 1:col_pos[iCPUTimeRAW + 1]]
+                    matches += s.isdigit()
+                    # DBIndex=|13263062|
+                    # DerivedExitCode=||
+                    # Elapsed=|06:12:45|
+                    # s = line[col_pos[iElapsed] + 1:col_pos[iElapsed + 1]]
+                    matches += bool(re_dur_empty_unk.fullmatch(line, col_pos[iElapsed] + 1, col_pos[iElapsed + 1]))
+                    # ElapsedRaw=|22365|
+                    s = line[col_pos[iElapsedRaw] + 1:col_pos[iElapsedRaw + 1]]
+                    matches += s.isdigit()
+                    # Eligible=|2021-09-30T21:52:50|
+                    # s = line[col_pos[iEligible] + 1:col_pos[iEligible + 1]]
+                    matches += bool(re_datetime_unk.fullmatch(line, col_pos[iEligible] + 1, col_pos[iEligible + 1]))
+                    # End=|2021-10-01T04:05:35|
+                    #s = line[]
+                    matches += bool(re_datetime_unk.fullmatch(line, col_pos[iEnd] + 1, col_pos[iEnd + 1]))
+                    # ExitCode=|0:0|
+                    # Flags=||
+                    # GID=||
+                    # Group=||
+                    # JobID=|7924238.extern|
+                    # JobIDRaw=|7924238.extern|
+                    # JobName=|extern|
+                    # print(matches)
+                    # m2 = bool(ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
+                    #
+                    # if m2 != (matches >= 8):
+                    #     print("ERROR")
+
+
+                    pipe_removed += 1
+                    if matches >= 8:
+                        break
+                    elif pipe_removed > extra_pipe:
+                        fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                        print("can not read, too many |")
+
+                        print(iline, line.count("|") + 1, ncols, matches)
+                        print(line)
+                        for k, v in zip(colnames, fields):
+                            print(f"{k}=|{v}|")
+                        raise ValueError("can not read, too many |")
+                    else:
+                        i = i_start
+                        ipos = line.find("|", ipos_start + 1)
+                        ipos_start = ipos
+
+
+                #
+                i = ncols
+                ipos = len(line) - 1
+                col_pos[i] = ipos
+                while i > icol_jobname + 1:
+                    i -= 1
+                    ipos = line.rfind("|", 0, ipos)
+                    col_pos[i] = ipos
+
+                fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                yield fields
+        else:
+            # assume only  JobName can contain |
+            icol_jobname = colnames.index("JobName")
+
+
+            count = 0
+            for line in fin:
+                i = 0
+                ipos = -1
+                col_pos[i] = ipos
+                while i <= icol_jobname:
+                    i += 1
+                    ipos = line.find("|", ipos+1)
+                    col_pos[i] = ipos
+                i = ncols
+                ipos = len(line)-1
+                col_pos[i] = ipos
+                while i > icol_jobname+1:
+                    i -= 1
+                    ipos = line.rfind("|", 0, ipos)
+                    col_pos[i] = ipos
+
+                fields = [line[col_pos[i]+1:col_pos[i+1]] for i in range(ncols)]
+                yield fields
+
+def get_init_sacctlog_df(filename, colnames=None):
+    import pandas
+    if colnames is None:
+        colnames = get_colnames_from_sacclog(filename)
+    df = pandas.DataFrame(
+        parse_sacclog_iter(filename),
+        columns=colnames)
+    return df
+
+
 
 
 TRES_SPECS_FIELDS = {
@@ -134,7 +413,7 @@ class JobSacctLog:
 
 class JobsListSacctLog:
     def __init__(self):
-        self.jobs_list = []
+        self.jobs_list = []  # type: List[JobSacctLog]
 
     def parse_sacct_log(self, lines, processes=None):
         from slurmanalyser.utils import print_progress_bar
@@ -146,11 +425,35 @@ class JobsListSacctLog:
         log.info("Done")
 
     @staticmethod
-    def from_file(filename: str, processes: int = None):
+    def from_file(filename: str, processes: int = None) -> "JobsListSacctLog":
+        jobs_list = JobsListSacctLog()
+
+        def parse_sacclog(filename, nsplits):
+            with open(filename) as f:
+                for line in f:
+                     yield line.rstrip().split("|", maxsplit=nsplits)
+
+        # build the generator
+        df = pd.DataFrame(
+            parse_sacclog(filename, len(SACCTLOG_JOB_FIELDS)-1),
+            columns=SACCTLOG_JOB_FIELDS.keys())
+
+        # convert datetimes
+        for col_time in ('submit', 'eligible', 'start', 'end'):
+            n_unk = np.sum(df[col_time] == 'Unknown')
+            if n_unk > 0:
+                log.info(f"column {col_time}, {n_unk} records with value 'Unknown' converted to NaT")
+            df.loc[df[col_time] == 'Unknown', col_time] = 'NaT'
+            df[col_time] = pd.to_datetime(df[col_time])
+
+        jobs_list.df = df
+        return jobs_list
+
+
         from slurmanalyser.slurmparser import SlurmFileParser
 
+        lines = SlurmFileParser.read_lines_from_file(filename)
         jobs_list = JobsListSacctLog()
         log.info(f"Reading sacct log from {filename}")
-        lines = SlurmFileParser.read_lines_from_file(filename)
         jobs_list.parse_sacct_log(lines, processes=processes)
         return jobs_list
