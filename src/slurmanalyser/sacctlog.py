@@ -130,27 +130,9 @@ def parse_sacclog_iter(filename, colnames=None):
             print("dump schema 1")
             icol_jobname = colnames.index("JobName")
             icol_constraints = colnames.index("Constraints")
-            # ConsumedEnergy=|0|
             iConsumedEnergy = colnames.index("ConsumedEnergy")
-            # ConsumedEnergyRaw=|0|
-            iConsumedEnergyRaw = colnames.index("ConsumedEnergyRaw")
-            # CPUTime=|06:12:45|
-            iCPUTime = colnames.index("CPUTime")
-            # CPUTimeRAW=|22365|
-            iCPUTimeRAW = colnames.index("CPUTimeRAW")
-            # DBIndex=|13263062|
-            # Elapsed=|06:12:45|
-            iElapsed = colnames.index("Elapsed")
-            # ElapsedRaw=|22365|
-            iElapsedRaw = colnames.index("ElapsedRaw")
-            # Eligible=|2021-09-30T21:52:50|
-            iEligible = colnames.index("Eligible")
-            # End=|2021-10-01T04:05:35|
-            iEnd = colnames.index("End")
-            # ExitCode=|0:0|
             iExitCode = colnames.index("ExitCode")
 
-            count = 0
             for line in fin:
                 # no | in comment or jobname
                 extra_pipe = line.count("|") - (ncols-1)
@@ -176,58 +158,16 @@ def parse_sacclog_iter(filename, colnames=None):
                         ipos = line.find("|", ipos + 1)
                         col_pos[i] = ipos
                     # the above need to be redone untill some types of field matches
-                    matches = 0
-                    # Comment=||
-                    # Constraints=||
-                    # Container=||
-                    # ConsumedEnergy=|0|
-                    s = line[col_pos[iConsumedEnergy] + 1:col_pos[iConsumedEnergy + 1]]
-                    matches += s == "" or s.isdigit()
-                    # ConsumedEnergyRaw=|0|
-                    s = line[col_pos[iConsumedEnergyRaw] + 1:col_pos[iConsumedEnergyRaw + 1]]
-                    matches += s == "" or s.isdigit()
-                    # CPUTime=|06:12:45|
-                    # s = line[col_pos[iCPUTime] + 1:col_pos[iCPUTime + 1]]
-                    matches += bool(re_dur_empty_unk.fullmatch(line, col_pos [iCPUTime] + 1, col_pos[iCPUTime + 1]))
-                    # CPUTimeRAW=|22365|
-                    s = line[col_pos[iCPUTimeRAW] + 1:col_pos[iCPUTimeRAW + 1]]
-                    matches += s.isdigit()
-                    # DBIndex=|13263062|
-                    # DerivedExitCode=||
-                    # Elapsed=|06:12:45|
-                    # s = line[col_pos[iElapsed] + 1:col_pos[iElapsed + 1]]
-                    matches += bool(re_dur_empty_unk.fullmatch(line, col_pos[iElapsed] + 1, col_pos[iElapsed + 1]))
-                    # ElapsedRaw=|22365|
-                    s = line[col_pos[iElapsedRaw] + 1:col_pos[iElapsedRaw + 1]]
-                    matches += s.isdigit()
-                    # Eligible=|2021-09-30T21:52:50|
-                    # s = line[col_pos[iEligible] + 1:col_pos[iEligible + 1]]
-                    matches += bool(re_datetime_unk.fullmatch(line, col_pos[iEligible] + 1, col_pos[iEligible + 1]))
-                    # End=|2021-10-01T04:05:35|
-                    #s = line[]
-                    matches += bool(re_datetime_unk.fullmatch(line, col_pos[iEnd] + 1, col_pos[iEnd + 1]))
-                    # ExitCode=|0:0|
-                    # Flags=||
-                    # GID=||
-                    # Group=||
-                    # JobID=|7924238.extern|
-                    # JobIDRaw=|7924238.extern|
-                    # JobName=|extern|
-                    # print(matches)
-                    # m2 = bool(ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
-                    #
-                    # if m2 != (matches >= 8):
-                    #     print("ERROR")
 
-
+                    match = bool(ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
                     pipe_removed += 1
-                    if matches >= 8:
+                    if match >= 8:
                         break
                     elif pipe_removed > extra_pipe:
                         fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
                         print("can not read, too many |")
 
-                        print(iline, line.count("|") + 1, ncols, matches)
+                        print(iline, line.count("|") + 1, ncols, match)
                         print(line)
                         for k, v in zip(colnames, fields):
                             print(f"{k}=|{v}|")
@@ -236,8 +176,6 @@ def parse_sacclog_iter(filename, colnames=None):
                         i = i_start
                         ipos = line.find("|", ipos_start + 1)
                         ipos_start = ipos
-
-
                 #
                 i = ncols
                 ipos = len(line) - 1
@@ -253,9 +191,14 @@ def parse_sacclog_iter(filename, colnames=None):
             # assume only  JobName can contain |
             icol_jobname = colnames.index("JobName")
 
-
             count = 0
             for line in fin:
+                # no | in comment or jobname
+                extra_pipe = line.count("|") - ( ncols - 1 )
+                if extra_pipe == 0:
+                    yield line.rstrip().split("|")
+                    continue
+
                 i = 0
                 ipos = -1
                 col_pos[i] = ipos
