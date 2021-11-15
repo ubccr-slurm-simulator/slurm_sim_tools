@@ -1,4 +1,6 @@
 import datetime
+from typing import Sequence
+
 from slurmanalyser.slurmparser import slurm_datetime, SlurmDuration, SlurmMemory
 from slurmanalyser.slurmparser import SlurmFileParser
 import logging as log
@@ -13,218 +15,6 @@ from slurmanalyser.utils import get_file_open
 
 import array
 
-re_duration_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2})"
-re_datetime_str = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
-re_dur_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown)"
-re_dur_empty_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown|)"
-re_datetime_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown)"
-re_datetime_empty_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown|)"
-re_exitcode_str = r"\d+:\d+"
-re_exitcode_empty_str = r"(?:\d+:\d+|)"
-re_digits_empty_str = r"(?:[0-9]+|)"
-re_digits_str = r"[0-9]+"
-re_any_nospec_str = r"[^|\n]*"
-re_any_str = r".*"
-
-re_duration = re.compile(re_duration_str)
-re_datetime = re.compile(re_datetime_str)
-re_dur_unk = re.compile(re_dur_unk_str)
-re_dur_empty_unk = re.compile(re_dur_empty_unk_str)
-re_datetime_unk = re.compile(re_datetime_unk_str)
-re_datetime_empty_unk = re.compile(re_datetime_empty_unk_str)
-re_exitcode = re.compile(re_exitcode_str)
-re_exitcode_empty = re.compile(re_exitcode_empty_str)
-re_digits_empty = re.compile(re_digits_empty_str)
-
-cols_pattern = {
-    'Container': re_any_nospec_str,
-    "ConsumedEnergy": re_digits_empty_str,
-    "ConsumedEnergyRaw": re_digits_empty_str,
-    "CPUTime": re_duration_str,
-    "CPUTimeRAW": re_digits_str,
-    "DBIndex": re_digits_str,
-    "DerivedExitCode": re_exitcode_empty_str,
-    "Elapsed": re_duration_str,
-    "ElapsedRaw": re_digits_str,
-    "Eligible": re_datetime_unk_str,
-    "End": re_datetime_unk_str,
-    "ExitCode": re_exitcode_empty_str,
-    "Flags": re_any_nospec_str,
-    "GID": re_digits_empty_str,
-    "JobID": re_any_nospec_str,
-    "JobIDRaw": re_any_nospec_str,
-    "JobName": re_any_str,
-    "Layout": re_any_nospec_str,
-}
-ConsumedEnergy_ExitCode = re.compile("\|".join((cols_pattern[c] for c in ('ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
-'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode'))))
-
-columns_dump1 = ['Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
-'AveDiskRead', 'AveDiskWrite', 'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment', 'Constraints',
-'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
-'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags', 'GID', 'Group', 'JobID', 'JobIDRaw', 'JobName',
-'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite', 'MaxDiskWriteNode',
-'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
-'MaxVMSize', 'MaxVMSizeNode', 'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS',
-'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq', 'ReqCPUFreqMin',
-'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation',
-'ReservationId', 'Reserved', 'ResvCPU', 'ResvCPURAW', 'Start', 'State', 'Submit', 'SubmitLine', 'Suspended',
-'SystemCPU', 'SystemComment', 'Timelimit', 'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax',
-'TRESUsageInMaxNode', 'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask',
-'TRESUsageInTot', 'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
-'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User',
-'UserCPU', 'WCKey', 'WCKeyID', 'WorkDir']
-
-
-def get_colnames_from_sacclog(filename):
-    m_open = get_file_open(filename)
-    with m_open(filename, 'rt') as fin:
-        line = next(fin).rstrip()
-        colnames = line.split("|")
-    return colnames
-
-
-def parse_sacclog_iter(filename, colnames=None):
-    """
-    return list of lists parsed from sacct logs, take care of | in JobNames as well as
-    | in both Constraints and JobNames in certain dumps
-    @param filename:
-    @param colnames:
-    @return:
-    """
-    # cdef int ncols
-    # cdef int iline
-    # cdef int i
-    # cdef int ipos
-    # cdef int icol_jobname
-    # cdef int icol_constraints
-    # cdef int iConsumedEnergy
-    # cdef int iConsumedEnergyRaw
-    # cdef int iCPUTime
-    # cdef int iCPUTimeRAW
-    # cdef int iElapsed
-    # cdef int iElapsedRaw
-    # cdef int iEligible
-    # cdef int iEnd
-    # cdef int iExitCode
-    # cdef int count
-    # cdef int extra_pipe
-    # cdef int matches
-    # cdef int i_start
-    # cdef int ipos_start
-    # cdef int pipe_removed
-    # cdef array.array col_pos
-
-    m_open = get_file_open(filename)
-
-    with m_open(filename, 'rt') as fin:
-        if colnames is None:
-            line = next(fin).rstrip()
-            colnames = line.split("|")
-
-        iline = 1
-        ncols = len(colnames)
-        col_pos = array.array('l', [0] * (ncols + 1))
-        if colnames == columns_dump1:
-            # dump schema 1. columns Constraint and JobName can contain |
-            print("dump schema 1")
-            icol_jobname = colnames.index("JobName")
-            icol_constraints = colnames.index("Constraints")
-            iConsumedEnergy = colnames.index("ConsumedEnergy")
-            iExitCode = colnames.index("ExitCode")
-
-            for line in fin:
-                # no | in comment or jobname
-                extra_pipe = line.count("|") - (ncols-1)
-                iline += 1
-                if extra_pipe == 0:
-                    yield line.rstrip().split("|")
-                    continue
-                # positions to colmment
-                i = 0
-                ipos = -1
-                col_pos[i] = ipos
-                while i < icol_constraints:
-                    i += 1
-                    ipos = line.find("|", ipos + 1)
-                    col_pos[i] = ipos
-                #'Comment', 'Constraints', 'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime'
-                i_start = i
-                ipos_start = ipos
-                pipe_removed = 0
-                while True:
-                    while i <= icol_jobname:
-                        i += 1
-                        ipos = line.find("|", ipos + 1)
-                        col_pos[i] = ipos
-                    # the above need to be redone untill some types of field matches
-
-                    match = bool(ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
-                    pipe_removed += 1
-                    if match >= 8:
-                        break
-                    elif pipe_removed > extra_pipe:
-                        fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
-                        print("can not read, too many |")
-
-                        print(iline, line.count("|") + 1, ncols, match)
-                        print(line)
-                        for k, v in zip(colnames, fields):
-                            print(f"{k}=|{v}|")
-                        raise ValueError("can not read, too many |")
-                    else:
-                        i = i_start
-                        ipos = line.find("|", ipos_start + 1)
-                        ipos_start = ipos
-                #
-                i = ncols
-                ipos = len(line) - 1
-                col_pos[i] = ipos
-                while i > icol_jobname + 1:
-                    i -= 1
-                    ipos = line.rfind("|", 0, ipos)
-                    col_pos[i] = ipos
-
-                fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
-                yield fields
-        else:
-            # assume only  JobName can contain |
-            icol_jobname = colnames.index("JobName")
-
-            count = 0
-            for line in fin:
-                # no | in comment or jobname
-                extra_pipe = line.count("|") - ( ncols - 1 )
-                if extra_pipe == 0:
-                    yield line.rstrip().split("|")
-                    continue
-
-                i = 0
-                ipos = -1
-                col_pos[i] = ipos
-                while i <= icol_jobname:
-                    i += 1
-                    ipos = line.find("|", ipos+1)
-                    col_pos[i] = ipos
-                i = ncols
-                ipos = len(line)-1
-                col_pos[i] = ipos
-                while i > icol_jobname+1:
-                    i -= 1
-                    ipos = line.rfind("|", 0, ipos)
-                    col_pos[i] = ipos
-
-                fields = [line[col_pos[i]+1:col_pos[i+1]] for i in range(ncols)]
-                yield fields
-
-def get_init_sacctlog_df(filename, colnames=None):
-    import pandas
-    if colnames is None:
-        colnames = get_colnames_from_sacclog(filename)
-    df = pandas.DataFrame(
-        parse_sacclog_iter(filename),
-        columns=colnames)
-    return df
 
 
 
@@ -265,6 +55,458 @@ class TResSpecs:
         return TResSpecs(**dict((v.split("=", maxsplit=1) for v in line.split(","))))
 
 
+re_duration_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2})"
+re_duration_fraq_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2})(?:\.[0-9]*)?"
+re_datetime_str = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+re_dur_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown)"
+re_dur_empty_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|)"
+re_dur_partlim_empty_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Partition_Limit|)"
+re_dur_empty_unk_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|Unknown|)"
+re_dur_empty_invalid_str = r"(?:\d+:\d{2}:\d{2}|\d+-\d+:\d{2}:\d{2}|\d{1,2}:\d{2}|INVALID|)"
+re_datetime_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown)"
+re_datetime_empty_unk_str = r"(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|Unknown|)"
+re_exitcode_str = r"\d+:\d+"
+re_exitcode_empty_str = r"(?:\d+:\d+|)"
+re_digits_empty_str = r"(?:[0-9]+|)"
+re_digits_partlim_empty_str = r"(?:[0-9]+|Partition_Limit|)"
+re_digits_unk_str = r"(?:[0-9]+|Unknown)"
+re_digits_str = r"[0-9]+"
+re_any_nospec_str = r"[^|\n]*"
+re_any_str = r".*"
+re_alphanum_str = r"\w*"
+re_alphanum2_str = r"[a-zA-Z0-9_-]*"
+re_float_si_empty_str = r"(?:0|[0-9.]+[KMGTPE]|)"
+re_float_siopt_empty_str = r"(?:[0-9.]+|[0-9.]+[KMGTPE]|)"
+re_mem_str = r"[0-9.]+[KMGTPE][cn]?"
+re_mem_question_str = r"[0-9.]+[KMGTPE?][cn]?"
+re_mem_empty_str = r"(?:|[0-9.]+[KMGTPE][cn]?)"
+re_mem_unk_empty_str = r"(?:|[0-9.]+[KMGTPE][cn]?|Unknown)"
+re_empty_str = r"\s*"
+re_empty_unk_str = r"(?:\s*|Unknown)"
+re_dict_str = r"[^|\n]*"  # placeholder for a=1,b=2 values
+
+re_duration = re.compile(re_duration_str)
+re_datetime = re.compile(re_datetime_str)
+re_dur_unk = re.compile(re_dur_unk_str)
+re_dur_empty_unk = re.compile(re_dur_empty_unk_str)
+re_datetime_unk = re.compile(re_datetime_unk_str)
+re_datetime_empty_unk = re.compile(re_datetime_empty_unk_str)
+re_exitcode = re.compile(re_exitcode_str)
+re_exitcode_empty = re.compile(re_exitcode_empty_str)
+re_digits_empty = re.compile(re_digits_empty_str)
+
+from slurmanalyser.utils import util_to_int, util_factorize,util_to_str,util_norm_si
+from slurmanalyser.utils import util_to_str_unk
+
+util_to_tresspec = lambda x: x  # TResSpecs.from_string
+util_slurm_duration_to_duration = SlurmDuration.from_string
+util_slurm_datetime_to_datetime = slurm_datetime
+col_props = {
+    'Account': {'pattern': re_alphanum2_str, 'convert': util_factorize},
+    'AdminComment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'AllocCPUS': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'AllocNodes': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'AllocTRES': {'pattern': re_dict_str, 'convert': util_to_tresspec, 'convert_flatten': 'todo'},
+    'AssocID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'AveCPU': {'pattern': re_dur_empty_str, 'convert': util_slurm_duration_to_duration},  # Average (system + user) CPU time of all tasks in job.
+    'AveCPUFreq': {'pattern': re_float_si_empty_str, 'convert': util_norm_si, 'units': 'Hz'},
+    'AveDiskRead': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'AveDiskWrite': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'AvePages': {'pattern': re_digits_empty, 'convert': util_to_int},
+    'AveRSS': {'pattern': re_float_siopt_empty_str, 'convert': util_norm_si},
+    'AveVMSize': {'pattern': re_float_siopt_empty_str, 'convert': util_norm_si},
+    'BlockID': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'Cluster': {'pattern': re_alphanum2_str, 'convert': util_factorize},
+    'Comment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'Constraints': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
+    'Container': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'ConsumedEnergy': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'ConsumedEnergyRaw': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'CPUTime': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
+    'CPUTimeRAW': {'pattern': re_digits_str, 'convert': util_to_int},
+    'DBIndex': {'pattern': re_digits_str, 'convert': util_to_int},
+    'DerivedExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_to_str},
+    'Elapsed': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
+    'ElapsedRaw': {'pattern': re_digits_str, 'convert': util_to_int},
+    'Eligible': {'pattern': re_datetime_unk_str, 'convert': util_slurm_datetime_to_datetime},
+    'End': {'pattern': re_datetime_unk_str, 'convert': util_slurm_datetime_to_datetime},
+    'ExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_to_str},
+    'Flags': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'GID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'JobID': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'JobIDRaw': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'JobName': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
+    'Layout': {'pattern': re_any_nospec_str, 'convert': util_to_str_unk},
+    'MaxDiskRead': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'MaxDiskReadNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxDiskReadTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'MaxDiskWrite': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'MaxDiskWriteNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxDiskWriteTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'MaxPages': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'MaxPagesNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxPagesTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'MaxRSS': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'MaxRSSNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxRSSTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'MaxVMSize': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'MaxVMSizeNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxVMSizeTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'McsLabel': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'MinCPU': {'pattern': re_dur_empty_str, 'convert': util_slurm_duration_to_duration},
+    'MinCPUNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MinCPUTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'NCPUS': {'pattern': re_digits_str, 'convert': util_to_int},
+    'NNodes': {'pattern': re_digits_str, 'convert': util_to_int},
+    'NodeList': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'NTasks': {'pattern': re_digits_empty_str, 'convert': util_to_str},
+    'Priority': {'pattern': re_digits_empty_str, 'convert': util_to_str},
+    'Partition': {'pattern': re_any_nospec_str, 'convert': util_factorize},
+    'QOS': {'pattern': re_any_nospec_str, 'convert': util_factorize},
+    'QOSRAW': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'Reason': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'ReqCPUFreq': {'pattern': re_digits_unk_str, 'convert': util_to_str},
+    'ReqCPUFreqMin': {'pattern': re_digits_unk_str, 'convert': util_to_int},
+    'ReqCPUFreqMax': {'pattern': re_digits_unk_str, 'convert': util_to_int},
+    'ReqCPUFreqGov': {'pattern': re_digits_unk_str, 'convert': util_to_int},
+    'ReqCPUS': {'pattern': re_digits_str, 'convert': util_to_int},
+    'ReqMem': {'pattern': re_mem_question_str, 'convert': SlurmMemory.from_string},
+    'ReqNodes': {'pattern': re_digits_str, 'convert': util_to_int},
+    'ReqTRES': {'pattern': re_dict_str, 'convert': util_to_tresspec},
+    'Reservation': {'pattern': re_empty_str, 'convert': util_to_str},
+    'ReservationId': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'Reserved': {'pattern': re_dur_empty_invalid_str, 'convert': util_slurm_duration_to_duration},
+    'ResvCPU': {'pattern': re_dur_empty_invalid_str, 'convert': util_slurm_duration_to_duration},
+    'ResvCPURAW': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'Start': {'pattern': re_datetime_empty_unk_str, 'convert': util_slurm_datetime_to_datetime},
+    'State': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'Submit': {'pattern': re_datetime_str, 'convert': util_slurm_datetime_to_datetime},
+    'SubmitLine': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
+    'Suspended': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
+    'SystemCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
+    'SystemComment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'Timelimit': {'pattern': re_dur_partlim_empty_str, 'convert': util_slurm_duration_to_duration},
+    'TimelimitRaw': {'pattern': re_digits_partlim_empty_str, 'convert': util_to_int},
+    'TotalCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
+    'TRESUsageInAve': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMax': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMaxNode': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMaxTask': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMin': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMinNode': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInMinTask': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageInTot': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutAve': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMax': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMaxNode': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMaxTask': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMin': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMinNode': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutMinTask': {'pattern': re_dict_str, 'convert': util_to_str},
+    'TRESUsageOutTot': {'pattern': re_dict_str, 'convert': util_to_str},
+    'UID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'User': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'UserCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
+    'WCKey': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'WCKeyID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'WorkDir': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+}
+
+ConsumedEnergy_ExitCode = re.compile("\|".join((col_props[c]['pattern'] for c in ('ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
+'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode'))))
+
+
+columns_dump1 = ['Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
+'AveDiskRead', 'AveDiskWrite', 'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment', 'Constraints',
+'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
+'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags', 'GID', 'Group', 'JobID', 'JobIDRaw', 'JobName',
+'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite', 'MaxDiskWriteNode',
+'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
+'MaxVMSize', 'MaxVMSizeNode', 'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS',
+'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq', 'ReqCPUFreqMin',
+'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation',
+'ReservationId', 'Reserved', 'ResvCPU', 'ResvCPURAW', 'Start', 'State', 'Submit', 'SubmitLine', 'Suspended',
+'SystemCPU', 'SystemComment', 'Timelimit', 'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax',
+'TRESUsageInMaxNode', 'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask',
+'TRESUsageInTot', 'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
+'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User',
+'UserCPU', 'WCKey', 'WCKeyID', 'WorkDir']
+
+columns_xdmod1 = ['JobID',  'JobIDRaw',  'Cluster',  'Partition',  'Account',
+ 'Group',  'GID',  'User',  'UID',  'Submit',  'Eligible',
+ 'Start',  'End',  'Elapsed',  'ExitCode',  'State',
+ 'NNodes',  'NCPUS',  'ReqCPUS',  'ReqMem',  'ReqTRES',
+ 'AllocTRES',  'Timelimit',  'NodeList',  'JobName']
+
+
+class SacctLog:
+    def __init__(self):
+        self.df = None  # type pd.DataFrame
+
+
+    def convert_columns(self):
+        """convert string columns"""
+
+
+    @classmethod
+    def from_file(cls, filename: str, columns: Sequence[str] = None,
+                  header: bool = True, col_format: str = None) -> 'SacctLog':
+        """
+        Read sacct log from file. File can be compressed, this is identified by extension.
+
+        @param filename:
+        @param col_format:  column formats recognizable strings: dump1, xdmod1
+        @param columns: column names in file
+        @param header: is header present in file
+        @return: SacctLog
+        """
+        if columns is None and col_format=="dump1":
+            columns = columns_dump1
+        if columns is None and col_format == "xdmod1":
+            columns = columns_xdmod1
+
+        if columns is None:
+            columns = cls.get_colnames_from_sacclog(filename)
+
+        sacctlog = SacctLog()
+        sacctlog.df = cls.get_init_sacctlog_df(filename, columns=columns, header=header)
+        return sacctlog
+
+    @staticmethod
+    def get_colnames_from_sacclog(filename):
+        m_open = get_file_open(filename)
+        with m_open(filename, 'rt') as fin:
+            line = next(fin).rstrip()
+            colnames = line.split("|")
+        return colnames
+
+    @staticmethod
+    def parse_sacclog_iter_generic(filename, colnames=None, header=True):
+        m_open = get_file_open(filename)
+        with m_open(filename, 'rt') as fin:
+            if header:
+                line = next(fin).rstrip()
+                if colnames is not None and  colnames != line.split("|"):
+                    raise ValueError("Column names do not match one in file!")
+
+            ncols = len(colnames)
+            col_pos = array.array('l', [0] * (ncols + 1))
+
+            # assume only  JobName can contain |
+            icol_jobname = colnames.index("JobName")
+
+            for line in fin:
+                # no | in comment or jobname
+                extra_pipe = line.count("|") - ( ncols - 1 )
+                if extra_pipe == 0:
+                    yield line.rstrip().split("|")
+                    continue
+
+                i = 0
+                ipos = -1
+                col_pos[i] = ipos
+                while i <= icol_jobname:
+                    i += 1
+                    ipos = line.find("|", ipos+1)
+                    col_pos[i] = ipos
+                i = ncols
+                ipos = len(line)-1
+                col_pos[i] = ipos
+                while i > icol_jobname+1:
+                    i -= 1
+                    ipos = line.rfind("|", 0, ipos)
+                    col_pos[i] = ipos
+
+                fields = [line[col_pos[i]+1:col_pos[i+1]] for i in range(ncols)]
+                yield fields
+
+    @staticmethod
+    def parse_sacclog_iter_dump1(filename, columns=None, header=True):
+        """
+        process dump1 format can recognize | in constrains, job names and SubmitLine
+        @param filename:
+        @param columns:
+        @param header:
+        @return:
+        """
+        # cdef int ncols
+        # cdef int iline
+        # cdef int i
+        # cdef int ipos
+        # cdef int icol_jobname
+        # cdef int icol_constraints
+        # cdef int iConsumedEnergy
+        # cdef int iConsumedEnergyRaw
+        # cdef int iCPUTime
+        # cdef int iCPUTimeRAW
+        # cdef int iElapsed
+        # cdef int iElapsedRaw
+        # cdef int iEligible
+        # cdef int iEnd
+        # cdef int iExitCode
+        # cdef int count
+        # cdef int extra_pipe
+        # cdef int matches
+        # cdef int i_start
+        # cdef int ipos_start
+        # cdef int pipe_removed
+        # cdef array.array col_pos
+
+        if columns is not None and columns != columns_dump1:
+            raise ValueError("Column names do not match one in file!")
+        if columns is None:
+            columns = columns_dump1
+
+        m_open = get_file_open(filename)
+
+        with m_open(filename, 'rt') as fin:
+            if header:
+                line = next(fin).rstrip()
+                if columns != line.split("|"):
+                    raise ValueError("Column names do not match one in file!")
+
+            iline = 1
+            ncols = len(columns)
+            col_pos = array.array('l', [0] * (ncols + 1))
+
+            # dump schema 1. columns Constraint and JobName can contain |
+            print("dump schema 1")
+
+            icol_constraints = columns.index("Constraints")
+            icol_jobname = columns.index("JobName")
+            icol_submitline = columns.index("SubmitLine")
+            iConsumedEnergy = columns.index("ConsumedEnergy")
+            iExitCode = columns.index("ExitCode")
+
+            iNCPUS = columns.index('NCPUS')
+            iNNodes = columns.index('NNodes')
+            iStart = columns.index('Start')
+            iSubmit = columns.index('Submit')
+
+            reNCPUS = re.compile(col_props['NCPUS']['pattern'])
+            reNNodes = re.compile(col_props['NNodes']['pattern'])
+            reStart = re.compile(col_props['Start']['pattern'])
+            reSubmit = re.compile(col_props['Submit']['pattern'])
+
+            for line in fin:
+                # no | in comment or jobname
+                extra_pipe = line.count("|") - (ncols-1)
+                iline += 1
+                if extra_pipe == 0:
+                    yield line.rstrip().split("|")
+                    continue
+                # positions to colmment
+                i = 0
+                ipos = -1
+                col_pos[i] = ipos
+                while i < icol_constraints:
+                    i += 1
+                    ipos = line.find("|", ipos + 1)
+                    col_pos[i] = ipos
+
+                # identify | in constrains
+                i_start = i
+                ipos_start = ipos
+                pipe_removed = 0
+                while True:
+                    while i <= icol_jobname:
+                        i += 1
+                        ipos = line.find("|", ipos + 1)
+                        col_pos[i] = ipos
+                    # the above need to be redone untill some types of field matches
+
+                    match = bool(ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
+
+                    if match:
+                        break
+                    elif pipe_removed >= extra_pipe:
+                        fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                        print("can not read, too many |")
+
+                        print(iline, line.count("|") + 1, ncols, match)
+                        print(line)
+                        for k, v in zip(columns, fields):
+                            print(f"{k}=|{v}|")
+                        raise ValueError("can not read, too many |")
+                    else:
+                        pipe_removed += 1
+                        i = i_start
+                        ipos = line.find("|", ipos_start + 1)
+                        ipos_start = ipos
+                # identify | in job name
+                i -= 1
+                ipos = col_pos[i]
+                i_start = i
+                ipos_start = ipos
+                while True:
+                    while i <= icol_submitline:
+                        i += 1
+                        ipos = line.find("|", ipos + 1)
+                        col_pos[i] = ipos
+                    # the above need to be redone untill some types of field matches
+
+                    match = bool(reNCPUS.fullmatch(line, col_pos[iNCPUS] + 1, col_pos[iNCPUS + 1])) and \
+                            bool(reNNodes.fullmatch(line, col_pos[iNNodes] + 1, col_pos[iNNodes + 1])) and \
+                            bool(reStart.fullmatch(line, col_pos[iStart] + 1, col_pos[iStart + 1])) and \
+                            bool(reSubmit.fullmatch(line, col_pos[iSubmit] + 1, col_pos[iSubmit + 1]))
+
+                    if match:
+                        break
+                    elif pipe_removed >= extra_pipe:
+                        fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                        print("can not read, too many |")
+
+                        print(iline, line.count("|") + 1, ncols, match)
+                        print(line)
+                        for k, v in zip(columns, fields):
+                            print(f"{k}=|{v}|")
+                        raise ValueError("can not read, too many |")
+                    else:
+                        pipe_removed += 1
+                        i = i_start
+                        ipos = line.find("|", ipos_start + 1)
+                        ipos_start = ipos
+                #
+                i = ncols
+                ipos = len(line) - 1
+                col_pos[i] = ipos
+                while i > icol_submitline + 1:
+                    i -= 1
+                    ipos = line.rfind("|", 0, ipos)
+                    col_pos[i] = ipos
+
+                fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                yield fields
+
+    @classmethod
+    def get_parse_sacclog_iter(cls, filename, columns=None):
+        """
+        return list of lists parsed from sacct logs, take care of | in JobNames as well as
+        | in both Constraints and JobNames in certain dumps
+        @param filename:
+        @param columns:
+        @return:
+        """
+
+        if columns is None:
+            columns = cls.get_colnames_from_sacclog(filename)
+
+        if columns == columns_dump1:
+            return cls.parse_sacclog_iter_dump1
+        else:
+            return cls.parse_sacclog_iter_generic
+
+    @classmethod
+    def get_init_sacctlog_df(cls, filename, columns=None, header=True):
+        import pandas
+        if columns is None:
+            columns = cls.get_colnames_from_sacclog(filename)
+        df = pandas.DataFrame(
+            cls.get_parse_sacclog_iter(filename)(filename, columns=columns, header=header),
+            columns=columns)
+        return df
+
+
 # sacct log fields their internal name, converter to internal format and salloc log name
 # as specified for sacct utility
 SACCTLOG_JOB_FIELDS = {
@@ -303,7 +545,7 @@ SACCTLOG_FIELD_NAME = ('jobid', 'jobidraw', 'cluster', 'partition', 'account', '
 SACCTLOG_FIELD_NAME_INT = tuple((SACCTLOG_NAME_TO_SLURM_INT[v] for v in SACCTLOG_FIELD_NAME))
 
 
-class JobSacctLog:
+class JobSacctLogOld:
     """Job from sacct log"""
     def __init__(self, **kwargs):
         self.jobid_str = ''
@@ -354,7 +596,7 @@ class JobSacctLog:
         return True
 
 
-class JobsListSacctLog:
+class JobsListSacctLogOld:
     def __init__(self):
         self.jobs_list = []  # type: List[JobSacctLog]
 

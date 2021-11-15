@@ -23,6 +23,7 @@ class SlurmConf:
         return slurm_conf
 
     def parse_conf(self, lines: list[str]):
+        from slurmanalyser.slurmparser import SlurmFileParser
         self.lines = lines
         default_node_name = dict()
         default_partition_name = dict()
