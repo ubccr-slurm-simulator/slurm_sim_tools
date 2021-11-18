@@ -1,11 +1,12 @@
 from typing import Union
 
 import pandas as pd
+import numpy as np
 from pandas.core.tools.datetimes import DatetimeScalar
+from slurmanalyser.cyutilization import calc_utilization_cy
 
-
-def add_to_util(util: pd.Series, start_time: DatetimeScalar, end_time: DatetimeScalar,
-                resources_count: Union[int, float] = 1.0):
+def add_to_util_ref0(util: pd.Series, start_time: DatetimeScalar, end_time: DatetimeScalar,
+                     resources_count: Union[int, float] = 1.0):
     """
     add resources_count to utilization from start_time to end_time
 
@@ -79,16 +80,95 @@ def add_to_util(util: pd.Series, start_time: DatetimeScalar, end_time: DatetimeS
     return util
 
 
-def calc_utilization(df, freq='1H'):
-    t0 = df.loc[:,('submit', 'eligible', 'start', 'end')].min().min().floor(freq=freq)
-    t1 = df.loc[:,('submit', 'eligible', 'start', 'end')].max().max().ceil(freq=freq)
+def calc_utilization_ref0(start: pd.Series, end: pd.Series, resource: Union[pd.Series, int, float], freq='1H', t0=None,
+                          t1=None):
+    if t0 is None:
+        t0 = np.min((start.min(), end.min())).floor(freq=freq)
+    if t1 is None:
+        t1 = np.max((start.max(), end.max())).ceil(freq=freq)
+
     util_ind = pd.date_range(t0, t1, freq=freq)
     util = pd.Series(0., index=util_ind)
-    for start,end in df.loc[:, 'start':'end'].itertuples(index=False,name=None):
-        add_to_util(util, start, end, 1)
+
+    if isinstance(resource, (int, float)):
+        for m_start, m_end in zip(start, end):
+            add_to_util_ref0(util, m_start, m_end, resource)
+    else:
+        for m_start, m_end, m_resource in zip(start, end, resource):
+            add_to_util_ref0(util, m_start, m_end, m_resource)
     return util
 
 
-class Utilization:
-    def __init__(self):
-        pass
+def calc_utilization(start: pd.DatetimeIndex, end: pd.DatetimeIndex, resources_count, util=None, util_start=None, util_end=None, util_freq='1H'):
+    """
+    Calculate resource utilization
+    @param start: DatetimeIndex with jobs start time
+    @param end: DatetimeIndex with dtype=datetime64) with jobs end time
+    @param resources_count: resource count to add to util for each job, if scalar each job has same weight
+    @param util: (pd.Series with datetime index and dtype=float for main values))if specified will add resource_count inplace
+    @param util_start: if set and util is None will use for creation of util Series as start time
+    @param util_end: if set and util is None will use for creation of util Series as end time
+    @param util_freq: if util is None will use for creation of util Series as freq
+    @return: util
+    """
+    # check datatype
+    if not isinstance(start, (pd.DatetimeIndex, pd.Series)):
+        raise TypeError(f"start should be pd.DatetimeIndex but it is {type(start)}")
+
+    if not isinstance(end, (pd.DatetimeIndex, pd.Series)):
+        raise TypeError(f"end should be pd.DatetimeIndex but it is {type(end)}")
+
+    if isinstance(resources_count, pd.Series):
+        m_resources_count = start.values
+    elif isinstance(resources_count, np.ndarray):
+        m_resources_count = resources_count
+    elif isinstance(resources_count,(int,float)):
+        m_resources_count = np.full(start.shape[0], resources_count, dtype="double")
+    else:
+        raise TypeError(f"resource_count should be either pd.Series, np.array or scalar int/float but it is {type(resources_count)}")
+
+    if m_resources_count.dtype not in (np.float64, np.int64):
+        raise TypeError(f"resource_count dtype should be either int64/double but it is {m_resources_count.dtype}")
+
+    # check that time resolution is same
+    if not str(start.dtype).startswith("datetime64["):
+        raise TypeError(f"start dtype should be datetime64[?] but it is {start.dtype}")
+    datetime_type = str(start.dtype)
+    if str(end.dtype) != datetime_type:
+        raise TypeError(f"all datetime-s should have same resolution but start is {start.dtype} and end is {end.dtype}")
+
+
+    # create our own  util if needed
+    if util is None:
+        if util_start is None:
+            util_start = min(start.min(), end.min()).floor(freq=util_freq)
+        elif isinstance(util_start,str):
+            util_start = pd.to_datetime(util_start)
+
+        if util_end is None:
+            util_end = max(start.max(), end.max()).ceil(freq=util_freq)
+        elif isinstance(util_end,str):
+            util_end = pd.to_datetime(util_end)
+
+        util_ind = pd.date_range(util_start, util_end, freq=util_freq)
+        util = pd.Series(0., index=util_ind)
+    #
+    if str(util.index.dtype) != datetime_type:
+        raise TypeError(f"all datetime-s should have same resolution but start is {start.dtype} and util.index is {util.index.dtype}")
+
+    calc_utilization_cy(util.values,util.index.values.view(np.int64), start.values.astype(np.int64), end.values.astype(np.int64), m_resources_count)
+    return util
+
+
+def calc_utilization_df(df, freq='1H'):
+    """
+    Calculate resource utilization
+    @param df:
+    @param freq:
+    @return:
+    """
+    t0 = np.min((df.Start.min(), df.End.min())).floor(freq=freq)
+    t1 = np.max((df.Start.max(), df.End.max())).ceil(freq=freq)
+    util_ind = pd.date_range(t0, t1, freq=freq)
+    util = pd.Series(0., index=util_ind)
+    calc_utilization(df.Start, df.End, 1.0, util)

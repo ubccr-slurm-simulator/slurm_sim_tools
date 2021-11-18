@@ -56,7 +56,8 @@ def get_file_open(filename):
     return m_open
 
 
-util_factorize = lambda x: x
+default_na_is = ['', 'Unknown', 'NA', 'NAN', 'NaN', 'NAT', 'NaT', 'nan']
+
 
 def util_check_na(v: pd.Series, x: pd.Series,
                   na_is: Tuple[str] = None,
@@ -75,12 +76,12 @@ def util_check_na(v: pd.Series, x: pd.Series,
     if check_na == 'ignore':
         return
     if na_is is None:
-        na_is = ('', 'Unknown', 'NA', 'NAN', 'NaN', 'NAT', 'NaT', 'nan')
+        na_is = default_na_is
     non_valid = x.isna() & ~v.isin(na_is)
     num_of_non_valid = np.sum(non_valid)
     if num_of_non_valid:
         msg = (f"There are {num_of_non_valid} non valid NA entries (valid NA: {str(na_is)}).\n"\
-               f"Non valid values: {str(v[non_valid][:10].values)}")
+               f"Non valid values: {str(np.unique(v[non_valid].values)[:20])}")
         if check_na == 'warning':
             log.warning(msg)
         elif check_na == 'error':
@@ -89,7 +90,20 @@ def util_check_na(v: pd.Series, x: pd.Series,
     return num_of_non_valid
 
 
-def util_norm_si(v: pd.Series, convert_to_int=False, return_in = '', check_na='ignore', na_is=None,
+SI_SUFFIXES = {
+    'binary': {
+        '': 1,
+        'k': 1024, 'm': 1024*1024, 'g': 1024*1024*1024, 't': 1024*1024*1024*1024, 'p': 1024*1024*1024*1024*1024, 'e': 1024*1024*1024*1024*1024*1024,
+        'K': 1024, 'M': 1024*1024, 'G': 1024*1024*1024, 'T': 1024*1024*1024*1024, 'P': 1024*1024*1024*1024*1024, 'E': 1024*1024*1024*1024*1024*1024
+    },
+    'decimal': {
+        '': 1,
+        'k': 1000, 'm': 1000*1000, 'g': 1000*1000*1000, 't': 1000*1000*1000*1000, 'p': 1000*1000*1000*1000*1000, 'e': 1000*1000*1000*1000*1000*1000,
+        'K': 1000, 'M': 1000*1000, 'G': 1000*1000*1000, 'T': 1000*1000*1000*1000, 'P': 1000*1000*1000*1000*1000, 'E': 1000*1000*1000*1000*1000*1000
+    }}
+
+
+def util_norm_si(v: pd.Series, convert_to_int=True, return_in='', check_na='ignore', na_is=None,
                  use1024=False) -> pd.Series:
     """
     Convert pd.Series[strings] containing nuber with SI suffixes like 12M, 2.4G and so on to pd.Series with numbers
@@ -109,17 +123,9 @@ def util_norm_si(v: pd.Series, convert_to_int=False, return_in = '', check_na='i
 
     matches = v.str.extract("^([0-9.]+) ?([kmgtpeKMGTPE]?)$")
     if use1024:
-        si_suffixes = {
-            '': 1,
-            'k': 1024, 'm': 1024*1024, 'g': 1024*1024*1024, 't': 1024*1024*1024*1024, 'p': 1024*1024*1024*1024*1024, 'e': 1024*1024*1024*1024*1024*1024,
-            'K': 1024, 'M': 1024*1024, 'G': 1024*1024*1024, 'T': 1024*1024*1024*1024, 'P': 1024*1024*1024*1024*1024, 'E': 1024*1024*1024*1024*1024*1024
-        }
+        si_suffixes = SI_SUFFIXES['binary']
     else:
-        si_suffixes = {
-            '': 1,
-            'k': 1000, 'm': 1000*1000, 'g': 1000*1000*1000, 't': 1000*1000*1000*1000, 'p': 1000*1000*1000*1000*1000, 'e': 1000*1000*1000*1000*1000*1000,
-            'K': 1000, 'M': 1000*1000, 'G': 1000*1000*1000, 'T': 1000*1000*1000*1000, 'P': 1000*1000*1000*1000*1000, 'E': 1000*1000*1000*1000*1000*1000
-        }
+        si_suffixes = SI_SUFFIXES['decimal']
     matches[1].replace(to_replace=si_suffixes, inplace=True)
         
     x = pd.to_numeric(matches[0], errors='coerce')*pd.to_numeric(matches[1], errors='coerce')
@@ -135,6 +141,32 @@ def util_norm_si(v: pd.Series, convert_to_int=False, return_in = '', check_na='i
     return x
 
 
+def util_memory(v: pd.Series, convert_to_int=True, return_in='',
+                 check_na='ignore', na_is=None,
+                 use1024=True) -> pd.Series:
+    """
+    Convert pd.Series[strings] containing slurm memory description like 1.5M 1.5Gn 1.5Gc.
+    Suffix n for nodes suffix c for cpu, default per nodes
+
+    @param v: input
+    @param return_in: return in units of return_in ('', k,M,G,...).
+    @param convert_to_int: convert finale result to Int64
+    @param check_na: check for NA
+    @param na_is: valid Not Available strings, if None use default: ('', 'Unknown', 'NA', 'NAN', 'NaN', 'NAT', 'NaT')
+    @param check_na_error: reaction on not valid not a number: ignore - do nothing, warning - print violations and
+           error raise error
+    @param use1024: use 1024 instead of 1000
+
+    @return: pd.Series with convertednumbers
+    """
+    matches = v.str.extract("^([0-9.]+ ?[kmgtpeKMGTPE]?)([cnCN]?)$")
+
+    x = util_norm_si(matches[0], convert_to_int=convert_to_int, return_in=return_in,
+                     check_na=check_na, na_is=na_is, use1024=use1024)
+    c = matches[1].isin(('c','C'))
+    return x, c
+
+
 def util_to_int(v: pd.Series, check_na='ignore', na_is=None, round=False) -> pd.Series:
     x = pd.to_numeric(v, errors='coerce')
     if round:
@@ -148,11 +180,20 @@ def util_to_float(v: pd.Series, check_na='ignore', na_is=None) -> pd.Series:
     util_check_na(v, x, check_na=check_na, na_is=na_is)
     return x
 
-util_to_str = lambda x: x
+def util_to_str(v: pd.Series, check_na='ignore', na_is=None):
+    return v
 
 
 #unknown should be set to NA
-util_to_str_unk = lambda x: x
+def util_to_str_unk(v: pd.Series, check_na='ignore', na_is=None):
+    return v
+
+
+def util_factorize(v: pd.Series, check_na='ignore', na_is=None):
+    x = v.astype(dtype='category')
+    util_check_na(v, x, check_na=check_na, na_is=na_is)
+    return x
+
 
 def util_slurm_datetime_to_datetime(v: pd.Series, check_na='ignore', na_is=None) -> pd.Series:
     x = pd.to_datetime(v, errors='coerce').astype('datetime64[ns]')
@@ -170,7 +211,7 @@ def util_slurm_duration_to_duration(v: pd.Series, check_na='ignore', na_is=None)
     @return:
     """
     v = v.str.replace(r"^(\d+)$", "\\1 m", regex=True)
-    v = v.str.replace(r"^(\d+):(\d+)$", "\\1 m \\2 S", regex=True)
+    v = v.str.replace(r"^(\d+):([0-9.]+)$", "\\1 m \\2 S", regex=True)
     v = v.str.replace(r"^(\d+)-(\d+)$", "\\1 D \\2 h", regex=True)
     v = v.str.replace(r"^(\d+-\d+:\d+)$", "\\1:00", regex=True)
     v = v.str.replace("-", " days ")

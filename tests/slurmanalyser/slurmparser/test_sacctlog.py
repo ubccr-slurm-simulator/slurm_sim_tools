@@ -1,22 +1,20 @@
 
-def test_job_sacct_log():
-    import datetime
+def test_job_sacct_log(datadir):
     import slurmanalyser.sacctlog
-    lines = (
-        '6322435|6322435|ub-hpc|general-compute|account1|group1|100001|user1|200001|2021-08-09T00:06:15|2021-08-09T00:06:15|2021-08-09T00:06:42|2021-08-09T12:06:55|12:00:13|0:0|TIMEOUT|2|16|16|30000M|billing=16,cpu=16,mem=30000M,node=2|billing=16,cpu=16,mem=30000M,node=2|12:00:00|cpn-k07-05-[01-02]|jobname1',
-        '6322436|6322436|ub-hpc|general-compute|account2|group2|505796|user2|200002|2021-08-09T00:14:51|2021-08-09T00:14:51|2021-08-09T00:17:23|2021-08-09T00:22:28|00:05:05|0:0|COMPLETED|1|12|12|187000M|billing=12,cpu=12,mem=187000M,node=1|billing=12,cpu=12,mem=187000M,node=1|3-00:00:00|cpn-f07-05|jobname2')
+    import pandas as pd
+    import numpy as np
 
-    r1 = slurmanalyser.sacctlog.JobSacctLog.from_line(lines[0])
-    check = {
-        'user': 'user1',
-        'uid': 200001,
-        'submit': datetime.datetime(2021,8,9,0,6,15),
-        'elapsed': datetime.timedelta(hours=12, minutes=00, seconds=13)
-    }
-    for k,v in check.items():
-        assert r1.__getattribute__(k) == v
+    for filename, filename_ref in (('sacct_dump2101.log','sacctlog_dump2101_str.pkl'),('sacct_dump2110.log','sacctlog_dump2110_str.pkl')):
+        sacctlog = slurmanalyser.sacctlog.SacctLog.from_logfile(str(datadir / filename), convert_data=False)
+        df_ref = pd.read_pickle(str(datadir / filename_ref))
 
-    r2 = slurmanalyser.sacctlog.JobSacctLog.from_line(lines[1])
+    # pd.set_option('display.max_columns', None)
+    # pd.set_option('display.width', None)
+    # print(sacctlog.df)
+    # print(df_ref)
+    # print( np.all(sacctlog.df == df_ref))
+    #assert sacctlog.df == df_ref
 
-
+    #sacctlog = slurmanalyser.sacctlog.SacctLog.from_file(str(datadir / 'sacct_dump2110.log'), convert_data=False)
+    #sacctlog.df.to_pickle('/home/nikolays/slurm_sim_ws/slurm_sim_tools/tests/slurmanalyser/slurmparser/test_sacctlog/sacctlog_dump2110_str.pkl')
 

@@ -3,7 +3,7 @@ from typing import Sequence
 
 from slurmanalyser.slurmparser import slurm_datetime, SlurmDuration, SlurmMemory
 from slurmanalyser.slurmparser import SlurmFileParser
-import logging as log
+import slurmanalyser.log as log
 import multiprocessing as mp
 import sys
 import tqdm
@@ -95,98 +95,104 @@ re_exitcode = re.compile(re_exitcode_str)
 re_exitcode_empty = re.compile(re_exitcode_empty_str)
 re_digits_empty = re.compile(re_digits_empty_str)
 
-from slurmanalyser.utils import util_to_int, util_factorize,util_to_str,util_norm_si
-from slurmanalyser.utils import util_to_str_unk
+from slurmanalyser.utils import util_to_int, util_factorize,util_to_str, util_norm_si, util_memory, default_na_is
+from slurmanalyser.utils import util_to_str_unk, util_slurm_duration_to_duration, util_slurm_datetime_to_datetime
 
-util_to_tresspec = lambda x: x  # TResSpecs.from_string
-util_slurm_duration_to_duration = SlurmDuration.from_string
-util_slurm_datetime_to_datetime = slurm_datetime
+util_to_tresspec = lambda x, check_na='warning': x  # TResSpecs.from_string
+
+
+# convert will convert col to col
+# convert_flatten will convert to multiple columns
+#
 col_props = {
     'Account': {'pattern': re_alphanum2_str, 'convert': util_factorize},
-    'AdminComment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'AdminComment': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'AllocCPUS': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'AllocNodes': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'AllocTRES': {'pattern': re_dict_str, 'convert': util_to_tresspec, 'convert_flatten': 'todo'},
+    'AllocTRES': {'pattern': re_dict_str, 'convert123': util_to_tresspec, 'convert_flatten': 'todo'},
     'AssocID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'AveCPU': {'pattern': re_dur_empty_str, 'convert': util_slurm_duration_to_duration},  # Average (system + user) CPU time of all tasks in job.
     'AveCPUFreq': {'pattern': re_float_si_empty_str, 'convert': util_norm_si, 'units': 'Hz'},
     'AveDiskRead': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
     'AveDiskWrite': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
-    'AvePages': {'pattern': re_digits_empty, 'convert': util_to_int},
+    'AvePages': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
     'AveRSS': {'pattern': re_float_siopt_empty_str, 'convert': util_norm_si},
     'AveVMSize': {'pattern': re_float_siopt_empty_str, 'convert': util_norm_si},
-    'BlockID': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'BlockID': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'Cluster': {'pattern': re_alphanum2_str, 'convert': util_factorize},
-    'Comment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'Constraints': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
-    'Container': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'Comment': {'pattern': re_any_nospec_str, 'convert': util_factorize},
+    'Constraints': {'pattern': re_any_str, 'convert': util_to_str, 'can_have_pipe_symbol':True},
+    'Container': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'ConsumedEnergy': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'ConsumedEnergyRaw': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'CPUTime': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
     'CPUTimeRAW': {'pattern': re_digits_str, 'convert': util_to_int},
     'DBIndex': {'pattern': re_digits_str, 'convert': util_to_int},
-    'DerivedExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_to_str},
+    'DerivedExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_factorize},
     'Elapsed': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
     'ElapsedRaw': {'pattern': re_digits_str, 'convert': util_to_int},
     'Eligible': {'pattern': re_datetime_unk_str, 'convert': util_slurm_datetime_to_datetime},
     'End': {'pattern': re_datetime_unk_str, 'convert': util_slurm_datetime_to_datetime},
-    'ExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_to_str},
-    'Flags': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'ExitCode': {'pattern': re_exitcode_empty_str, 'convert': util_factorize},
+    'Flags': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'GID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'Group': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'JobID': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'JobIDRaw': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'JobName': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
+    'JobIDRaw': {'pattern': re_any_nospec_str, 'convert123': util_to_str},
+    'JobName': {'pattern': re_any_str, 'convert': util_to_str, 'can_have_pipe_symbol':True},
     'Layout': {'pattern': re_any_nospec_str, 'convert': util_to_str_unk},
     'MaxDiskRead': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
-    'MaxDiskReadNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxDiskReadNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MaxDiskReadTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'MaxDiskWrite': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
-    'MaxDiskWriteNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxDiskWriteNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MaxDiskWriteTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'MaxPages': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'MaxPagesNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxPages': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
+    'MaxPagesNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MaxPagesTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'MaxRSS': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
-    'MaxRSSNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxRSSNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MaxRSSTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'MaxVMSize': {'pattern': re_float_si_empty_str, 'convert': util_norm_si},
-    'MaxVMSizeNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MaxVMSizeNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MaxVMSizeTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'McsLabel': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'McsLabel': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'MinCPU': {'pattern': re_dur_empty_str, 'convert': util_slurm_duration_to_duration},
-    'MinCPUNode': {'pattern': re_alphanum2_str, 'convert': util_to_str},
+    'MinCPUNode': {'pattern': re_alphanum2_str, 'convert': util_factorize},
     'MinCPUTask': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'NCPUS': {'pattern': re_digits_str, 'convert': util_to_int},
     'NNodes': {'pattern': re_digits_str, 'convert': util_to_int},
     'NodeList': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'NTasks': {'pattern': re_digits_empty_str, 'convert': util_to_str},
-    'Priority': {'pattern': re_digits_empty_str, 'convert': util_to_str},
+    'NTasks': {'pattern': re_digits_empty_str, 'convert': util_to_int},
+    'Priority': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'Partition': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'QOS': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'QOSRAW': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'Reason': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'ReqCPUFreq': {'pattern': re_digits_unk_str, 'convert': util_to_str},
+    'Reason': {'pattern': re_any_nospec_str, 'convert': util_factorize},
+    'ReqCPUFreq': {'pattern': re_digits_unk_str, 'convert': util_to_int},
     'ReqCPUFreqMin': {'pattern': re_digits_unk_str, 'convert': util_to_int},
     'ReqCPUFreqMax': {'pattern': re_digits_unk_str, 'convert': util_to_int},
     'ReqCPUFreqGov': {'pattern': re_digits_unk_str, 'convert': util_to_int},
     'ReqCPUS': {'pattern': re_digits_str, 'convert': util_to_int},
-    'ReqMem': {'pattern': re_mem_question_str, 'convert': SlurmMemory.from_string},
+    'ReqMem': {'pattern': re_mem_question_str, 'convert123': SlurmMemory.from_string},
     'ReqNodes': {'pattern': re_digits_str, 'convert': util_to_int},
     'ReqTRES': {'pattern': re_dict_str, 'convert': util_to_tresspec},
-    'Reservation': {'pattern': re_empty_str, 'convert': util_to_str},
+    'Reservation': {'pattern': re_empty_str, 'convert': util_factorize},
     'ReservationId': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'Reserved': {'pattern': re_dur_empty_invalid_str, 'convert': util_slurm_duration_to_duration},
     'ResvCPU': {'pattern': re_dur_empty_invalid_str, 'convert': util_slurm_duration_to_duration},
     'ResvCPURAW': {'pattern': re_digits_empty_str, 'convert': util_to_int},
     'Start': {'pattern': re_datetime_empty_unk_str, 'convert': util_slurm_datetime_to_datetime},
-    'State': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'State': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'Submit': {'pattern': re_datetime_str, 'convert': util_slurm_datetime_to_datetime},
-    'SubmitLine': {'pattern': re_any_str, 'convert': str, 'can_have_pipe_symbol':True},
+    'SubmitLine': {'pattern': re_any_str, 'convert': util_to_str, 'can_have_pipe_symbol':True},
     'Suspended': {'pattern': re_duration_str, 'convert': util_slurm_duration_to_duration},
     'SystemCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
-    'SystemComment': {'pattern': re_any_nospec_str, 'convert': util_to_str},
-    'Timelimit': {'pattern': re_dur_partlim_empty_str, 'convert': util_slurm_duration_to_duration},
-    'TimelimitRaw': {'pattern': re_digits_partlim_empty_str, 'convert': util_to_int},
+    'SystemComment': {'pattern': re_any_nospec_str, 'convert': util_factorize},
+    'Timelimit': {'pattern': re_dur_partlim_empty_str, 'convert':
+        lambda v, check_na='ignore': util_slurm_duration_to_duration(v, check_na=check_na, na_is=default_na_is+['Partition_Limit'])}, #default timelimit is Partition_Limit
+    'TimelimitRaw': {'pattern': re_digits_partlim_empty_str, 'convert':
+        lambda v, check_na='ignore': util_to_int(v, check_na=check_na, na_is=default_na_is+['Partition_Limit'])},
     'TotalCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
     'TRESUsageInAve': {'pattern': re_dict_str, 'convert': util_to_str},
     'TRESUsageInMax': {'pattern': re_dict_str, 'convert': util_to_str},
@@ -205,71 +211,220 @@ col_props = {
     'TRESUsageOutMinTask': {'pattern': re_dict_str, 'convert': util_to_str},
     'TRESUsageOutTot': {'pattern': re_dict_str, 'convert': util_to_str},
     'UID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'User': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'User': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'UserCPU': {'pattern': re_duration_fraq_str, 'convert': util_slurm_duration_to_duration},
-    'WCKey': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'WCKey': {'pattern': re_any_nospec_str, 'convert': util_factorize},
     'WCKeyID': {'pattern': re_digits_empty_str, 'convert': util_to_int},
-    'WorkDir': {'pattern': re_any_nospec_str, 'convert': util_to_str},
+    'WorkDir': {'pattern': re_any_nospec_str, 'convert': util_factorize},
 }
+
+def convert_jobid_raw(df):
+    # format:
+    # if JOB or JOBCOMP then integer
+    # if jobstep
+    #       .batch SLURM_BATCH_SCRIPT
+    #       .extern SLURM_EXTERN_CONT
+    #       .%u step id
+    pass
+
 
 ConsumedEnergy_ExitCode = re.compile("\|".join((col_props[c]['pattern'] for c in ('ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
 'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode'))))
 
-
-columns_dump1 = ['Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
-'AveDiskRead', 'AveDiskWrite', 'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment', 'Constraints',
-'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
-'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags', 'GID', 'Group', 'JobID', 'JobIDRaw', 'JobName',
-'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite', 'MaxDiskWriteNode',
-'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
-'MaxVMSize', 'MaxVMSizeNode', 'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS',
-'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq', 'ReqCPUFreqMin',
-'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation',
-'ReservationId', 'Reserved', 'ResvCPU', 'ResvCPURAW', 'Start', 'State', 'Submit', 'SubmitLine', 'Suspended',
-'SystemCPU', 'SystemComment', 'Timelimit', 'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax',
-'TRESUsageInMaxNode', 'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask',
-'TRESUsageInTot', 'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
-'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User',
-'UserCPU', 'WCKey', 'WCKeyID', 'WorkDir']
-
-columns_xdmod1 = ['JobID',  'JobIDRaw',  'Cluster',  'Partition',  'Account',
- 'Group',  'GID',  'User',  'UID',  'Submit',  'Eligible',
- 'Start',  'End',  'Elapsed',  'ExitCode',  'State',
- 'NNodes',  'NCPUS',  'ReqCPUS',  'ReqMem',  'ReqTRES',
- 'AllocTRES',  'Timelimit',  'NodeList',  'JobName']
+# essentially corresponds to year and month with column order showed up
+columns_formats = {
+    'dump_2101': [
+        'Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
+        'AveDiskRead', 'AveDiskWrite',
+        'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment', 'Constraints', 'ConsumedEnergy',
+        'ConsumedEnergyRaw', 'CPUTime',
+        'CPUTimeRAW', 'DBIndex', 'DerivedExitCode', 'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags',
+        'GID', 'Group', 'JobID',
+        'JobIDRaw', 'JobName', 'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite',
+        'MaxDiskWriteNode',
+        'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
+        'MaxVMSize', 'MaxVMSizeNode',
+        'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS', 'NNodes', 'NodeList', 'NTasks',
+        'Priority', 'Partition',
+        'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq', 'ReqCPUFreqMin', 'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS',
+        'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation', 'ReservationId', 'Reserved', 'ResvCPU',
+        'ResvCPURAW', 'Start', 'State', 'Submit', 'Suspended', 'SystemCPU', 'SystemComment', 'Timelimit',
+        'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax', 'TRESUsageInMaxNode',
+        'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask', 'TRESUsageInTot',
+        'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
+        'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User', 'UserCPU',
+        'WCKey', 'WCKeyID', 'WorkDir'],
+    'dump_2110': [
+        'Account', 'AdminComment', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'AssocID', 'AveCPU', 'AveCPUFreq',
+        'AveDiskRead', 'AveDiskWrite', 'AvePages', 'AveRSS', 'AveVMSize', 'BlockID', 'Cluster', 'Comment',
+        'Constraints',
+        'Container', 'ConsumedEnergy', 'ConsumedEnergyRaw', 'CPUTime', 'CPUTimeRAW', 'DBIndex', 'DerivedExitCode',
+        'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'ExitCode', 'Flags', 'GID', 'Group', 'JobID', 'JobIDRaw',
+        'JobName',
+        'Layout', 'MaxDiskRead', 'MaxDiskReadNode', 'MaxDiskReadTask', 'MaxDiskWrite', 'MaxDiskWriteNode',
+        'MaxDiskWriteTask', 'MaxPages', 'MaxPagesNode', 'MaxPagesTask', 'MaxRSS', 'MaxRSSNode', 'MaxRSSTask',
+        'MaxVMSize', 'MaxVMSizeNode', 'MaxVMSizeTask', 'McsLabel', 'MinCPU', 'MinCPUNode', 'MinCPUTask', 'NCPUS',
+        'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'QOSRAW', 'Reason', 'ReqCPUFreq',
+        'ReqCPUFreqMin',
+        'ReqCPUFreqMax', 'ReqCPUFreqGov', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES', 'Reservation',
+        'ReservationId', 'Reserved', 'ResvCPU', 'ResvCPURAW', 'Start', 'State', 'Submit', 'SubmitLine', 'Suspended',
+        'SystemCPU', 'SystemComment', 'Timelimit', 'TimelimitRaw', 'TotalCPU', 'TRESUsageInAve', 'TRESUsageInMax',
+        'TRESUsageInMaxNode', 'TRESUsageInMaxTask', 'TRESUsageInMin', 'TRESUsageInMinNode', 'TRESUsageInMinTask',
+        'TRESUsageInTot', 'TRESUsageOutAve', 'TRESUsageOutMax', 'TRESUsageOutMaxNode', 'TRESUsageOutMaxTask',
+        'TRESUsageOutMin', 'TRESUsageOutMinNode', 'TRESUsageOutMinTask', 'TRESUsageOutTot', 'UID', 'User',
+        'UserCPU', 'WCKey', 'WCKeyID', 'WorkDir'],
+    'xdmod1': [
+        'JobID', 'JobIDRaw', 'Cluster', 'Partition', 'Account', 'Group', 'GID', 'User', 'UID', 'Submit', 'Eligible',
+        'Start', 'End', 'Elapsed', 'ExitCode', 'State', 'NNodes', 'NCPUS', 'ReqCPUS', 'ReqMem', 'ReqTRES',
+        'AllocTRES', 'Timelimit', 'NodeList', 'JobName']
+}
 
 
 class SacctLog:
     def __init__(self):
-        self.df = None  # type pd.DataFrame
+        self.df = pd.DataFrame()  # type pd.DataFrame
 
-
-    def convert_columns(self):
+    def convert_columns(self, check_na='warning'):
         """convert string columns"""
+        for col in self.df:
+            if col in col_props:
+                if 'convert_flatten' in col_props[col] and col_props[col]['convert_flatten'] != 'todo':
+                    pass
+                if 'convert' in col_props[col] and col_props[col]['convert'] != 'todo':
+                    convert = col_props[col]['convert']
+                    if convert == util_to_str:
+                        convert = None
+                    if self.df[col].dtype != np.object:
+                        convert = None
+                        log.debug2(f"{col} is already not np.object")
+                    if convert is not None:
+                        log.debug2(f"converting {col} using {col_props[col]['convert'].__name__}")
+                        self.df[col] = col_props[col]['convert'](self.df[col], check_na=check_na)
+        if 'ReqMem' in self.df:
+            x, c = util_memory(self.df['ReqMem'], check_na=check_na)
+            self.df['ReqMem'] = x
+            self.df.insert(self.df.columns.get_loc('ReqMem') + 1, 'ReqMemPerCore', c)
 
+    def keep_scheduling_related(self):
+        scheduling_related_cols = [
+            'Account', 'AllocCPUS', 'AllocNodes', 'AllocTRES', 'Cluster',
+            'Constraints',
+            'Elapsed', 'ElapsedRaw', 'Eligible', 'End', 'Group', 'JobID', 'JobIDRaw',
+            'JobName',
+            'NCPUS',
+            'NNodes', 'NodeList', 'NTasks', 'Priority', 'Partition', 'QOS', 'Reason', 'ReqCPUS', 'ReqMem', 'ReqNodes', 'ReqTRES',
+            'Reservation',
+            'ReservationId', 'Reserved', 'ResvCPU', 'Start', 'State', 'Submit', 'SubmitLine',
+            'Timelimit', 'TimelimitRaw',
+            'User']
+
+        self.df = self.df[[c for c in scheduling_related_cols if c in self.df]]
+
+    def simplify_state(self):
+        """
+        CANCELLED by 89200751 -> CANCELLED
+        @return: None
+        """
+        if 'State' in self.df:
+            self.df['State'].loc[self.df['State'].str.count('CANCELLED') > 0] = 'CANCELLED'
+
+    def append(self, other):
+        df = self.df.append(other.df,ignore_index=True)
+        df.drop_duplicates(subset=['JobIDRaw', 'Submit', 'Start'], keep='last', inplace=True, ignore_index=True)
+        self.df = df
+
+    def generate_nodeusage(self):
+        if 'NodeList' not in self.df:
+            log.error("NodeList not in self.df")
+            return
+
+        import array
+        from hostlist import expand_hostlist
+
+        hosts_dict = {"None": 0}
+
+        job_recid = array.array('l')
+        node_id = array.array('l')
+
+        for index, hosts in self.df['NodeList'].items():
+            if hosts == 'None assigned':
+                continue
+            for host in expand_hostlist(hosts):
+                if host not in hosts_dict:
+                    hosts_dict[host] = len(hosts_dict)
+                job_recid.append(index)
+                node_id.append(hosts_dict[host])
+
+        self.nodeusage = pd.Series(
+            pd.Categorical.from_codes(codes=node_id,categories=hosts_dict.keys()),
+            index=job_recid)
+
+    def to_feather(self, filename, compression=None, compression_level=19):
+        import os
+        if compression == "zstd" or os.path.splitext(filename)[-1] in ('.zstd', '.zst'):
+            self.df.to_feather(filename, compression="zstd", compression_level=compression_level)
+        elif compression is not None:
+            self.df.to_feather(filename, compression=compression, compression_level=compression_level)
+        else:
+            self.df.to_feather(filename)
 
     @classmethod
-    def from_file(cls, filename: str, columns: Sequence[str] = None,
-                  header: bool = True, col_format: str = None) -> 'SacctLog':
+    def read_feather(cls, filename):
+        sacctlog = cls()
+        sacctlog.df = pd.read_feather(filename)
+        #sacctlog.df.drop('index', axis=1, inplace=True)
+        return sacctlog
+
+    def to_parquet(self, filename):
+        raise NotImplementedError("not supported yet due to timedelta lack in parquet")
+        self.df.to_parquet(filename)
+
+    @classmethod
+    def read_parquet(cls, filename):
+        sacctlog = cls()
+        sacctlog.df = pd.read_parquet(filename)
+        return sacctlog
+
+    @classmethod
+    def from_logfile(cls, filename: str, columns: Sequence[str] = None,
+                     header: bool = True, col_format: str = None, convert_data: bool = True, check_na='warning',
+                     skip_jobsteps: bool = True, keep_scheduling_related=False, simplify_state=True) -> 'SacctLog':
         """
         Read sacct log from file. File can be compressed, this is identified by extension.
+
 
         @param filename:
         @param col_format:  column formats recognizable strings: dump1, xdmod1
         @param columns: column names in file
         @param header: is header present in file
+        @param convert_data: convert string to proper data formats
         @return: SacctLog
         """
-        if columns is None and col_format=="dump1":
-            columns = columns_dump1
-        if columns is None and col_format == "xdmod1":
-            columns = columns_xdmod1
+        if not skip_jobsteps:
+            raise NotImplementedError("can not handle job steps yet")
+        if columns is None and col_format is not None:
+            columns = columns_formats[col_format]
 
         if columns is None:
             columns = cls.get_colnames_from_sacclog(filename)
 
-        sacctlog = SacctLog()
+        sacctlog = cls()
         sacctlog.df = cls.get_init_sacctlog_df(filename, columns=columns, header=header)
+
+        if keep_scheduling_related:
+            sacctlog.keep_scheduling_related()
+
+        if simplify_state:
+            sacctlog.simplify_state()
+
+        if skip_jobsteps:
+            sacctlog.df = sacctlog.df.loc[~sacctlog.df['JobIDRaw'].str.contains(".", regex=False)]
+            sacctlog.df['JobIDRaw'] = util_to_int(sacctlog.df['JobIDRaw'])
+            sacctlog.df.reset_index(inplace=True, drop=True)
+
+        if convert_data:
+            sacctlog.convert_columns(check_na=check_na)
+
         return sacctlog
 
     @staticmethod
@@ -282,8 +437,11 @@ class SacctLog:
 
     @staticmethod
     def parse_sacclog_iter_generic(filename, colnames=None, header=True):
+        """This is generic sacct log processor and only can handle | in the jobname"""
         m_open = get_file_open(filename)
-        with m_open(filename, 'rt') as fin:
+
+        # newline = '\n' is importent because some jobs contains \r and universal new line treat it as a new line
+        with m_open(filename, 'rt', newline = '\n') as fin:
             if header:
                 line = next(fin).rstrip()
                 if colnames is not None and  colnames != line.split("|"):
@@ -321,7 +479,7 @@ class SacctLog:
                 yield fields
 
     @staticmethod
-    def parse_sacclog_iter_dump1(filename, columns=None, header=True):
+    def parse_sacclog_iter_dump2110(filename, columns=None, header=True):
         """
         process dump1 format can recognize | in constrains, job names and SubmitLine
         @param filename:
@@ -352,14 +510,15 @@ class SacctLog:
         # cdef int pipe_removed
         # cdef array.array col_pos
 
-        if columns is not None and columns != columns_dump1:
+        if columns is not None and columns != columns_formats['dump_2110']:
             raise ValueError("Column names do not match one in file!")
         if columns is None:
-            columns = columns_dump1
+            columns = columns_formats['dump_2110']
 
         m_open = get_file_open(filename)
 
-        with m_open(filename, 'rt') as fin:
+        # newline = '\n' is importent because some jobs contains \r and universal new line treat it as a new line
+        with m_open(filename, 'rt', newline = '\n') as fin:
             if header:
                 line = next(fin).rstrip()
                 if columns != line.split("|"):
@@ -369,8 +528,8 @@ class SacctLog:
             ncols = len(columns)
             col_pos = array.array('l', [0] * (ncols + 1))
 
-            # dump schema 1. columns Constraint and JobName can contain |
-            print("dump schema 1")
+            # dump2101 columns Constraint, JobName and SubmitLine can contain |
+            log.debug("coloumn format: dump2110")
 
             icol_constraints = columns.index("Constraints")
             icol_jobname = columns.index("JobName")
@@ -478,6 +637,115 @@ class SacctLog:
                 fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
                 yield fields
 
+    @staticmethod
+    def parse_sacclog_iter_dump2101(filename, columns=None, header=True):
+        """
+        process dump1 format can recognize | in constrains and job names
+        @param filename:
+        @param columns:
+        @param header:
+        @return:
+        """
+
+        if columns is not None and columns != columns_formats['dump_2101']:
+            raise ValueError("Column names do not match one in file!")
+        if columns is None:
+            columns = columns_formats['dump_2101']
+
+        m_open = get_file_open(filename)
+        # newline = '\n' is importent because some jobs contains \r and universal new line treat it as a new line
+        with m_open(filename, 'rt', newline='\n') as fin:
+            iline = 0
+            if header:
+                line = next(fin).rstrip()
+                if columns != line.split("|"):
+                    raise ValueError("Column names do not match one in file!")
+                iline = 1
+            ncols = len(columns)
+            col_pos = array.array('l', [0] * (ncols + 1))
+
+            # dump2101 columns Constraint and JobName can contain |
+            log.debug("column format: dump2101")
+
+            icol_constraints = columns.index("Constraints")
+            icol_jobname = columns.index("JobName")
+            iConsumedEnergy = columns.index("ConsumedEnergy")
+            iExitCode = columns.index("ExitCode")
+
+            iNCPUS = columns.index('NCPUS')
+            iNNodes = columns.index('NNodes')
+            iStart = columns.index('Start')
+            iSubmit = columns.index('Submit')
+
+            reNCPUS = re.compile(col_props['NCPUS']['pattern'])
+            reNNodes = re.compile(col_props['NNodes']['pattern'])
+            reStart = re.compile(col_props['Start']['pattern'])
+            reSubmit = re.compile(col_props['Submit']['pattern'])
+
+            for line in fin:
+                # no | in comment or jobname
+                line = line.strip()
+                extra_pipe = line.count("|") - (ncols - 1)
+                iline += 1
+                if extra_pipe == 0:
+                    yield line.split("|")
+                    continue
+                if line == '' or line[:1] == '#':
+                    continue
+                # positions to colmment
+                i = 0
+                ipos = -1
+                col_pos[i] = ipos
+                while i < icol_constraints:
+                    i += 1
+                    ipos = line.find("|", ipos + 1)
+                    col_pos[i] = ipos
+
+
+                # identify | in constrains
+                i_start = i
+                ipos_start = ipos
+                pipe_removed = 0
+                while True:
+                    while i <= icol_jobname:
+                        i += 1
+                        ipos = line.find("|", ipos + 1)
+                        col_pos[i] = ipos
+                    # the above need to be redone untill some types of field matches
+
+                    match = bool(
+                        ConsumedEnergy_ExitCode.fullmatch(line, col_pos[iConsumedEnergy] + 1, col_pos[iExitCode + 1]))
+
+                    if match:
+                        break
+                    elif pipe_removed >= extra_pipe:
+                        fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                        print("can not read, too many |")
+
+                        print(f'line # {iline}, possible columns: {line.count("|") + 1}, actual columns: {ncols}, '
+                              f'atches the mid pattern: {match}, line:')
+                        print(line)
+                        print("Current fields")
+                        for k, v in zip(columns, fields):
+                            print(f"{k}=|{v}|")
+                        raise ValueError("can not read, too many |")
+                    else:
+                        pipe_removed += 1
+                        i = i_start
+                        ipos = line.find("|", ipos_start + 1)
+                        ipos_start = ipos
+                #
+                i = ncols
+                ipos = len(line) - 1
+                col_pos[i] = ipos
+                while i > icol_jobname + 1:
+                    i -= 1
+                    ipos = line.rfind("|", 0, ipos)
+                    col_pos[i] = ipos
+
+                fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
+                yield fields
+
     @classmethod
     def get_parse_sacclog_iter(cls, filename, columns=None):
         """
@@ -491,8 +759,10 @@ class SacctLog:
         if columns is None:
             columns = cls.get_colnames_from_sacclog(filename)
 
-        if columns == columns_dump1:
-            return cls.parse_sacclog_iter_dump1
+        if columns == columns_formats['dump_2110']:
+            return cls.parse_sacclog_iter_dump2110
+        elif columns == columns_formats['dump_2101']:
+            return cls.parse_sacclog_iter_dump2101
         else:
             return cls.parse_sacclog_iter_generic
 

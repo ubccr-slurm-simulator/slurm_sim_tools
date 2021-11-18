@@ -207,4 +207,4 @@ basicConfig(
     stream = sys.stdout,
     format="[%(levelname)s] %(message)s"
 )
-set_verbose()
+#set_verbose()

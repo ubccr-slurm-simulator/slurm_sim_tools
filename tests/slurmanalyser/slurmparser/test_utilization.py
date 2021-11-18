@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from slurmanalyser.utilization import add_to_util_single_wrap
+from slurmanalyser.utilization import calc_utilization
 
 
-def add_to_util_single_wrap_single_wrap(util, start, end, resoource_count):
-
-    add_to_util_single_wrap(util, pd.to_datetime([start]), pd.to_datetime([end]), np.array([resoource_count], dtype="double"))
+def add_to_util_single_wrap(util, start, end, resoource_count):
+    calc_utilization(pd.to_datetime([start]), pd.to_datetime([end]), np.array([resoource_count]), util)
     return util
-    
+
+
 def test_utilization():
     import numpy as np
     import pandas as pd
