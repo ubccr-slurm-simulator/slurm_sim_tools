@@ -1,0 +1,26 @@
+# add/modify QOS
+remove QOS where Name=normal
+add QOS Name=general-compute Priority=0 MaxSubmitJobsPerUser=1000
+add QOS Name=supporters Priority=200 MaxSubmitJobsPerUser=1000
+add QOS Name=priority Priority=200 MaxSubmitJobsPerUser=1000
+add QOS Name=priority-supporters Priority=400 MaxSubmitJobsPerUser=1000
+add QOS Name=debug Priority=0 MaxSubmitJobsPerUser=4
+# add cluster
+add cluster Name=ubhpc Fairshare=1 QOS=general-compute,supporters,priority,priority-supporters,debug
+# add accounts
+add account name=account0 Fairshare=100
+add account name=account1 Fairshare=100
+add account name=account2 Fairshare=100
+# add admin
+add user name=admin DefaultAccount=account0 MaxSubmitJobs=1000 AdminLevel=Administrator
+# add users
+add user name=user1 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user2 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user3 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user4 DefaultAccount=account2 MaxSubmitJobs=1000
+add user name=user5 DefaultAccount=account2 MaxSubmitJobs=1000
+# add users to qos level
+modify user set qoslevel="general-compute,supporters,priority,priority-supporters,debug"
+
+# check results
+list associations format=Account,Cluster,User,Fairshare tree withd

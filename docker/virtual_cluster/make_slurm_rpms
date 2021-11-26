@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# script to make Slurm RPMs
+build_opt="release"
+if [ $# -ge 1 ]; then
+    build_opt=$1
+fi
+
+cd
+echo "Build config: ${build_opt}"
+wget ${SLURM_TAR_BZ2_SOURCE:=https://download.schedmd.com/slurm/slurm-18.08.4.tar.bz2}
+
+if [[ "$build_opt" == "release" ]]; then
+    rpmbuild -ta slurm*.tar.bz2
+elif [[ "$build_opt" == "debug" ]]; then
+    rpmbuild -ta slurm*.tar.bz2 -D '%_with_cflags CFLAGS="-g -O0" --enable-debug --disable-optimizations'
+else
+    echo "Unknown build configuration."
+fi
+mkdir -p /RPMS/x86_64
+cp -rf rpmbuild/RPMS/x86_64 /RPMS
+echo "DONE"

@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+
+if [ $# -eq 0 ]; then
+    sleep_time=1
+    exit_code=0
+elif [ $# -eq 1 ]; then
+    sleep_time=$1
+    exit_code=0
+else
+    sleep_time=$1
+    exit_code=$2
+fi
+
+
+echo "sleep for $sleep_time, exit with $exit_code"
+
+srun sleep $sleep_time
+
+exit $exit_code

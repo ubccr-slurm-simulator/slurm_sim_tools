@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+# here should be initializations executed after all daemons are up
