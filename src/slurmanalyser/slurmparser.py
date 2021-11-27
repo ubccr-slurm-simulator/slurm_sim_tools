@@ -1,6 +1,8 @@
 import re
 import datetime
 # pretty capitalization of slurm conf
+from typing import List, Tuple
+
 slurm_conf_keywords = {
     'accountingstorageenforce': 'AccountingStorageEnforce',
     'accountingstoragehost': 'AccountingStorageHost',
@@ -123,24 +125,25 @@ slurm_convert_values = {
     'Fairshare': int
 }
 
+
 class SlurmFileParser:
     def __init__(self):
         # source lines
         self.lines = []
 
     @staticmethod
-    def read_lines_from_file(filename: str, include_childs = True) -> list[str]:
+    def read_lines_from_file(filename: str, include_children=True) -> List[str]:
         """
         Read lines from file if have line `include another_filename` includes lines inline from that file.
         :param filename:
-        :param include_childs: include include files
+        :param include_children: include include files
         :return:
         """
         lines = []
 
         import os
         file_extention = os.path.splitext(filename)
-        if file_extention==".xz":
+        if file_extention == ".xz":
             import lzma
             file_open = lzma.open
         elif file_extention == ".gz":
@@ -152,7 +155,7 @@ class SlurmFileParser:
         with file_open(filename, "rt") as fout:
             for line in fout:
                 line = line.rstrip("\n")
-                if include_childs and re.match("^include",line.lower().strip()):
+                if include_children and re.match("^include", line.lower().strip()):
                     command, param = SlurmFileParser.split_expr(line, pretty_left=True, split=" ")
                     lines += SlurmFileParser._lines_from_file(param)
                 else:
@@ -160,7 +163,7 @@ class SlurmFileParser:
         return lines
 
     @staticmethod
-    def split_expr(line:str, pretty_left=True, split="=", convert_values=False) -> tuple[str, str]:
+    def split_expr(line:str, pretty_left=True, split="=", convert_values=False) -> Tuple[str, str]:
         """return left, right from expression like left=right"""
         if line.count(split) == 0:
             raise ValueError(f"No split string: '{split}'!")
@@ -190,7 +193,7 @@ class SlurmFileParser:
             return (SlurmFileParser.split_expr(s1, convert_values=convert_values) for s1 in s.split())
 
     @staticmethod
-    def split_nfields(line:str, nfields=-1, split="|") -> tuple[str]:
+    def split_nfields(line:str, nfields=-1, split="|") -> Tuple[str]:
         """
         Raise ValueError if nfields does not match to output
         :param line: line to split

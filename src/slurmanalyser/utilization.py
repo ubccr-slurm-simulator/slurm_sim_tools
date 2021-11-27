@@ -119,7 +119,7 @@ def calc_utilization(start: pd.DatetimeIndex, end: pd.DatetimeIndex, resources_c
         raise TypeError(f"end should be pd.DatetimeIndex but it is {type(end)}")
 
     if isinstance(resources_count, pd.Series):
-        m_resources_count = start.values
+        m_resources_count = resources_count.values
     elif isinstance(resources_count, np.ndarray):
         m_resources_count = resources_count
     elif isinstance(resources_count,(int,float)):
@@ -127,7 +127,7 @@ def calc_utilization(start: pd.DatetimeIndex, end: pd.DatetimeIndex, resources_c
     else:
         raise TypeError(f"resource_count should be either pd.Series, np.array or scalar int/float but it is {type(resources_count)}")
 
-    if m_resources_count.dtype not in (np.float64, np.int64):
+    if str(m_resources_count.dtype) not in ('float64', 'int64', 'Int64'):
         raise TypeError(f"resource_count dtype should be either int64/double but it is {m_resources_count.dtype}")
 
     # check that time resolution is same
@@ -156,7 +156,12 @@ def calc_utilization(start: pd.DatetimeIndex, end: pd.DatetimeIndex, resources_c
     if str(util.index.dtype) != datetime_type:
         raise TypeError(f"all datetime-s should have same resolution but start is {start.dtype} and util.index is {util.index.dtype}")
 
-    calc_utilization_cy(util.values,util.index.values.view(np.int64), start.values.astype(np.int64), end.values.astype(np.int64), m_resources_count)
+    if str(m_resources_count.dtype) in ('float64',):
+        calc_utilization_cy(util.values,util.index.values.view(np.int64), start.values.astype(np.int64),
+                            end.values.astype(np.int64), m_resources_count.astype(np.float64))
+    else:
+        calc_utilization_cy(util.values, util.index.values.view(np.int64), start.values.astype(np.int64),
+                            end.values.astype(np.int64), m_resources_count.astype(np.int64))
     return util
 
 

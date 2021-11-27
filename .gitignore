@@ -8,3 +8,8 @@ __pycache__
 /.idea
 /ubccr
 .pytest_cache
+/docker/virtual_cluster/RPMS
+/build
+
+/src/slurmanalyser/cyutilization.c
+/src/slurmanalyser/cyutilization.cpython-39-x86_64-linux-gnu.so

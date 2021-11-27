@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+from slurmanalyser.slurmconf import SlurmConf
+def slurm_conf_diff(slurmconf1, slurmconf2):
+    cfg1 = SlurmConf.from_file(slurmconf1)
+    cfg2 = SlurmConf.from_file(slurmconf2)
+    cfg1.diff(cfg2)
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='compare slurm conf (besides nodes and partition)')
+
+    parser.add_argument('slurmconf1', type=str, help="slurm.conf file 1")
+    parser.add_argument('slurmconf2', type=str, help="slurm.conf file 2")
+    parser.add_argument('-v', '--verbose', action='store_true',
+        help="turn on verbose logging")
+
+    args = parser.parse_args()
+
+    slurm_conf_diff(args.slurmconf1,args.slurmconf2)
