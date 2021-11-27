@@ -18,4 +18,5 @@ else
 fi
 mkdir -p /RPMS/x86_64
 cp -rf rpmbuild/RPMS/x86_64 /RPMS
+cp slurm*.tar.bz2 /RPMS
 echo "DONE"

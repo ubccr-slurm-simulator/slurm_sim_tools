@@ -21,7 +21,7 @@ Here is listing on the whole process:
 rm -rf "./docker/virtual_cluster/RPMS/*"
 
 # make image
-docker build --no-cache -t pseudo/slurm_rpm_maker:latest -f ./docker/virtual_cluster/MakeSlurmRPM.Dockerfile .
+docker build -t pseudo/slurm_rpm_maker:latest -f ./docker/virtual_cluster/MakeSlurmRPM.Dockerfile .
 
 # make slurm RPMS from default tarball
 docker run --name slurm_rpm_maker -h slurm_rpm_maker \
@@ -39,17 +39,17 @@ docker run --name slurm_rpm_maker -h slurm_rpm_maker \
 
 ```bash
 # Build Common Image
-docker build --no-cache -f docker/virtual_cluster/Common.Dockerfile -t nsimakov/slurm_common:2 .
+docker build -f docker/virtual_cluster/Common.Dockerfile -t nsimakov/slurm_common:2 .
 # (Optionally) Run Common container to test it
 # docker run -it --rm -h compute000 -p 222:22 --name compute000 nsimakov/slurm_common:latest
 
 # Build Head-Node Image
-docker build --no-cache -f docker/virtual_cluster/HeadNode.Dockerfile -t nsimakov/slurm_head_node:2 .
+docker build -f docker/virtual_cluster/HeadNode.Dockerfile -t nsimakov/slurm_head_node:2 .
 # (Optionally) Run Head-Node container to test it
 # docker run -it --rm -h head-node -p 222:22 --name head-node nsimakov/slurm_head_node:latest
 
 # Build Compute-Node Image
-docker build --no-cache -f docker/virtual_cluster/ComputeNode.Dockerfile -t nsimakov/slurm_compute_node:2 .
+docker build -f docker/virtual_cluster/ComputeNode.Dockerfile -t nsimakov/slurm_compute_node:2 .
 # (Optionally) Run Compute-Node container to test it
 # docker run -it --rm -h compute000 -p 222:22 --name compute000 nsimakov/slurm_compute_node:latest
 ```

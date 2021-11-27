@@ -7,8 +7,10 @@ USER root
 RUN yum update --assumeno || true && \
     yum -y install --setopt=tsflags=nodocs \
         vim tmux mc perl-Switch \
-        iproute perl-Date* python3 \
-        mariadb-server && \
+        iproute perl-Date* \
+        mariadb-server python3 python36-PyMySQL python36-psutil \
+        sudo perl-Date* && \
+    pip3 install pandas py-cpuinfo && \
     yum clean all && \
     rm -rf /var/cache/yum
 
@@ -30,6 +32,7 @@ RUN chmod g+rw /var/lib/mysql /var/log/mariadb /var/run/mariadb && \
 
 # copy slurm rpm
 COPY ./docker/virtual_cluster/RPMS/x86_64/slurm*.rpm /root/
+COPY ./src ./bin ./docker /opt/cluster/slurm_sim_tools/
 
 #install Slurm
 RUN yum update --assumeno || true && \
