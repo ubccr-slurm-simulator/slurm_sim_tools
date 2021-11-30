@@ -218,3 +218,21 @@ def util_slurm_duration_to_duration(v: pd.Series, check_na='ignore', na_is=None)
     x = pd.to_timedelta(v, errors='coerce').astype('timedelta64[ns]')
     util_check_na(v, x, check_na=check_na, na_is=na_is)
     return x
+
+
+def util_timedelta_to_slurm_duration(v: pd.Series) -> pd.Series:
+    days = (v // pd.to_timedelta(1, unit='days')).astype("Int64")
+    left = v % pd.to_timedelta(1, unit='D')
+    hours = (left // pd.to_timedelta(1, unit='H')).astype("Int64")
+    left = v % pd.to_timedelta(1, unit='H')
+    minutes = (left // pd.to_timedelta(1, unit='min')).astype("Int64")
+    left = v % pd.to_timedelta(1, unit='min')
+    seconds = (left // pd.to_timedelta(1, unit='s')).astype("Int64")
+
+    days = days.astype(str) + "-"
+    days[days == "0-"] = ""
+
+    s = days + hours.astype(str).str.zfill(2) + ":" + minutes.astype(str).str.zfill(2) + ":" + seconds.astype(
+        str).str.zfill(2)
+    s[v.isna()] = "NA"
+    return s

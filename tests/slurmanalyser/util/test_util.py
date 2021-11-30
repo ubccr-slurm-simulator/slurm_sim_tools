@@ -157,3 +157,14 @@ def test_util_slurm_duration_to_duration():
     with pytest.raises(Exception):
         util_slurm_duration_to_duration(v, check_na='error')
 
+
+def test_util_timedelta_to_slurm_duration():
+    from slurmanalyser.utils import util_slurm_duration_to_duration,util_timedelta_to_slurm_duration
+    import pandas as pd
+    v = pd.Series(["123", "132:45.0123", "132:45", "12:05:55", "12:05:55.0123", "11-12", "11-12:05", "11-12:05:55",
+                   "11-12:05:55.0123", "NA"])
+
+    r = pd.Series(["02:03:00", "02:12:45", "02:12:45", "12:05:55", "12:05:55", "11-12:00:00", "11-12:05:00", "11-12:05:55",
+                   "11-12:05:55", "NA"])
+    assert r.equals(util_timedelta_to_slurm_duration(util_slurm_duration_to_duration(v)))
+

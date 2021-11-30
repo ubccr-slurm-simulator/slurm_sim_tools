@@ -1,13 +1,15 @@
 from slurmanalyser.slurmparser import SlurmFileParser
 from pprint import pprint
 
+SLURMDB_FS_USE_PARENT = 0x7FFFFFFF
+
 class SlurmAccounts:
     def __init__(self):
         # Slurm config lines
         self.lines = []
         self.records = []
         self.cluster = None
-        self.account = None
+        self.account = {}
         self.root = None
         self.user = {}
         self.qos = {}
@@ -57,11 +59,19 @@ class SlurmAccounts:
                                 print(f"Warning: {qos_name} not in QOS list")
                     del m_dict['QOS']
 
-                    if variable == 'Cluster':
-                        self.cluster = m_dict
-                    if variable == 'User':
-                        if val0 == 'root':
-                            self.root = m_dict
+                if variable == 'Cluster':
+                    self.cluster = m_dict
+                if variable == 'User':
+                    if val0 == 'root':
+                        self.root = m_dict
+                    if 'Fairshare' in m_dict and str(m_dict['Fairshare']).isdigit():
+                        if int(m_dict['Fairshare']) == SLURMDB_FS_USE_PARENT:
+                            m_dict['Fairshare'] = 'parent'
+
+                    m_dict['Parent'] = parent
+                    self.user[val0] = m_dict
+                if variable == 'Account':
+                    self.account[val0] = m_dict
 
     def read_sacctmgr_dump(self, filename):
         lines = SlurmFileParser.read_lines_from_file(filename)

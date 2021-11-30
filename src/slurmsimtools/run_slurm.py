@@ -401,6 +401,8 @@ def run_slurm(args):
     #make nessesary directories
     #/var/state/
     start=time()
+
+    start_datetime = datetime.datetime.now()
     
     global slurmdbd_out
     global slurmctld_out
@@ -630,13 +632,15 @@ def run_slurm(args):
         monitor_proc.kill()
     
     #get sacct
-    sacct_proc=popen_as_otheruser(SlurmUser, sacct_loc + " --clusters " + slurm_conf["ClusterName".lower()] + """ --allusers \
+    endtime_datetime = datetime.datetime.now()+datetime.timedelta(days=1)
+    sacct_proc=popen_as_otheruser(SlurmUser, f"""{sacct_loc} --clusters {slurm_conf["ClusterName".lower()]} --allusers \
     --parsable2 --allocations \
     --format jobid,jobidraw,cluster,partition,account,group,gid,\
 user,uid,submit,eligible,start,end,elapsed,exitcode,state,nnodes,\
 ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
     --state CANCELLED,COMPLETED,FAILED,NODE_FAIL,PREEMPTED,TIMEOUT \
-    --starttime 2015-09-01T00:00:00 > slurm_acct.out""", env={'SLURM_CONF':slurm_conf_loc}, shell=True)
+    --starttime {start_datetime.isoformat(timespec='seconds')} --endtime {endtime_datetime.isoformat(timespec='seconds')}  > slurm_acct.out""",
+                                  env={'SLURM_CONF':slurm_conf_loc}, shell=True)
     sacct_proc.wait()
     
     sleep(1)
