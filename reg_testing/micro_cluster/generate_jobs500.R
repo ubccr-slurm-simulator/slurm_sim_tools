@@ -349,8 +349,24 @@ get_sim_event <- function (trace) {
 }
 trace$sim_event <- get_sim_event(trace)
 
-write(trace$sim_event, file = "jobs500.events")
+write.table(
+    dplyr::select(trace,
+        dt,
+        job_id=sim_job_id,
+        wall_time=sim_duration,
+        user=sim_username,
+        wall_limit=sim_wclimit,
+        n_tasks=sim_tasks,
+        ntasks_per_node=sim_tasks_per_node,
+        account=sim_account,
+        partition=sim_partition,
+        qos=sim_qosname,
+        constraint=sim_features,
+        mem=sim_req_mem,
+        gres=sim_gres),
+    file = "jobs500.csv", na = "", sep = ";", row.names = F, quote = F)
 
+write(trace$sim_event, file = "jobs500.events")
 
 trace$dt <- trace$dt %/% 30
 trace$sim_wclimit <- trace$sim_wclimit %/% 30
