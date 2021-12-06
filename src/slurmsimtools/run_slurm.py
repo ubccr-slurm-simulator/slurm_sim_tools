@@ -541,6 +541,8 @@ def run_slurm(args):
                     if m:
                         job_id = m.group(1)
                     else:
+                        print("Warning: Can not submit job!")
+                        print(output)
                         job_id = None
                     if trace[i_event]['payload']['cancel_in'] is not None:
                         sim_submit_ts = trace[i_event]['sim_submit_ts'] + trace[i_event]['payload']['cancel_in']

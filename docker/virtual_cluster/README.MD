@@ -52,6 +52,10 @@ docker build -f docker/virtual_cluster/HeadNode.Dockerfile -t nsimakov/slurm_hea
 docker build -f docker/virtual_cluster/ComputeNode.Dockerfile -t nsimakov/slurm_compute_node:2 .
 # (Optionally) Run Compute-Node container to test it
 # docker run -it --rm -h compute000 -p 222:22 --name compute000 nsimakov/slurm_compute_node:latest
+
+docker push nsimakov/slurm_head_node:2
+docker push nsimakov/slurm_compute_node:2
+
 ```
 
 

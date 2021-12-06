@@ -334,6 +334,10 @@ class SacctLog:
         self.df = df
 
     def generate_nodeusage(self):
+        """
+        Return and set sacctlog.nodeusage where index is index from self.df and value is node name
+        @return:
+        """
         if 'NodeList' not in self.df:
             log.error("NodeList not in self.df")
             return
@@ -358,6 +362,7 @@ class SacctLog:
         self.nodeusage = pd.Series(
             pd.Categorical.from_codes(codes=node_id,categories=hosts_dict.keys()),
             index=job_recid)
+        return self.nodeusage
 
     def to_feather(self, filename, compression=None, compression_level=19):
         import os
@@ -386,7 +391,7 @@ class SacctLog:
         return sacctlog
 
     @classmethod
-    def from_logfile(cls, filename: str, columns: Sequence[str] = None,
+    def read_logfile(cls, filename: str, columns: Sequence[str] = None,
                      header: bool = True, col_format: str = None, convert_data: bool = True, check_na='warning',
                      skip_jobsteps: bool = True, keep_scheduling_related=False, simplify_state=True) -> 'SacctLog':
         """
@@ -436,7 +441,7 @@ class SacctLog:
         return colnames
 
     @staticmethod
-    def parse_sacclog_iter_generic(filename, colnames=None, header=True):
+    def parse_sacclog_iter_generic(filename, columns=None, header=True):
         """This is generic sacct log processor and only can handle | in the jobname"""
         m_open = get_file_open(filename)
 
@@ -444,14 +449,14 @@ class SacctLog:
         with m_open(filename, 'rt', newline = '\n') as fin:
             if header:
                 line = next(fin).rstrip()
-                if colnames is not None and  colnames != line.split("|"):
+                if columns is not None and  columns != line.split("|"):
                     raise ValueError("Column names do not match one in file!")
 
-            ncols = len(colnames)
+            ncols = len(columns)
             col_pos = array.array('l', [0] * (ncols + 1))
 
             # assume only  JobName can contain |
-            icol_jobname = colnames.index("JobName")
+            icol_jobname = columns.index("JobName")
 
             for line in fin:
                 # no | in comment or jobname
