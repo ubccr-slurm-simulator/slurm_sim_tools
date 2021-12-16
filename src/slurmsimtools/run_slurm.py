@@ -260,6 +260,7 @@ def read_trace(trace_file_name):
                 payload = None
 
             trace.append({"dt":dt,"etype":etype,"payload":payload})
+    log.info(f"Read from {trace_file_name} {len(trace)} events")
 
 def run_slurm(args):
     #read trace
