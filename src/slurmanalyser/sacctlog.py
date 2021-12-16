@@ -436,7 +436,7 @@ class SacctLog:
         return colnames
 
     @staticmethod
-    def parse_sacclog_iter_generic(filename, colnames=None, header=True):
+    def parse_sacclog_iter_generic(filename, columns=None, header=True):
         """This is generic sacct log processor and only can handle | in the jobname"""
         m_open = get_file_open(filename)
 
@@ -444,14 +444,14 @@ class SacctLog:
         with m_open(filename, 'rt', newline = '\n') as fin:
             if header:
                 line = next(fin).rstrip()
-                if colnames is not None and  colnames != line.split("|"):
+                if columns is not None and  columns != line.split("|"):
                     raise ValueError("Column names do not match one in file!")
 
-            ncols = len(colnames)
+            ncols = len(columns)
             col_pos = array.array('l', [0] * (ncols + 1))
 
             # assume only  JobName can contain |
-            icol_jobname = colnames.index("JobName")
+            icol_jobname = columns.index("JobName")
 
             for line in fin:
                 # no | in comment or jobname
