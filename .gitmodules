@@ -1,0 +1,4 @@
+[submodule "slurm_simulator"]
+	path = slurm_simulator
+	url = git@github.com:ubccr-slurm-simulator/slurm_simulator.git
+	branch = slurm-21-08-sim
