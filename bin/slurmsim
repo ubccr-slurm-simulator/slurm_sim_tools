@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+if __name__ == '__main__':
+    import inspect
+    import os
+    import sys
+
+    # Determine is it global or local installation
+    cur_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    slurmsim_mod_dir = os.path.abspath(os.path.join(os.path.dirname(cur_dir), "akrr"))
+
+    if os.path.isdir(slurmsim_mod_dir):
+        # i.e. local run add to sys.path
+        sys.path.insert(0, os.path.abspath(os.path.dirname(slurmsim_mod_dir)))
+
+    # Check that some modules are installed
+
+    import slurmsim.cli
+    slurmsim.cli.CLI().run()
