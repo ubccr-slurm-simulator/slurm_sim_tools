@@ -9,8 +9,8 @@ RUN yum update --assumeno || true && \
         vim tmux mc perl-Switch \
         iproute perl-Date* \
         mariadb-server python3 python36-PyMySQL python36-psutil \
-        sudo perl-Date* && \
-    pip3 install pandas py-cpuinfo && \
+        sudo perl-Date* zstd && \
+    pip3 install pandas py-cpuinfo tqdm && \
     yum clean all && \
     rm -rf /var/cache/yum
 

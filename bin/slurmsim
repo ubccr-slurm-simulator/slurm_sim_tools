@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
     # Determine is it global or local installation
     cur_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    slurmsim_mod_dir = os.path.abspath(os.path.join(os.path.dirname(cur_dir), "akrr"))
+    slurmsim_mod_dir = os.path.abspath(os.path.join(os.path.dirname(cur_dir), "src","slurmsim"))
 
     if os.path.isdir(slurmsim_mod_dir):
         # i.e. local run add to sys.path

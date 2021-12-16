@@ -1,18 +1,38 @@
+import argparse
+from slurmsim import log
+
+
+def add_command_archive(parent_parser):
+    """
+    compress output and logs
+    """
+    parser = parent_parser.add_parser('archive',  description=add_command_archive.__doc__)
+    parser.add_argument('-n', default=1, type=int, help='parallel processes')
+    parser.add_argument('-nt', default=1, type=int, help='parallel threads per file')
+    parser.add_argument('top_dir', help='directory to look for file to archive')
+
+    def handler(args):
+        from slurmsim.archive import Archive
+        print(args)
+
+        Archive(args.top_dir, type='slurm_run', threads_per_file=args.nt, processes=args.n).run()
+
+    parser.set_defaults(func=handler)
+
 
 class CLI:
     """
     slurm sim command line interface
     """
     def __init__(self):
-        import sys
-
         short_log_prefix = True
-        if len(sys.argv) >= 3:
-            i = 1
-            while i+1 < len(sys.argv):
-                if sys.argv[i] == "daemon" and sys.argv[i+1] in ("start", "startdeb"):
-                    short_log_prefix = False
-                i = i + 1
+        # import sys
+        # if len(sys.argv) >= 3:
+        #     i = 1
+        #     while i+1 < len(sys.argv):
+        #         if sys.argv[i] == "daemon" and sys.argv[i+1] in ("start", "startdeb"):
+        #             short_log_prefix = False
+        #         i = i + 1
 
         if short_log_prefix:
             log.basicConfig(
@@ -25,34 +45,18 @@ class CLI:
                 format="[%(asctime)s - %(levelname)s] %(message)s"
             )
 
-        self.root_parser = argparse.ArgumentParser(description='command line interface to AKRR')
-        self.root_parser.add_argument('-v', '--verbose', action='store_true', help="turn on verbose logging")
-        self.root_parser.add_argument('-vv', '--very-verbose', action='store_true', help="turn on very verbose logging")
+        self.root_parser = argparse.ArgumentParser(description='command line interface to slurm sim tools')
+        self.root_parser.add_argument('-v', '--verbose', action='store_true',
+                                      help="turn on verbose logging")
+        self.root_parser.add_argument('-vv', '--very-verbose', action='store_true',
+                                      help="turn on very verbose logging")
 
         self.subparsers = self.root_parser.add_subparsers(title='commands')
 
-        from .commands import add_command_daemon
-        add_command_daemon(self.subparsers)
-
-        from .commands import add_command_setup
-        add_command_setup(self.subparsers)
-
-        from .commands import add_command_resource
-        add_command_resource(self.subparsers)
-
-        from .commands import add_command_app
-        add_command_app(self.subparsers)
-
-        from .commands import add_command_task
-        add_command_task(self.subparsers)
-
-        from .commands import add_command_archive
-        add_command_archive(self.subparsers)
-
-        from .commands import add_command_update
-        add_command_update(self.subparsers)
-
         self.verbose = False
+        self.very_verbose = False
+
+        add_command_archive(self.subparsers)
 
     def process_common_args(self, cli_args):
         """
