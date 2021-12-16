@@ -58,7 +58,24 @@ docker push nsimakov/slurm_compute_node:2
 
 ```
 
+## PCP
+```bash
+sudo vim /etc/yum.repos.d/performancecopilot.repo
 
+[performancecopilot]
+name=Performance Co-Pilot
+baseurl=https://performancecopilot.jfrog.io/artifactory/pcp-rpm-release/centos/$releasever/$basearch
+enabled=1
+gpgcheck=0
+gpgkey=https://performancecopilot.jfrog.io/artifactory/pcp-rpm-release/centos/$releasever/$basearch/repodata/repomd.xml.key
+repo_gpgcheck=1
+```
+
+```bash
+sudo yum install -y dnf
+sudo dnf install -y pcp-zeroconf
+
+```
 
 
 Initial sizes:
