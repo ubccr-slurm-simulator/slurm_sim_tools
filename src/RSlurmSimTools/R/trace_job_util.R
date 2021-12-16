@@ -422,7 +422,7 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
 
     #convert memory
     slurm_log$ReqMem[slurm_log$ReqMem=="0n"] <- "0Mn"
-    reqmem <- stringr::str_match_all(slurm_log$ReqMem, "([\\.0-9]+)([MG])([nc])")
+    reqmem <- stringr::str_match_all(slurm_log$ReqMem, "([\\.0-9]+)([MG])([nc]?)")
     
     reqmem_size <- sapply(reqmem,function(r){
         as.integer(r[[2]])
@@ -433,7 +433,7 @@ read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
     reqmem_size[reqmem_unit=="G"] <- reqmem_size[reqmem_unit=="G"]*1024
     
     slurm_log$ReqMemSize <- reqmem_size
-    slurm_log$ReqMemPerNode <- reqmem_perwhat=="n"
+    slurm_log$ReqMemPerNode <- reqmem_perwhat=="n" || reqmem_perwhat==""
     
     slurm_log$ReqMem <- NULL
     
