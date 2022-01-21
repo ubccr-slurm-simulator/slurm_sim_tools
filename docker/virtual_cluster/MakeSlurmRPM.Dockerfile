@@ -25,6 +25,6 @@ VOLUME ./docker/virtual_cluster/RPMS
 # setup entry point
 WORKDIR /root
 
-COPY ./docker/virtual_cluster/make_slurm_rpms ./docker/virtual_cluster/utils/cmd_setup ./docker/virtual_cluster/utils/cmd_start ./docker/virtual_cluster/utils/cmd_stop /usr/local/sbin/
+COPY ./docker/virtual_cluster/make_slurm_rpms_simsource ./docker/virtual_cluster/make_slurm_rpms ./docker/virtual_cluster/utils/cmd_setup ./docker/virtual_cluster/utils/cmd_start ./docker/virtual_cluster/utils/cmd_stop /usr/local/sbin/
 ENTRYPOINT ["/usr/local/sbin/cmd_start"]
 CMD ["make_slurm_rpms"]

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+SLURM_VER=slurm-21.08.4
+
+# script to make Slurm RPMs from slurm sim source code (should be mounted at ~/${SLURM_VER})
+build_opt="release"
+if [ $# -ge 1 ]; then
+    build_opt=$1
+fi
+
+cd
+echo "Build config: ${build_opt}"
+tar -cvjSf ${SLURM_VER}.tar.bz2 ${SLURM_VER}
+
+if [[ "$build_opt" == "release" ]]; then
+    rpmbuild -ta slurm*.tar.bz2
+elif [[ "$build_opt" == "debug" ]]; then
+    rpmbuild -ta slurm*.tar.bz2 -D '%_with_cflags CFLAGS="-g -O0" --enable-debug --disable-optimizations'
+else
+    echo "Unknown build configuration."
+fi
+mkdir -p /RPMS/x86_64
+cp -rf rpmbuild/RPMS/x86_64 /RPMS
+cp slurm*.tar.bz2 /RPMS
+echo "DONE"
