@@ -1,4 +1,4 @@
-from . import log
+from slurmsim import log
 
 
 

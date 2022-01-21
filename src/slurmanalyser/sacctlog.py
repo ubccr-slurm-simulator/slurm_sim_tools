@@ -3,15 +3,16 @@ from typing import Sequence
 
 from slurmanalyser.slurmparser import slurm_datetime, SlurmDuration, SlurmMemory
 from slurmanalyser.slurmparser import SlurmFileParser
-import slurmanalyser.log as log
+import slurmsim.log as log
 import multiprocessing as mp
+import os
 import sys
 import tqdm
 import numpy as np
 import pandas as pd
 import re
 
-from slurmanalyser.utils import get_file_open
+from slurmanalyser.utils import get_file_open, SUPPORTED_COMPRESSION
 
 import array
 
@@ -917,3 +918,24 @@ class JobsListSacctLogOld:
         log.info(f"Reading sacct log from {filename}")
         jobs_list.parse_sacct_log(lines, processes=processes)
         return jobs_list
+
+
+def format_sacctlog(sacctlog, output=None, sep="|"):
+    """
+
+    @param sacctlog:
+    @param output:
+    @return: None
+    """
+    if output is None:
+        # add _formatted to basename
+        base,ext = os.path.splitext(sacctlog)
+        if ext in SUPPORTED_COMPRESSION:
+            base, ext2 = os.path.splitext(base)
+            ext = f"{ext2}{ext}"
+        output = f"{base}_formatted{ext}"
+
+    log.debug(f"Reformat {sacctlog} to {output}")
+    m_sacctlog = SacctLog.read_logfile(sacctlog)
+    with get_file_open(output)(output,"w") as out:
+        m_sacctlog.df.to_csv(out, index=False,sep=sep)

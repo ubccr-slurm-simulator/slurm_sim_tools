@@ -12,3 +12,5 @@ __pycache__
 /build
 /src/slurmanalyser/cyutilization.c
 /src/slurmanalyser/cyutilization.cpython-39-x86_64-linux-gnu.so
+/docker/virtual_cluster/RPMS_ref/
+/docker/virtual_cluster/RPMS_sim/

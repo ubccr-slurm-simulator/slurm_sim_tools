@@ -9,10 +9,10 @@ import multiprocessing
 
 
 class Archive:
-    def __init__(self, top_dir: str, type='slurm_run', threads_per_file: int = 1, processes: int = 1):
+    def __init__(self, top_dir: str, type='slurm_run', threads_per_file: int = 1, num_of_proc: int = 1):
         self.top_dir = top_dir
         self.threads_per_file = threads_per_file
-        self.num_processes = processes
+        self.num_of_proc = num_of_proc
         if type == 'slurm_run':
             self.filenames_to_archive = [
                 'jobcomp.log', 'perf_profile.log', 'perf_stat.log', 'sched.log', 'sdiag.out',
@@ -51,10 +51,10 @@ class Archive:
                     files_to_archive.append(os.path.join(root,file))
 
         log.info(f"Found {len(files_to_archive)} files to archive")
-        if self.num_processes == 1:
+        if self.num_of_proc == 1:
             for file in files_to_archive:
                 self.compress(file)
         else:
-            pool = multiprocessing.Pool(processes=self.num_processes)
+            pool = multiprocessing.Pool(processes=self.num_of_proc)
             for _ in tqdm.tqdm(pool.imap_unordered(self.compress, files_to_archive), total=len(files_to_archive)):
                 pass

@@ -3,7 +3,7 @@ from typing import Tuple
 import pandas as pd
 import numpy as np
 
-from slurmanalyser import log
+from slurmsim import log
 
 
 def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete',
@@ -27,6 +27,9 @@ def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete',
     # Print New Line on Complete
     if iteration == total:
         print()
+
+
+SUPPORTED_COMPRESSION = ('.bz2','.lz4','.xz','.gz','.zstd', '.zst')
 
 
 def get_file_open(filename):
