@@ -69,6 +69,18 @@ docker push nsimakov/slurm_compute_node:3
 
 ```
 
+## Making Images for Slurm Simulator Dev Head Node
+```bash
+# Build Slurm Simulator Dev Head Node Image
+docker build -f docker/virtual_cluster/SlurmSimNodeDev.Dockerfile -t nsimakov/slurm_compute_node:dev .
+# (Optionally) Run Slurm Simulator Dev Head Node container to test it
+# docker run -it --rm -h head-node -p 222:22 --name head-node nsimakov/slurm_compute_node:dev
+
+docker push nsimakov/slurm_sim_head_node:dev
+
+cd /home/nikolays/slurm_sim_ws/slurm_model/micro3
+docker run -it --rm -h headnode -p 222:22 --name headnode -v ./etc:/etc/slurm nsimakov/slurm_compute_node:dev
+```
 ## PCP
 ```bash
 sudo vim /etc/yum.repos.d/performancecopilot.repo

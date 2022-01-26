@@ -1,0 +1,33 @@
+#!/usr/bin/bash
+
+sleep_time=0
+exit_code=0
+
+while (( "$#" ))
+do
+    case "$1" in
+    -exit-code)
+        shift
+        exit_code=$1
+        ;;
+    -sleep)
+        shift
+        sleep_time=$1
+        ;;
+    *)
+        ;;
+    esac
+    shift
+done
+
+if [ $(echo "$sleep_time > 0.0" | bc) -eq 1 ]; then
+    echo "sleep for $sleep_time, exit with $exit_code"
+    sleep $sleep_time
+    exit $exit_code
+else
+    echo "stay in infinite loop"
+    while :
+    do
+        sleep 600
+    done
+fi
