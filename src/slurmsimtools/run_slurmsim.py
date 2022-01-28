@@ -448,8 +448,10 @@ def run_slurm(args):
     sleep(1)
     
     #start slurmctrl
-    global slurmctld_proc    
-    slurmctld_proc=popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace], env={'SLURM_CONF':slurm_conf_loc},
+    global slurmctld_proc
+    print([slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)])
+    slurmctld_proc=popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)],
+                                      env={'SLURM_CONF':slurm_conf_loc},
                                       stdout=slurmctld_out, stderr=slurmctld_out)
     #let the slurmctrl to spin-off
     sleep(5)
