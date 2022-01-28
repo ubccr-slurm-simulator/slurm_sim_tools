@@ -20,7 +20,7 @@ do
     shift
 done
 
-if [ $(echo "$sleep_time > 0.0" | bc) -eq 1 ]; then
+if [ $(echo "$sleep_time >= 0.0" | bc) -eq 1 ]; then
     echo "sleep for $sleep_time, exit with $exit_code"
     sleep $sleep_time
     exit $exit_code
