@@ -11,8 +11,7 @@ import pandas as pd
 import traceback
 import tqdm
 import multiprocessing
-
-verbose = False
+from slurmsim.log import verbose
 
 def process_squeue_output(cluster,filename=None,lines=None):
     if filename!=None and lines==None:
@@ -99,41 +98,26 @@ def get_datatime(line):
     return m_t, m_ts
 
 
-file_records_out = None
+def process_slurmctrd_logs(log_filename,csv_filename, top_dir, num_of_proc=1, time="time", job_id="job_id"):
+    """
 
-
-def init_records(filename):
-    global file_records_out
-    import slurmanalyser.utils
-    file_records_out = slurmanalyser.utils.get_file_open(filename)(filename, "wt")
-    file_records_out.write("job_id,metric,t,value\n")
-
-
-def add_record(job_id, metric, t, value):
-    global file_records_out
-    record = (job_id, metric, t, str(value))
-    global verbose
-    if verbose:
-        print("%-6s %-32s %-28s %-32s" % record)
-    file_records_out.write(",".join(record)+"\n")
-
-
-def finalize_records():
-    global file_records_out
-    file_records_out.close()
-    file_records_out = None
-
-
-def process_slurmctrd_logs(log_filename,csv_filename, top_dir, num_of_proc=1):
+    @param log_filename:
+    @param csv_filename:
+    @param top_dir:
+    @param num_of_proc:
+    @param time: time - use datatime, first_job - time in sec from first job submission
+    @return:
+    """
+    kwargs = {'time': time,'job_id':job_id}
     if top_dir is None:
-        return process_slurmctrd_log(log_filename,csv_filename)
+        return m_process_slurmctrd_log([log_filename, csv_filename, kwargs])
     else:
         log.info(f"Looking in {top_dir} for {log_filename}")
         args_to_process = []
         for root, dirs, files in os.walk(top_dir):
             for file in files:
                 if file == log_filename:
-                    args_to_process.append([os.path.join(root, file), os.path.join(root, csv_filename)])
+                    args_to_process.append([os.path.join(root, file), os.path.join(root, csv_filename), kwargs])
 
         log.info(f"Found {len(args_to_process)} files to process")
 
@@ -147,182 +131,285 @@ def process_slurmctrd_logs(log_filename,csv_filename, top_dir, num_of_proc=1):
             for _ in tqdm.tqdm(pool.imap_unordered(m_process_slurmctrd_log, args_to_process), total=len(args_to_process)):
                 pass
 
+
 def m_process_slurmctrd_log(a):
-    return process_slurmctrd_log(a[0],a[1])
-
-def process_slurmctrd_log(log_filename,csv_filename):
-    import slurmanalyser.utils
-    r=[]
-    if not os.path.isfile(log_filename):
-        raise Exception("File %s do not exits" % log_filename)
-
-    fin = slurmanalyser.utils.get_file_open(log_filename)(log_filename, "rt")
-    init_records(csv_filename)
-
-    window_size = 200
-    window = deque(maxlen=window_size)
-
-    #logs_first_message=
+    return ProcessSlurmCtrdLog(a[0],a[1],**a[2]).run()
 
 
-    # initial window fill
-    for i in range(window_size):
-        window.append(fin.readline().rstrip('\n'))
+class ProcessSlurmCtrdLog:
+    def __init__(self, log_filename, csv_filename, time='time', job_id="job_id"):
+        self.log_filename = log_filename
+        self.csv_filename = csv_filename
+        self.time = time
+        self.job_id_method = job_id
+        self.records = []
+        self.job_name_to_id = {}
+        self.job_id_to_name = {}
+        self.job_id_to_ref_id = {}
 
-    m_t, m_ts = get_datatime(window[0])
-    if m_ts:
-        add_record("NA", "slurm_start_time", m_ts, "NA")
+    def init_records(self, filename):
+        self.records = []
 
-    line_number = 1
-    eof_count = 0
-    while True:
+    def add_record(self, job_id, metric, t, value):
+        record = [job_id, metric, t, str(value)]
+        self.records.append(record)
 
-        m = re.search("Processing RPC: REQUEST_SUBMIT_BATCH_JOB from uid=(\S*)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_uid = m.group(1)
-            m_job_name = None
-            m_job_id = None
-            for i in range(1,window_size):
-                if m_job_name is None and re.search("JobDesc: user_id=", window[i]):
-                    m = re.search("JobDesc: user_id=\S* JobId=\S* partition=\S* name=(\S*)", window[i])
-                    m_job_name = m.group(1)
-
-                if m_job_id is None and re.search("debug2: initial priority for job \S* is ", window[i]):
-                    m = re.search("debug2: initial priority for job (\S*) is ", window[i])
-                    m_job_id = m.group(1)
-                if m_job_name is not None and m_job_id is not None:
+    def finalize_records(self):
+        if self.time == "first_job":
+            ref_time = None
+            for record in self.records:
+                if record[1]=="submit_job":
+                    ref_time = record[2]
                     break
-
-            if m_job_name is not None:
-                m = re.match("jobid_(\S+)", m_job_name)
-                if m:
-                    m_job_name__m_job_id = m.group(1)
-                    if m_job_id is not None:
-                        if m_job_id != m.group(1):
-                            print("Error: job id dont match %s != %s" % (
-                            m_job_id, m.group(1)))
-                    else:
-                        print("Error: didn't find job id, set it from job name (%s). Please check the match by other means" % (m_job_name__m_job_id))
-                        m_job_id = m_job_name__m_job_id
-                else:
-                    print(
-                        "Warning: job name (%s) is not in jobid_<job id> format" % m_job_name)
-
-            if m_job_name is not None and m_job_id is not None:
-                add_record(m_job_id, "job_name", m_ts, m_job_name)
-                add_record(m_job_id, "uid", m_ts, m_uid)
-                add_record(m_job_id, "submit_job", m_ts,"NA")
+            if ref_time is None:
+                log.error("Can not find submit time for first job! Rollback to use time.")
+                self.time == "time"
             else:
-                print("Error: something is wrong can identify job_name or m_job_id on line %d" % line_number)
+                log.debug("Submit time for first job: %s", ref_time.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                for i in range(len(self.records)):
+                    self.records[i][2] = f"{(self.records[i][2]-ref_time).total_seconds():.6f}"
+        if self.time == "time":
+            for i in range(len(self.records)):
+                self.records[i][2] = self.records[i][2].strftime("%Y-%m-%d %H:%M:%S.%f")
 
-        m = re.search("sched: Allocate JobId=(\S+) NodeList=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            m_nodes = m.group(2)
-            add_record(m_job_id, "launch_job", m_ts, "sched")
-            add_record(m_job_id, "nodes", m_ts, m_nodes)
+        if self.job_id_method == "job_name":
+            if len(self.job_id_to_name)==0:
+                log.errog("No job names will use ids!")
+                self.job_id_method == "job_id"
+            else:
+                for i in range(len(self.records)):
+                    if self.records[i][0] != "NA":
+                        if self.records[i][0] in self.job_id_to_name:
+                            self.records[i][0] = self.job_id_to_name[self.records[i][0]]
+                        else:
+                            log.error("job id %s has no name", self.records[i][0])
 
-        m = re.search("backfill: Started JobId=(\S+) in \S+ on (\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            m_nodes = m.group(2)
-            add_record(m_job_id, "launch_job", m_ts, "backfill")
-            add_record(m_job_id, "nodes", m_ts, m_nodes)
+        if self.job_id_method == "job_rec_id":
+            if len(self.job_id_to_ref_id)==0:
+                log.error("No job names will use ids!")
+                self.job_id_method == "job_id"
+            else:
+                for i in range(len(self.records)):
+                    if self.records[i][0] != "NA":
+                        if self.records[i][0] in self.job_id_to_ref_id:
+                            self.records[i][0] = self.job_id_to_ref_id[self.records[i][0]]
+                        else:
+                            log.error("job id %s has no ref_id", self.records[i][0])
 
-        m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from uid=\S+ JobId=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            add_record(m_job_id, "request_complete_job", m_ts,"NA")
+    def write_records(self):
+        import slurmanalyser.utils
+        file_records_out = slurmanalyser.utils.get_file_open(self.csv_filename)(self.csv_filename, "wt")
+        if verbose:
+            print("%-12s %-32s %-28s %-32s" % ('job_id','metric','t','value'))
 
-        m = re.search("Spawning RPC agent for msg_type REQUEST_TERMINATE_JOB for JobId=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            add_record(m_job_id, "request_terminate_job", m_ts,"NA")
+        file_records_out.write(f"{self.job_id_method},metric,t,value\n")
 
-        m = re.search("Time limit exhausted for JobId=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            add_record(m_job_id, "time_limit_exhausted", m_ts, "NA")
+        for record in self.records:
+            if verbose:
+                print("%-12s %-32s %-28s %-32s" % tuple(record))
+            file_records_out.write(",".join(record) + "\n")
 
-        m = re.search("Spawning RPC agent for msg_type REQUEST_KILL_TIMELIMIT for JobId=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            add_record(m_job_id, "request_kill_timelimit", m_ts, "NA")
+        file_records_out.close()
+        file_records_out = None
 
-        m = re.search("Processing RPC: MESSAGE_EPILOG_COMPLETE uid=\S+ JobId=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            add_record(m_job_id, "message_epilog_complete", m_ts, "NA")
+    def run(self):
+        import slurmanalyser.utils
+        r=[]
+        if not os.path.isfile(self.log_filename):
+            raise Exception("File %s do not exits" % self.log_filename)
 
-        m = re.search("job_epilog_complete for JobId=(\S+) with node=(\S+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            m_job_id = m.group(1)
-            m_node = m.group(2)
-            add_record(m_job_id, "job_epilog_complete", m_ts, m_node)
+        fin = slurmanalyser.utils.get_file_open(self.log_filename)(self.log_filename, "rt")
+        self.init_records(self.csv_filename)
 
-        # slurm controller events
-        if re.search("backfill: beginning", window[0]):
-            m_t, m_ts = get_datatime(window[0])
-            add_record("NA", "backfill", m_ts,"start")
-        if re.search("backfill: reached end of job queue", window[0]):
-            m_t, m_ts = get_datatime(window[0])
-            add_record("NA", "backfill", m_ts, "end")
-        m = re.search("backfill: completed testing ([0-9]+)\(([0-9]+)\) jobs, usec=([0-9.]+)", window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            add_record("NA", "backfill_cycle_n", m_ts, m.group(2))
-            add_record("NA", "backfill_cycle_time", m_ts, float(m.group(3))*1e6)
-        # backfill: completed testing 2(2) jobs, usec=1773
+        window_size = 200
+        window = deque(maxlen=window_size)
 
-        if re.search("sched: Running job scheduler", window[0]):
-            m_t, m_ts = get_datatime(window[0])
-            add_record("NA", "sched", m_ts,"start")
+        #logs_first_message=
 
-        if re.search("Testing job time limits and checkpoints", window[0]):
-            m_t, m_ts = get_datatime(window[0])
-            add_record("NA", "job_time_limits_testing", m_ts,"NA")
 
-        # sim events
-        # m = re.search("sim: process create real utime: ([0-9]+), process create sim utime: ([0-9]+)", window[0])
-        # if m:
-        #     m_t, m_ts = get_datatime(window[0])
-        #     process_create_real_time = int(m.group(1))/1000000.0
-        #     process_create_sim_time = int(m.group(2))/1000000.0
-        #     add_record("NA", "process_create_real_time", m_ts, "%.6f" % process_create_real_time)
-        #     add_record("NA", "process_create_sim_time", m_ts, "%.6f" % process_create_sim_time)
+        # initial window fill
+        for i in range(window_size):
+            window.append(fin.readline().rstrip('\n'))
 
-        m = re.search(
-            "sim: process create real time: (\S+), process create sim time: (\S+)",
-            window[0])
-        if m:
-            m_t, m_ts = get_datatime(window[0])
-            process_create_real_time = m.group(1)
-            process_create_sim_time = m.group(2)
-            add_record("NA", "process_create_real_time", m_ts,
-                       process_create_real_time)
-            add_record("NA", "process_create_sim_time", m_ts,
-                       process_create_sim_time)
+        m_t, m_ts = get_datatime(window[0])
+        if m_t:
+            self.add_record("NA", "slurm_start_time", m_t, "NA")
 
-        # read next line
-        line = fin.readline()
-        window.append(line.rstrip('\n'))
-        line_number += 1
-        if not line:
-            eof_count += 1
-        if eof_count >= window_size:
-            break
+        line_number = 1
+        eof_count = 0
+        while True:
 
-    finalize_records()
-    fin.close()
+            m = re.search("Processing RPC: REQUEST_SUBMIT_BATCH_JOB from (?:uid|UID)=(\S*)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_uid = m.group(1)
+                m_job_name = None
+                m_job_id = None
+                m_job_rec_id = None
+                m_priority = None
+                for i in range(1,window_size):
+                    if m_job_name is None and re.search("JobDesc: user_id=", window[i]):
+                        m = re.search("JobDesc: user_id=\S* JobId=\S* partition=\S* name=(\S*)", window[i])
+                        m_job_name = m.group(1)
+
+                    if m_job_id is None and re.search("initial priority for job \S* is ", window[i]):
+                        m = re.search("initial priority for job (\S+) is (\d+)", window[i])
+                        m_job_id = m.group(1)
+                        m_priority = m.group(2)
+                    if m_job_name is not None and m_job_id is not None:
+                        break
+
+                if m_job_name is not None:
+                    m = re.match("jobid_(\S+)", m_job_name)
+                    if m:
+                        m_job_name__m_job_id = m.group(1)
+                        m_job_rec_id = m.group(1)
+                        if m_job_id is not None:
+                            if m_job_id != m.group(1):
+                                print("Error: job id dont match %s != %s" % (
+                                m_job_id, m.group(1)))
+                        else:
+                            print("Error: didn't find job id, set it from job name (%s). Please check the match by other means" % (m_job_name__m_job_id))
+                            m_job_id = m_job_name__m_job_id
+                    else:
+                        print(
+                            "Warning: job name (%s) is not in jobid_<job id> format" % m_job_name)
+
+                if m_job_name is not None and m_job_id is not None:
+                    self.add_record(m_job_id, "job_name", m_t, m_job_name)
+                    self.add_record(m_job_id, "uid", m_t, m_uid)
+                    self.add_record(m_job_id, "submit_job", m_t,"NA")
+
+                    self.job_name_to_id[m_job_name] = m_job_id
+                    self.job_id_to_name[m_job_id] = m_job_name
+                    if m_job_rec_id:
+                        self.job_id_to_ref_id[m_job_id] = m_job_rec_id
+                else:
+                    print("Error: something is wrong can identify job_name or m_job_id on line %d" % line_number)
+                if m_priority:
+                    self.add_record(m_job_id, "initial_priority", m_t, m_priority)
+
+            m = re.search("sched: Allocate JobId=(\S+) NodeList=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                m_nodes = m.group(2)
+                self.add_record(m_job_id, "launch_job", m_t, "sched")
+                self.add_record(m_job_id, "nodes", m_t, m_nodes)
+
+            m = re.search("backfill: Started JobId=(\S+) in \S+ on (\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                m_nodes = m.group(2)
+                self.add_record(m_job_id, "launch_job", m_t, "backfill")
+                self.add_record(m_job_id, "nodes", m_t, m_nodes)
+
+            m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from uid=\S+ JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "request_complete_job", m_t,"NA")
+            m = re.search("_slurm_rpc_complete_batch_script JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "request_complete_job", m_t,"NA")
+            # [2022-01-27T18:01:51.406889] _job_complete: JobId=1000 WEXITSTATUS 0
+            # [2022-01-27T18:01:51.406948] accounting_storage/slurmdbd: _agent: agent_count:1
+            # [2022-01-27T18:01:51.407044] debug3: select/cons_res: job_res_rm_job: JobId=1000 action:normal
+            # [2022-01-27T18:01:51.407052] debug3: select/cons_res: job_res_rm_job: removed JobId=1000 from part normal row 0
+            # [2022-01-27T18:01:51.407064] AGENT: agent_trigger: pending_wait_time=65534->999 mail_too=F->F Agent_cnt=0 agent_thread_cnt=0 retry_list_size=1
+            # [2022-01-27T18:01:51.407073] _job_complete: JobId=1000 done
+            # [2022-01-27T18:01:51.407079] debug2: _slurm_rpc_complete_batch_script JobId=1000 usec=270
+
+
+            m = re.search("Spawning RPC agent for msg_type REQUEST_TERMINATE_JOB for JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "request_terminate_job", m_t,"NA")
+
+            m = re.search("Time limit exhausted for JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "time_limit_exhausted", m_t, "NA")
+
+            m = re.search("Spawning RPC agent for msg_type REQUEST_KILL_TIMELIMIT for JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "request_kill_timelimit", m_t, "NA")
+
+            m = re.search("Processing RPC: MESSAGE_EPILOG_COMPLETE uid=\S+ JobId=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "message_epilog_complete", m_t, "NA")
+
+            m = re.search("job_epilog_complete for JobId=(\S+) with node=(\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                m_node = m.group(2)
+                self.add_record(m_job_id, "job_epilog_complete", m_t, m_node)
+
+            # slurm controller events
+            if re.search("backfill: beginning", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "backfill", m_t,"start")
+            if re.search("backfill: reached end of job queue", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "backfill", m_t, "end")
+            m = re.search("backfill: completed testing ([0-9]+)\(([0-9]+)\) jobs, usec=([0-9.]+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "backfill_cycle_n", m_t, m.group(2))
+                self.add_record("NA", "backfill_cycle_time", m_t, float(m.group(3))*1e6)
+            # backfill: completed testing 2(2) jobs, usec=1773
+
+            if re.search("sched: Running job scheduler", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "sched", m_t,"start")
+
+            if re.search("Testing job time limits and checkpoints", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "job_time_limits_testing", m_t,"NA")
+
+            # sim events
+            # m = re.search("sim: process create real utime: ([0-9]+), process create sim utime: ([0-9]+)", window[0])
+            # if m:
+            #     m_t, m_ts = get_datatime(window[0])
+            #     process_create_real_time = int(m.group(1))/1000000.0
+            #     process_create_sim_time = int(m.group(2))/1000000.0
+            #     add_record("NA", "process_create_real_time", m_t, "%.6f" % process_create_real_time)
+            #     add_record("NA", "process_create_sim_time", m_t, "%.6f" % process_create_sim_time)
+
+            m = re.search(
+                "sim: process create real time: (\S+), process create sim time: (\S+)",
+                window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                process_create_real_time = m.group(1)
+                process_create_sim_time = m.group(2)
+                self.add_record("NA", "process_create_real_time", m_t,
+                           process_create_real_time)
+                self.add_record("NA", "process_create_sim_time", m_t,
+                           process_create_sim_time)
+
+            # read next line
+            line = fin.readline()
+            window.append(line.rstrip('\n'))
+            line_number += 1
+            if not line:
+                eof_count += 1
+            if eof_count >= window_size:
+                break
+
+        self.finalize_records()
+        fin.close()
+        self.write_records()
 
 
 if __name__ == '__main__':

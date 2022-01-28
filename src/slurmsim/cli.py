@@ -41,11 +41,15 @@ def add_command_process_slurmctrd_log(parent_parser):
     parser.add_argument('-csv', '--csv', default="slurmctld_log.csv.zst", type=str,
                         help="name of output csv file")
     parser.add_argument('--top-dir', help='recursively scan directory and process discovered slurmctrd log')
+    parser.add_argument('--time', default="time",choices=["time", "first_job"],
+                        help='time reporting: time - use datatime, first_job - time in sec from first job submission. default: time')
+    parser.add_argument('--job-id', default="job_id",choices=["job_id", "job_name","job_rec_id"],
+                        help='what to use for job id: job_id - slurm job id, job_name - job name, job_rec_id - exctract id from job name. default: job_id')
     parser.add_argument('-np', default=1, type=int, help='number of parallel processes')
 
     def handler(args):
         from slurmsim.process.slurmctld_log import process_slurmctrd_logs
-        process_slurmctrd_logs(args.log, args.csv, args.top_dir, num_of_proc=args.np)
+        process_slurmctrd_logs(args.log, args.csv, args.top_dir, num_of_proc=args.np, time=args.time, job_id=args.job_id)
         #Archive(args.top_dir, type='slurm_run', threads_per_file=args.nt, processes=args.n).run()
 
     parser.set_defaults(func=handler)
