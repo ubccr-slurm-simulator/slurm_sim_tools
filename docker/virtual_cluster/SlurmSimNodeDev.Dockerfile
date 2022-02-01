@@ -93,7 +93,7 @@ RUN yum update --assumeno || true && \
         iproute perl-Date* \
         mariadb-server python3 python36-PyMySQL python36-psutil \
         sudo perl-Date* zstd && \
-    pip3 install pandas py-cpuinfo tqdm && \
+    pip3 install pandas py-cpuinfo tqdm gdbgui && \
     yum clean all && \
     rm -rf /var/cache/yum
 
@@ -133,12 +133,12 @@ RUN mkdir /var/log/slurm  && \
 ############################
 # Build Slurm Sim
 #install Slurm
-COPY slurm_simulator slurm_simulator
-RUN cd /root/slurm_simulator && \
-    ./configure --prefix=/usr  --sysconfdir=/etc/slurm --disable-x11 --with-hdf5=no --enable-simulator && \
+COPY slurm_simulator /opt/cluster/slurm_sim_tools/slurm_simulator
+RUN mkdir /root/bld && cd /root/bld && \
+    /opt/cluster/slurm_sim_tools/slurm_simulator/configure --prefix=/usr  --sysconfdir=/etc/slurm --disable-x11 --with-hdf5=no --enable-simulator --enable-front-end && \
     make -j && \
     make -j install
-
+EXPOSE 5000
 # setup entry point
 ENTRYPOINT ["/usr/local/sbin/cmd_start"]
-CMD ["-loop", "/opt/cluster/vctools/init_system", "munged", "mysqld", "slurmdbd", "slurmctld", "sshd", "/opt/cluster/vctools/init_slurm", "bash"]
+CMD ["sshd", "munged", "mysqld", "/opt/cluster/vctools/add_system_users.sh", "bash"]
