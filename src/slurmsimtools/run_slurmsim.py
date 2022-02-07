@@ -458,12 +458,13 @@ def run_slurm(args):
 
     # check that all nodes up
     ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
+    print(ssinfo)
     for sline in ssinfo[1:]:
-        sfields = sline.split()
-        if sfields[4]=="down":
+        #sfields = sline.split()
+        if sline.count("down")>0:
             print("Nodes %s are down, resuming them" % sfields[5])
-            print(subprocess.check_output(
-                ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
+            #print(subprocess.check_output(
+            #    ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
     print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
     
     #start monitor
