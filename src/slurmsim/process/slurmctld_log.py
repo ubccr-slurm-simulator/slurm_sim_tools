@@ -199,15 +199,18 @@ class ProcessSlurmCtrdLog:
     def write_records(self):
         import slurmanalyser.utils
         file_records_out = slurmanalyser.utils.get_file_open(self.csv_filename)(self.csv_filename, "wt")
-        if verbose:
-            print("%-12s %-32s %-28s %-32s" % ('job_id','metric','t','value'))
+        import csv
+        writer = csv.writer(file_records_out)
 
-        file_records_out.write(f"{self.job_id_method},metric,t,value\n")
+        if verbose:
+            print("%-12s %-32s %-28s %-32s" % (self.job_id_method,'metric','t','value'))
+
+        writer.writerow([self.job_id_method, 'metric', 't', 'value'])
 
         for record in self.records:
             if verbose:
                 print("%-12s %-32s %-28s %-32s" % tuple(record))
-            file_records_out.write(",".join(record) + "\n")
+            writer.writerow(record)
 
         file_records_out.close()
         file_records_out = None
@@ -260,7 +263,7 @@ class ProcessSlurmCtrdLog:
                         break
 
                 if m_job_name is not None:
-                    m = re.match("jobid_(\S+)", m_job_name)
+                    m = re.match("jobid_(\d+)", m_job_name)
                     if m:
                         m_job_name__m_job_id = m.group(1)
                         m_job_rec_id = m.group(1)
@@ -297,6 +300,7 @@ class ProcessSlurmCtrdLog:
                 self.add_record(m_job_id, "launch_job", m_t, "sched")
                 self.add_record(m_job_id, "nodes", m_t, m_nodes)
 
+            #[2022-02-02T13:51:06.147191] sched/backfill: _start_job: Started JobId=1001 in normal on n1
             m = re.search("backfill: Started JobId=(\S+) in \S+ on (\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -304,13 +308,21 @@ class ProcessSlurmCtrdLog:
                 m_nodes = m.group(2)
                 self.add_record(m_job_id, "launch_job", m_t, "backfill")
                 self.add_record(m_job_id, "nodes", m_t, m_nodes)
+            # [2022-02-02T13:51:06.147191] sched/backfill: _start_job: Started JobId=1001 in normal on n1
+            m = re.search("sched/backfill: _start_job: Started JobId=(\S+) in \S+ on (\S+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                m_nodes = m.group(2)
+                self.add_record(m_job_id, "launch_job", m_t, "backfill")
+                self.add_record(m_job_id, "nodes", m_t, m_nodes)
 
-            m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from uid=\S+ JobId=(\S+)", window[0])
+            m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from uid=\S+ JobId=(\d+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "request_complete_job", m_t,"NA")
-            m = re.search("_slurm_rpc_complete_batch_script JobId=(\S+)", window[0])
+            m = re.search("_slurm_rpc_complete_batch_script JobId=(\d+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
