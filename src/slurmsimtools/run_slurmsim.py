@@ -23,8 +23,14 @@ from sperf import get_process_realtimestat, system_info
 
 import inspect
 
+
 # Determine is it global or local installation
 cur_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, os.path.abspath(os.path.dirname(cur_dir)))
+
+
+from slurmsim.process.slurmctld_log import ProcessSlurmCtrdLog
+
 
 slurmdbd_proc=None
 slurmdbd_out=None
@@ -573,13 +579,19 @@ def run_slurm(args):
     
     #get sacct
     endtime_datetime = datetime.datetime.now()+datetime.timedelta(days=1)
+    # get time
+    slurmctld_log = ProcessSlurmCtrdLog(slurm_conf['SlurmctldLogFile'.lower()], None, time='datetime')
+    slurmctld_log.run()
+    start_datetime = (slurmctld_log.records[0][2] - datetime.timedelta(days=3)).isoformat(timespec='seconds')
+    endtime_datetime = (slurmctld_log.records[-1][2] + datetime.timedelta(days=3)).isoformat(timespec='seconds')
+
     sacct_proc=popen_as_otheruser(SlurmUser, f"""{sacct_loc} --clusters {slurm_conf["ClusterName".lower()]} --allusers \
     --parsable2 --allocations \
     --format jobid,jobidraw,cluster,partition,account,group,gid,\
 user,uid,submit,eligible,start,end,elapsed,exitcode,state,nnodes,\
 ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
     --state CANCELLED,COMPLETED,FAILED,NODE_FAIL,PREEMPTED,TIMEOUT \
-    --starttime {start_datetime.isoformat(timespec='seconds')} --endtime {endtime_datetime.isoformat(timespec='seconds')}  > slurm_acct.out""",
+    --starttime {start_datetime} --endtime {endtime_datetime}  > slurm_acct.out""",
                                   env={'SLURM_CONF':slurm_conf_loc}, shell=True)
     sacct_proc.wait()
     
@@ -595,9 +607,12 @@ ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
             log.info("copying resulting file "+slurm_conf[paraml]+" to "+results_dir)
             shutil.copy(slurm_conf[paraml],results_dir)
             resfiles[param]=os.path.join(results_dir,os.path.basename(slurm_conf[paraml]))
-    
 
-    
+    log_filename = os.path.join(results_dir,os.path.basename(slurm_conf['SlurmctldLogFile'.lower()]))
+    csv_filename = os.path.join(results_dir,'slurmctld_log.csv')
+    slurmctld_log = ProcessSlurmCtrdLog(log_filename, csv_filename, time='first_job', job_id="job_rec_id")
+    slurmctld_log.run()
+
     if slurmdbd_proc!=None:
         slurmdbd_proc.kill()
     if slurmctld_proc!=None:

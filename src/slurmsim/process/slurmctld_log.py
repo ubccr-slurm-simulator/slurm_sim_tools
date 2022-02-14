@@ -140,7 +140,7 @@ class ProcessSlurmCtrdLog:
     def __init__(self, log_filename, csv_filename, time='time', job_id="job_id"):
         self.log_filename = log_filename
         self.csv_filename = csv_filename
-        self.time = time
+        self.time = time # can be first_job, time or datetime
         self.job_id_method = job_id
         self.records = []
         self.job_name_to_id = {}
@@ -197,6 +197,8 @@ class ProcessSlurmCtrdLog:
                             log.error("job id %s has no ref_id", self.records[i][0])
 
     def write_records(self):
+        if self.csv_filename is None:
+            return
         import slurmanalyser.utils
         file_records_out = slurmanalyser.utils.get_file_open(self.csv_filename)(self.csv_filename, "wt")
         import csv

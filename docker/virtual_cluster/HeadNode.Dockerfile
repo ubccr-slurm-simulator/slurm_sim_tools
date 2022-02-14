@@ -1,4 +1,4 @@
-FROM nsimakov/slurm_common:3
+FROM nsimakov/slurm_common:1
 
 LABEL description="HeadNode Image for Slurm Virtual Cluster"
 

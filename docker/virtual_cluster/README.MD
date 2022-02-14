@@ -50,22 +50,22 @@ container versions:
 
 ```bash
 # Build Common Image
-docker build -f docker/virtual_cluster/Common.Dockerfile -t nsimakov/slurm_common:3 .
+docker build -f docker/virtual_cluster/Common.Dockerfile -t nsimakov/slurm_common:1 .
 # (Optionally) Run Common container to test it
 # docker run -it --rm -h compute000 -p 222:22 --name compute000 nsimakov/slurm_common:latest
 
 # Build Head-Node Image
-docker build -f docker/virtual_cluster/HeadNode.Dockerfile -t nsimakov/slurm_head_node:3 .
+docker build -f docker/virtual_cluster/HeadNode.Dockerfile -t nsimakov/slurm_head_node:1 .
 # (Optionally) Run Head-Node container to test it
 # docker run -it --rm -h head-node -p 222:22 --name head-node nsimakov/slurm_head_node:latest
 
 # Build Compute-Node Image
-docker build -f docker/virtual_cluster/ComputeNode.Dockerfile -t nsimakov/slurm_compute_node:3 .
+docker build -f docker/virtual_cluster/ComputeNode.Dockerfile -t nsimakov/slurm_compute_node:1 .
 # (Optionally) Run Compute-Node container to test it
 # docker run -it --rm -h compute000 -p 222:22 --name compute000 nsimakov/slurm_compute_node:latest
 
-docker push nsimakov/slurm_head_node:3
-docker push nsimakov/slurm_compute_node:3
+docker push nsimakov/slurm_head_node:1
+docker push nsimakov/slurm_compute_node:1
 
 ```
 

@@ -87,21 +87,20 @@ def check_slurm_conf(slurm_conf,slurm_etc,slurm_bin_top,slurmdbd_conf):
             error_count+=1
             log.error("PluginDir from slurm.conf (%s) does not match provided slurm binary path(%s)!"%(
                 os.path.abspath(slurm_conf["PluginDir".lower()]),  os.path.abspath(os.path.join(slurm_bin_top,"lib","slurm"))))
-            
-    else:
-        error_count+=1
-        log.error("PluginDir from slurm.conf is not set, set it to: "+os.path.abspath(os.path.join(slurm_bin_top,"lib","slurm")))
+    # else:
+    #     error_count+=1
+    #     log.error("PluginDir from slurm.conf is not set, set it to: "+os.path.abspath(os.path.join(slurm_bin_top,"lib","slurm")))
     
     
     #AuthType=auth/none
-    if "AuthType".lower() in slurm_conf:
-        if slurm_conf["AuthType".lower()]!="auth/none":
-            error_count+=1
-            log.error("For simulation AuthType should be set to auth/none in slurm.conf!\n"+\
-                      "   In simulation there is no need for good authentication")
-    else:
-        error_count+=1
-        log.error("For simulation AuthType should be set to auth/none in slurm.conf!")
+    # if "AuthType".lower() in slurm_conf:
+    #     if slurm_conf["AuthType".lower()]!="auth/none":
+    #         error_count+=1
+    #         log.error("For simulation AuthType should be set to auth/none in slurm.conf!\n"+\
+    #                   "   In simulation there is no need for good authentication")
+    # else:
+    #     error_count+=1
+    #     log.error("For simulation AuthType should be set to auth/none in slurm.conf!")
     #ControlMachine=localhost
     if "ControlMachine".lower() in slurm_conf:
         if slurm_conf["ControlMachine".lower()]!="localhost":
@@ -130,23 +129,23 @@ def check_slurm_conf(slurm_conf,slurm_etc,slurm_bin_top,slurmdbd_conf):
         log.error("For simulation SlurmUser should be set to %s in slurm.conf!"%(getpass.getuser(),))
         
     #CryptoType=crypto/openssl
-    if "CryptoType".lower() in slurm_conf:
-        if slurm_conf["CryptoType".lower()]!="crypto/openssl":
-            error_count+=1
-            log.error("For simulation CryptoType should be set to crypto/openssl!")
-    else:
-        error_count+=1
-        log.error("For simulation CryptoType should be set to crypto/openssl!")
+    # if "CryptoType".lower() in slurm_conf:
+    #     if slurm_conf["CryptoType".lower()]!="crypto/openssl":
+    #         error_count+=1
+    #         log.error("For simulation CryptoType should be set to crypto/openssl!")
+    # else:
+    #     error_count+=1
+    #     log.error("For simulation CryptoType should be set to crypto/openssl!")
         
     #JobCompType=jobcomp/filesacctout
-    if "JobCompType".lower() in slurm_conf:
-        if slurm_conf["JobCompType".lower()]!="jobcomp/filesacctout":
-            error_count+=1
-            log.error("For simulation JobCompType should be set to jobcomp/filesacctout, it provides sacct like output which is easy for loading in R!")
-    else:
-        error_count+=1
-        log.error("For simulation JobCompType should be set to jobcomp/filesacctout,  it provides sacct like output which is easy for loading in R!")
-    
+    # if "JobCompType".lower() in slurm_conf:
+    #     if slurm_conf["JobCompType".lower()]!="jobcomp/filesacctout":
+    #         error_count+=1
+    #         log.error("For simulation JobCompType should be set to jobcomp/filesacctout, it provides sacct like output which is easy for loading in R!")
+    # else:
+    #     error_count+=1
+    #     log.error("For simulation JobCompType should be set to jobcomp/filesacctout,  it provides sacct like output which is easy for loading in R!")
+    #
     #FrontendName=localhost
     if "FrontendName".lower() in slurm_conf:
         if slurm_conf["FrontendName".lower()]!="localhost":
@@ -193,19 +192,19 @@ def check_slurmdbd_conf(slurmdbd_conf,slurm_etc,slurm_bin_top):
             log.error("PluginDir from slurm.conf (%s) does not match provided slurm binary path(%s)!"%(
                 os.path.abspath(slurmdbd_conf["PluginDir".lower()]),  os.path.abspath(os.path.join(slurm_bin_top,"lib","slurm"))))
             
-    else:
-        error_count+=1
-        log.error("PluginDir from slurm.conf is not set, the default value is /usr/local/lib/slurm")
-    
+    # else:
+    #     error_count+=1
+    #     log.error("PluginDir from slurm.conf is not set, the default value is /usr/local/lib/slurm")
+    #
     #AuthType=auth/none
-    if "AuthType".lower() in slurmdbd_conf:
-        if slurmdbd_conf["AuthType".lower()]!="auth/none":
-            error_count+=1
-            log.error("For simulation AuthType should be set to auth/none in slurm.conf!\n"+\
-                      "   In simulation there is no need for good authentication")
-    else:
-        error_count+=1
-        log.error("For simulation AuthType should be set to auth/none in slurm.conf!")
+    # if "AuthType".lower() in slurmdbd_conf:
+    #     if slurmdbd_conf["AuthType".lower()]!="auth/none":
+    #         error_count+=1
+    #         log.error("For simulation AuthType should be set to auth/none in slurm.conf!\n"+\
+    #                   "   In simulation there is no need for good authentication")
+    # else:
+    #     error_count+=1
+    #     log.error("For simulation AuthType should be set to auth/none in slurm.conf!")
     
     #DbdHost=localhost
     if "DbdHost".lower() in slurmdbd_conf:
@@ -455,6 +454,8 @@ def run_sim(args):
     global slurmctld_out
     
     start=time()
+    start_datetime = datetime.datetime.now()
+
     if args.no_slurmctld==False:
         
         if args.octld=="":
@@ -513,6 +514,20 @@ def run_sim(args):
         log.info("you can start slurmctld now")
         while 1:
             sleep(1)
+
+    # get sacct
+    endtime_datetime = datetime.datetime.now() + datetime.timedelta(days=1)
+    sacct_proc = subprocess.Popen(f"""{sacct_loc} --clusters {slurm_conf["ClusterName".lower()]} --allusers \
+    --parsable2 --allocations \
+    --format jobid,jobidraw,cluster,partition,account,group,gid,\
+user,uid,submit,eligible,start,end,elapsed,exitcode,state,nnodes,\
+ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
+    --state CANCELLED,COMPLETED,FAILED,NODE_FAIL,PREEMPTED,TIMEOUT \
+    --starttime {start_datetime.isoformat(timespec='seconds')} --endtime {endtime_datetime.isoformat(timespec='seconds')}  > slurm_acct.out""",
+                                    env={'SLURM_CONF': slurm_conf_loc}, shell=True)
+    sacct_proc.wait()
+
+    sleep(1)
     
     if slurmdbd_proc!=None:
         slurmdbd_proc.kill()
