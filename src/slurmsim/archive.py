@@ -16,7 +16,8 @@ class Archive:
         if type == 'slurm_run':
             self.filenames_to_archive = [
                 'jobcomp.log', 'perf_profile.log', 'perf_stat.log', 'sched.log', 'sdiag.out',
-                'sinfo.out', 'slurm_acct.out', 'slurmctld.log', 'sprio.out', 'squeue.out',
+                'sinfo.out', 'slurm_acct.out', 'slurmctld_log.csv', 'slurmctld.log',
+                'sprio.out', 'squeue.out',
                 'slurmdbd.log', 'slurmd.log'
             ]
         else:
