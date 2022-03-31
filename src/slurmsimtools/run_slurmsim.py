@@ -19,7 +19,7 @@ import psutil
 import json
 import datetime
 from collections import OrderedDict
-from sperf import get_process_realtimestat, system_info
+from .sperf import get_process_realtimestat, system_info
 
 import inspect
 
@@ -285,7 +285,9 @@ def run_slurm(args):
     sinfo_loc=os.path.join(args.slurm,'bin','sinfo')
     squeue_loc=os.path.join(args.slurm,'bin','squeue')
     monitor_loc=os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),"monitor_slurm.sh")
-    
+
+    run_slurmctld = not args.no_slurmctld
+
     results_dir=os.path.abspath(args.results)
     results_perf_stat_loc=os.path.join(results_dir,'perf_stat.log')
     results_perf_profile_loc = os.path.join(results_dir, 'perf_profile.log')
@@ -409,7 +411,7 @@ def run_slurm(args):
     #/var/state/
     start=time()
 
-    start_datetime = datetime.datetime.now()
+    real_start_datetime = datetime.datetime.now()
     
     global slurmdbd_out
     global slurmctld_out
@@ -454,38 +456,41 @@ def run_slurm(args):
     sleep(1)
     
     #start slurmctrl
-    global slurmctld_proc
-    print([slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)])
-    slurmctld_proc=popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)],
-                                      env={'SLURM_CONF':slurm_conf_loc},
-                                      stdout=slurmctld_out, stderr=slurmctld_out)
-    #let the slurmctrl to spin-off
-    sleep(5)
+    if run_slurmctld:
+        global slurmctld_proc
+        print([slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)])
+        slurmctld_proc=popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)],
+                                          env={'SLURM_CONF':slurm_conf_loc},
+                                          stdout=slurmctld_out, stderr=slurmctld_out)
+        #let the slurmctrl to spin-off
+        sleep(5)
 
-    # check that all nodes up
-    ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
-    print(ssinfo)
-    for sline in ssinfo[1:]:
-        #sfields = sline.split()
-        if sline.count("down")>0:
-            print("Nodes %s are down, resuming them" % sfields[5])
-            #print(subprocess.check_output(
-            #    ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
-    print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
+        # check that all nodes up
+        ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
+        print(ssinfo)
+        for sline in ssinfo[1:]:
+            #sfields = sline.split()
+            if sline.count("down")>0:
+                print("Nodes %s are down, resuming them" % sfields[5])
+                #print(subprocess.check_output(
+                #    ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
+        print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
     
     #start monitor
     global monitor_proc    
-    monitor_proc=popen_as_otheruser(SlurmUser, [monitor_loc], env={'SLURM_CONF':slurm_conf_loc, 'SLURM_HOME':args.slurm})
+    # monitor_proc=popen_as_otheruser(SlurmUser, [monitor_loc], env={'SLURM_CONF':slurm_conf_loc, 'SLURM_HOME':args.slurm})
     
     #print("start slurmd now: "+slurmd_loc+' -Dvv')
     
     pslurmdbd = psutil.Process(pid=slurmdbd_proc.pid)
-    pslurmctld = psutil.Process(pid=slurmctld_proc.pid)
+    if run_slurmctld:
+        pslurmctld = psutil.Process(pid=slurmctld_proc.pid)
     pslurmd = None if slurmd_proc is None else psutil.Process(pid=slurmd_proc.pid)
 
     log.info("Current time %s" % time())
     log.info("slurmdbd_create_time=%s" % pslurmdbd.create_time())
-    log.info("slurmctld_create_time=%s" % pslurmctld.create_time())
+    if run_slurmctld:
+        log.info("slurmctld_create_time=%s" % pslurmctld.create_time())
     log.info("slurmd_create_time=%s" % (None if pslurmd is None else pslurmd.create_time()))
 
     last_realtime_proc_time = time()
@@ -493,11 +498,11 @@ def run_slurm(args):
         ('time', last_realtime_proc_time),
         ('slurmdbd', get_process_realtimestat(pslurmdbd)),
         ('slurmd', get_process_realtimestat(pslurmd)),
-        ('slurmctld', get_process_realtimestat(pslurmctld))
+        ('slurmctld', get_process_realtimestat(pslurmctld) if run_slurmctld else None)
     ])
     perf_profile.write("[\n" + json.dumps(realtimestat, indent=" "))
 
-    jobs_starts=pslurmctld.create_time()+args.dtstart
+    jobs_starts = (pslurmctld.create_time()+args.dtstart) if run_slurmctld else None
 
     perf_stat=OrderedDict([
         ('slurmdbd_create_time',
@@ -505,7 +510,7 @@ def run_slurm(args):
              "%Y-%m-%dT%H:%M:%S.%f")),
         ('slurmctld_create_time',
          datetime.datetime.fromtimestamp(pslurmctld.create_time()).strftime(
-             "%Y-%m-%dT%H:%M:%S.%f")),
+             "%Y-%m-%dT%H:%M:%S.%f") if run_slurmctld else None),
         ('slurmd_create_time', None if pslurmd is None else datetime.datetime.fromtimestamp(
             pslurmd.create_time()).strftime(
              "%Y-%m-%dT%H:%M:%S.%f")),
@@ -516,38 +521,46 @@ def run_slurm(args):
 
     global trace
 
-    for i in range(len(trace)):
-        trace[i]['sim_submit_ts'] = jobs_starts + trace[i]['dt']
+    if run_slurmctld:
+        for i in range(len(trace)):
+            trace[i]['sim_submit_ts'] = jobs_starts + trace[i]['dt']
     i_event=0
     log.info("Starting job submittion")
 
     #pprint(trace)
-
-    last_job_submit_time = time() + 2*365*24*3600
-    try:
-        while slurmctld_proc.poll() is None:
-            if args.run_time>0 and time()-start>args.run_time:
-                break
-            now = time()
-
-            if time()-last_realtime_proc_time > 60:
-                last_realtime_proc_time = time()
-                realtimestat = OrderedDict([
-                    ('time', last_realtime_proc_time),
-                    ('slurmdbd', get_process_realtimestat(pslurmdbd)),
-                    ('slurmd', get_process_realtimestat(pslurmd)),
-                    ('slurmctld', get_process_realtimestat(pslurmctld))
-                ])
-                perf_profile.write(",\n" + json.dumps((realtimestat), indent=" "))
-            if last_job_submit_time + 30 < time():
-                # i.e. all jobs are submitted
-                if len(subprocess.check_output([squeue_loc], env={'SLURM_CONF':slurm_conf_loc}).splitlines()) <= 1:
-                    perf_profile.write("\n]\n")
-                    sleep(60)
+    if run_slurmctld:
+        last_job_submit_time = time() + 2*365*24*3600
+        try:
+            while slurmctld_proc.poll() is None:
+                if args.run_time>0 and time()-start>args.run_time:
                     break
-            sleep(0.5)
-    except:
-        traceback.print_exc()
+                now = time()
+
+                if time()-last_realtime_proc_time > 60:
+                    last_realtime_proc_time = time()
+                    realtimestat = OrderedDict([
+                        ('time', last_realtime_proc_time),
+                        ('slurmdbd', get_process_realtimestat(pslurmdbd)),
+                        ('slurmd', get_process_realtimestat(pslurmd)),
+                        ('slurmctld', get_process_realtimestat(pslurmctld) if run_slurmctld else None)
+                    ])
+                    perf_profile.write(",\n" + json.dumps((realtimestat), indent=" "))
+                if last_job_submit_time + 30 < time():
+                    # i.e. all jobs are submitted
+                    if len(subprocess.check_output([squeue_loc], env={'SLURM_CONF':slurm_conf_loc}).splitlines()) <= 1:
+                        perf_profile.write("\n]\n")
+                        sleep(60)
+                        break
+                sleep(0.5)
+        except:
+            traceback.print_exc()
+    else:
+        print("You can manually start slurmctlrd now")
+        try:
+            while True:
+                sleep(1)
+        except:
+            traceback.print_exc()
     #now keep waiting
     if args.run_time<0:
         log.info("All jobs submitted keep waiting...")
@@ -578,12 +591,15 @@ def run_slurm(args):
         monitor_proc.kill()
     
     #get sacct
-    endtime_datetime = datetime.datetime.now()+datetime.timedelta(days=1)
+    real_endtime_datetime = datetime.datetime.now()
     # get time
     slurmctld_log = ProcessSlurmCtrdLog(slurm_conf['SlurmctldLogFile'.lower()], None, time='datetime')
     slurmctld_log.run()
-    start_datetime = (slurmctld_log.records[0][2] - datetime.timedelta(days=3)).isoformat(timespec='seconds')
-    endtime_datetime = (slurmctld_log.records[-1][2] + datetime.timedelta(days=3)).isoformat(timespec='seconds')
+    sim_start_datetime = slurmctld_log.records["datetime"][0]
+    sim_endtime_datetime = slurmctld_log.records["datetime"][-1]
+
+    start_datetime = (sim_start_datetime - datetime.timedelta(days=3)).isoformat(timespec='seconds')
+    endtime_datetime = (sim_endtime_datetime + datetime.timedelta(days=3)).isoformat(timespec='seconds')
 
     sacct_proc=popen_as_otheruser(SlurmUser, f"""{sacct_loc} --clusters {slurm_conf["ClusterName".lower()]} --allusers \
     --parsable2 --allocations \
@@ -627,8 +643,42 @@ ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
         slurmdbd_out.close()
     if slurmd_out!=None and slurmd_out!=subprocess.DEVNULL:
         slurmd_out.close()
-        
+
+    log.info("Simulated time: %s", str(sim_endtime_datetime - sim_start_datetime))
+    log.info("Real time: %s", str(real_endtime_datetime - real_start_datetime))
+    log.info("Acceleration: %f", (sim_endtime_datetime - sim_start_datetime).total_seconds()/(real_endtime_datetime - real_start_datetime).total_seconds())
     log.info("Done")
+
+
+def run_sim_set_argparse(parser):
+    parser.add_argument('-s', '--slurm', required=True, type=str, default="/usr",
+                        help="top directory of slurm installation. Default: /usr")
+    parser.add_argument('-e', '--etc', required=True, type=str, default="/etc/slurm",
+                        help="etc directory for current simulation. Default: /etc/slurm")
+    parser.add_argument('-t', '--trace', required=True, type=str,
+                        help="job trace events file")
+    parser.add_argument('-d', '--delete', action='store_true',
+                        help="delete files from previous simulation")
+    parser.add_argument('-nc', '--no-slurmctld', action='store_true',
+                        help="do not start slurmctld")
+    parser.add_argument('-nd', '--no-slurmd', action='store_true',
+                        help="do not start slurmd")
+    parser.add_argument('-octld', '--octld', required=False, type=str, default="",
+                        help="redirect stdout and stderr of slurmctld to octrd")
+    parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
+                        help="redirect stdout and stderr of slurmdbd to odbd")
+    parser.add_argument('-od', '--od', required=False, type=str, default="",
+                        help="redirect stdout and stderr of slurmd to od")
+    parser.add_argument('-dtstart', '--dtstart', required=False, type=int, default=30,
+                        help="seconds before first job")
+    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
+                        help="script for sacctmgr to setup accounts")
+    parser.add_argument('-rt', '--run-time', required=False, type=int, default=0,
+                        help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
+    parser.add_argument('-r', '--results', required=False, type=str, default="results",
+                        help="copy results to that directory")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="turn on verbose logging")
 
 
 if __name__ == '__main__':
@@ -636,35 +686,8 @@ if __name__ == '__main__':
     import argparse
         
     parser = argparse.ArgumentParser(description='Slurm Run automation')
-    
-    parser.add_argument('-s', '--slurm', required=True, type=str, default="/usr",
-        help="top directory of slurm installation. Default: /usr")
-    parser.add_argument('-e', '--etc', required=True, type=str, default="/etc/slurm",
-        help="etc directory for current simulation. Default: /etc/slurm")
-    parser.add_argument('-t', '--trace', required=True, type=str,
-        help="job trace events file")
-    parser.add_argument('-d', '--delete', action='store_true', 
-            help="delete files from previous simulation")
-    parser.add_argument('-nc', '--no-slurmctld', action='store_true', 
-            help="do not start slurmctld")
-    parser.add_argument('-nd', '--no-slurmd', action='store_true',
-            help="do not start slurmd")
-    parser.add_argument('-octld', '--octld', required=False, type=str, default="",
-            help="redirect stdout and stderr of slurmctld to octrd")
-    parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
-            help="redirect stdout and stderr of slurmdbd to odbd")
-    parser.add_argument('-od', '--od', required=False, type=str, default="",
-            help="redirect stdout and stderr of slurmd to od")
-    parser.add_argument('-dtstart', '--dtstart', required=False, type=int, default=30,
-            help="seconds before first job")
-    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
-            help="script for sacctmgr to setup accounts")
-    parser.add_argument('-rt', '--run-time', required=False, type=int, default=0,
-            help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
-    parser.add_argument('-r', '--results', required=False, type=str, default="results",
-            help="copy results to that directory")
-    parser.add_argument('-v', '--verbose', action='store_true', 
-        help="turn on verbose logging")
+
+    run_sim_set_argparse(parser)
     
     args = parser.parse_args()
     

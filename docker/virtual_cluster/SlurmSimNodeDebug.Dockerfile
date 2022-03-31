@@ -136,7 +136,7 @@ RUN mkdir /var/log/slurm  && \
 #install Slurm
 COPY slurm_simulator /opt/cluster/slurm_sim_tools/slurm_simulator
 RUN mkdir /root/bld && cd /root/bld && \
-    /opt/cluster/slurm_sim_tools/slurm_simulator/configure --prefix=/usr  --sysconfdir=/etc/slurm --disable-x11 --with-hdf5=no --enable-simulator --enable-front-end && \
+    /opt/cluster/slurm_sim_tools/slurm_simulator/configure --prefix=/usr  --sysconfdir=/etc/slurm --disable-x11 --with-hdf5=no --enable-simulator --enable-front-end --disable-optimizations --enable-debug CFLAGS="-g -O0" && \
     make -j && \
     make -j install
 EXPOSE 5000

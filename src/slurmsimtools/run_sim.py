@@ -14,10 +14,10 @@ import json
 import datetime
 import re
 from collections import OrderedDict
-from process_sprio import process_sprio
-from process_simstat import process_simstat
+from .process_sprio import process_sprio
+from .process_simstat import process_simstat
 
-from sperf import get_process_realtimestat, system_info
+from .sperf import get_process_realtimestat, system_info
 
 slurmdbd_proc=None
 slurmdbd_out=None
@@ -572,40 +572,44 @@ ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
     log.info("Done")
 
 
+def run_sim_set_argparse(parser):
+    parser.add_argument('-s', '--slurm', required=True, type=str,
+                        help="top directory of slurm installation")
+    parser.add_argument('-e', '--etc', required=True, type=str,
+                        help="etc directory for current simulation")
+    parser.add_argument('-t', '--trace', required=True, type=str,
+                        help="job trace events file")
+    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
+                        help="script for sacctmgr to setup accounts")
+    parser.add_argument('-dtstart', '--dtstart', required=False, type=int,
+                        default=30,
+                        help="seconds before first job")
+    parser.add_argument('-d', '--delete', action='store_true',
+                        help="delete files from previous simulation")
+    parser.add_argument('-nc', '--no-slurmctld', action='store_true',
+                        help="do not start slurmctld just clean-up and start slurmdbd")
+    parser.add_argument('-octld', '--octld', required=False, type=str, default="",
+                        help="redirect stdout and stderr of slurmctld to octrd")
+    parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
+                        help="redirect stdout and stderr of slurmdbd to odbd")
+
+    parser.add_argument('-r', '--results', required=False, type=str, default="results",
+                        help="copy results to that directory")
+
+    parser.add_argument('--ignore-errors-in-conf', action='store_true',
+                        help="try simulation even if there are errors configuration files")
+
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="turn on verbose logging")
+
+
 if __name__ == '__main__':
     
     import argparse
         
     parser = argparse.ArgumentParser(description='Slurm Simulator Run automation')
     
-    parser.add_argument('-s', '--slurm', required=True, type=str,
-        help="top directory of slurm installation")
-    parser.add_argument('-e', '--etc', required=True, type=str,
-        help="etc directory for current simulation")
-    parser.add_argument('-t', '--trace', required=True, type=str,
-                        help="job trace events file")
-    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
-            help="script for sacctmgr to setup accounts")
-    parser.add_argument('-dtstart', '--dtstart', required=False, type=int,
-                        default=30,
-                        help="seconds before first job")
-    parser.add_argument('-d', '--delete', action='store_true', 
-            help="delete files from previous simulation")
-    parser.add_argument('-nc', '--no-slurmctld', action='store_true', 
-            help="do not start slurmctld just clean-up and start slurmdbd")
-    parser.add_argument('-octld', '--octld', required=False, type=str, default="",
-            help="redirect stdout and stderr of slurmctld to octrd")
-    parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
-            help="redirect stdout and stderr of slurmdbd to odbd")
-    
-    parser.add_argument('-r', '--results', required=False, type=str, default="results",
-            help="copy results to that directory")
-    
-    parser.add_argument('--ignore-errors-in-conf', action='store_true', 
-            help="try simulation even if there are errors configuration files")
-    
-    parser.add_argument('-v', '--verbose', action='store_true', 
-        help="turn on verbose logging")
+    run_sim_set_argparse(parser)
     
     args = parser.parse_args()
     

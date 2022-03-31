@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# @DEPRECATED
+
 import os
 import sys
 import re
@@ -281,6 +283,16 @@ def process_slurmctrd_log(log_filename,csv_filename):
                        process_create_real_time)
             add_record("NA", "process_create_sim_time", m_ts,
                        process_create_sim_time)
+
+
+        #debug3("Calling schedule from epilog_complete");
+        #debug3("Calling queue_job_scheduler from epilog_complete");
+        m = re.search(
+            r"Calling (schedule|queue_job_scheduler) from (\S+)",
+            window[0])
+        if m:
+            m_t, m_ts = get_datatime(window[0])
+            add_record("NA", "calling_"+m.group(1), m_ts, m.group(1))
 
         # read next line
         line = fin.readline()

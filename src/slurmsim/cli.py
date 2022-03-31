@@ -9,13 +9,15 @@ def add_command_archive(parent_parser):
     parser = parent_parser.add_parser('archive',  description=add_command_archive.__doc__)
     parser.add_argument('-np', default=1, type=int, help='number of parallel processes')
     parser.add_argument('-nt', default=1, type=int, help='parallel threads per file')
+    parser.add_argument('-ow', '--overwrite', action='store_true',
+                    help="overwrite compressed file if such already exists")
     parser.add_argument('top_dir', help='directory to look for file to archive')
 
     def handler(args):
         from slurmsim.archive import Archive
         print(args)
 
-        Archive(args.top_dir, type='slurm_run', threads_per_file=args.nt, num_of_proc=args.np).run()
+        Archive(args.top_dir, type='slurm_run', threads_per_file=args.nt, num_of_proc=args.np, overwrite=args.overwrite).run()
 
     parser.set_defaults(func=handler)
 
@@ -41,8 +43,8 @@ def add_command_process_slurmctrd_log(parent_parser):
     parser.add_argument('-csv', '--csv', default="slurmctld_log.csv.zst", type=str,
                         help="name of output csv file")
     parser.add_argument('--top-dir', help='recursively scan directory and process discovered slurmctrd log')
-    parser.add_argument('--time', default="time",choices=["time", "first_job"],
-                        help='time reporting: time - use datatime, first_job - time in sec from first job submission. default: time')
+    parser.add_argument('--time', default="first_job",choices=["first_job", "since_process_created"],
+                        help='time reporting: first_job - time in sec from first job submission. default: first_job')
     parser.add_argument('--job-id', default="job_id",choices=["job_id", "job_name","job_rec_id"],
                         help='what to use for job id: job_id - slurm job id, job_name - job name, job_rec_id - exctract id from job name. default: job_id')
     parser.add_argument('-np', default=1, type=int, help='number of parallel processes')
@@ -55,42 +57,34 @@ def add_command_process_slurmctrd_log(parent_parser):
     parser.set_defaults(func=handler)
 
 
-def add_command_sacctlog(parent_parser):
+def add_command_run_sim(parent_parser):
     """
-    manipulate sacct output
+    Run simulation
     """
-    parser = parent_parser.add_parser('sacctlog', description=add_command_sacctlog.__doc__)
-    subparsers = parser.add_subparsers(title=add_command_process.__doc__)
+    parser = parent_parser.add_parser('run_sim',  description=add_command_run_sim_0.__doc__)
 
-    add_command_sacctlog_format(subparsers)
-
-
-def add_command_sacctlog_format(parent_parser):
-    """
-    format sacct output (can be compressed, determined by extension [.zst,.gz,.bz2,.xz])
-    sacct output do not properly escape delimiters ("|"). This command will properly output csv file.
-
-    it will also skip jobsteps and simplify simplify job states state (CANCELLED by user1->CANCELLED)
-    """
-    parser = parent_parser.add_parser('format',  description=add_command_sacctlog_format.__doc__)
-
-    parser.add_argument('-ow', '--overwrite', action='store_true',
-                        help="overwrite original file with formatted version")
-    parser.add_argument('-o', '--output', default=None, type=str,
-                        help="name of output file (default: addd _formatted suffix to base of input file)")
-    parser.add_argument('-sep', '--sep', default="|", type=str,
-                        help="output field separator")
-
-    # header: bool = True, col_format: str = None, convert_data: bool = True, check_na = 'warning',
-    # skip_jobsteps: bool = True, keep_scheduling_related = False, simplify_state = True)
-
-    parser.add_argument('sacctlog', type=str, help='sacct log (output of sacct) to format')
+    from slurmsimtools.run_slurmsim import run_sim_set_argparse
+    run_sim_set_argparse(parser)
 
     def handler(args):
-        from slurmanalyser.sacctlog import format_sacctlog
-        if args.overwrite:
-            args.output = args.sacctlog
-        format_sacctlog(args.sacctlog, output=args.output, sep=args.sep)
+        from slurmsimtools.run_slurmsim import run_slurm
+        run_slurm(args)
+
+    parser.set_defaults(func=handler)
+
+
+def add_command_run_sim_0(parent_parser):
+    """
+    Run simulation, old
+    """
+    parser = parent_parser.add_parser('run_sim_0',  description=add_command_run_sim_0.__doc__)
+
+    from slurmsimtools.run_sim import run_sim_set_argparse
+    run_sim_set_argparse(parser)
+
+    def handler(args):
+        from slurmsimtools.run_sim import run_sim
+        run_sim(args)
 
     parser.set_defaults(func=handler)
 
@@ -133,7 +127,7 @@ class CLI:
 
         add_command_archive(self.subparsers)
         add_command_process(self.subparsers)
-        add_command_sacctlog(self.subparsers)
+        add_command_run_sim(self.subparsers)
 
     def process_common_args(self, cli_args):
         """

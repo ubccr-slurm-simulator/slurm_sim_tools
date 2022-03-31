@@ -142,59 +142,73 @@ class ProcessSlurmCtrdLog:
         self.csv_filename = csv_filename
         self.time = time # can be first_job, time or datetime
         self.job_id_method = job_id
-        self.records = []
+        self.records = {'datetime': [], 'ts': [], 'job_id': [], 'metric': [], 't': [], 'value': []}
         self.job_name_to_id = {}
         self.job_id_to_name = {}
         self.job_id_to_ref_id = {}
 
+        self.process_create_real_time = None
+        self.process_create_sim_time = None
+
     def init_records(self, filename):
-        self.records = []
+        self.records = {'datetime': [], 'ts': [], 'job_id': [], 'metric': [], 't': [], 'value': []}
 
     def add_record(self, job_id, metric, t, value):
-        record = [job_id, metric, t, str(value)]
-        self.records.append(record)
+        self.records['datetime'].append(t)
+        self.records['ts'].append(t)
+        self.records['t'].append(t)
+        self.records['job_id'].append(job_id)
+        self.records['metric'].append(metric)
+        self.records['value'].append(str(value))
 
     def finalize_records(self):
         if self.time == "first_job":
             ref_time = None
-            for record in self.records:
-                if record[1]=="submit_job":
-                    ref_time = record[2]
+            for i in range(len(self.records['ts'])):
+                if self.records['metric'][i] == "submit_job":
+                    ref_time = self.records['t'][i]
                     break
             if ref_time is None:
                 log.error("Can not find submit time for first job! Rollback to use time.")
                 self.time == "time"
             else:
                 log.debug("Submit time for first job: %s", ref_time.strftime("%Y-%m-%d %H:%M:%S.%f"))
-                for i in range(len(self.records)):
-                    self.records[i][2] = f"{(self.records[i][2]-ref_time).total_seconds():.6f}"
-        if self.time == "time":
-            for i in range(len(self.records)):
-                self.records[i][2] = self.records[i][2].strftime("%Y-%m-%d %H:%M:%S.%f")
+                for i in range(len(self.records['ts'])):
+                    self.records['t'][i] = f"{(self.records['t'][i]-ref_time).total_seconds():.6f}"
+        for i in range(len(self.records['ts'])):
+            self.records['ts'][i] = self.records['ts'][i].strftime("%Y-%m-%d %H:%M:%S.%f")
+
+        if self.time == "since_process_created":
+            log.debug("Submit time for first job: %s", self.process_create_sim_time.strftime("%Y-%m-%d %H:%M:%S.%f"))
+            ref_time = self.process_create_sim_time
+            for i in range(len(self.records['ts'])):
+                self.records['t'][i] = f"{(self.records['t'][i] - ref_time).total_seconds():.6f}"
 
         if self.job_id_method == "job_name":
-            if len(self.job_id_to_name)==0:
+            if len(self.job_id_to_name) == 0:
                 log.errog("No job names will use ids!")
                 self.job_id_method == "job_id"
             else:
-                for i in range(len(self.records)):
-                    if self.records[i][0] != "NA":
-                        if self.records[i][0] in self.job_id_to_name:
-                            self.records[i][0] = self.job_id_to_name[self.records[i][0]]
+                self.records['job_name'] = [v for v in self.records['job_id']]
+                for i in range(len(self.records['ts'])):
+                    if self.records['job_id'][i] != "NA":
+                        if self.records['job_name'][i] in self.job_id_to_name:
+                            self.records['job_name'][i] = self.job_id_to_name[self.records['job_id'][i]]
                         else:
-                            log.error("job id %s has no name", self.records[i][0])
+                            log.error("job id %s has no name", self.records['job_id'][i])
 
         if self.job_id_method == "job_rec_id":
             if len(self.job_id_to_ref_id)==0:
                 log.error("No job names will use ids!")
                 self.job_id_method == "job_id"
             else:
-                for i in range(len(self.records)):
-                    if self.records[i][0] != "NA":
-                        if self.records[i][0] in self.job_id_to_ref_id:
-                            self.records[i][0] = self.job_id_to_ref_id[self.records[i][0]]
+                self.records['job_rec_id'] = [v for v in self.records['job_id']]
+                for i in range(len(self.records['ts'])):
+                    if self.records['job_rec_id'][i] != "NA":
+                        if self.records['job_rec_id'][i] in self.job_id_to_ref_id:
+                            self.records['job_rec_id'][i] = self.job_id_to_ref_id[self.records['job_id'][i]]
                         else:
-                            log.error("job id %s has no ref_id", self.records[i][0])
+                            log.error("job id %s has no ref_id", self.records['job_id'][i])
 
     def write_records(self):
         if self.csv_filename is None:
@@ -205,11 +219,13 @@ class ProcessSlurmCtrdLog:
         writer = csv.writer(file_records_out)
 
         if verbose:
-            print("%-12s %-32s %-28s %-32s" % (self.job_id_method,'metric','t','value'))
+            print("%-28s %-12s %-32s %-28s %-32s" % ("ts", self.job_id_method, 'metric', 't', 'value'))
 
-        writer.writerow([self.job_id_method, 'metric', 't', 'value'])
+        writer.writerow(["ts",self.job_id_method, 'metric', 't', 'value'])
 
-        for record in self.records:
+        for i in range(len(self.records['ts'])):
+            record = [self.records['ts'][i], self.records[self.job_id_method][i],
+                      self.records['metric'][i], self.records['t'][i], self.records['value'][i]]
             if verbose:
                 print("%-12s %-32s %-28s %-32s" % tuple(record))
             writer.writerow(record)
@@ -226,7 +242,7 @@ class ProcessSlurmCtrdLog:
         fin = slurmanalyser.utils.get_file_open(self.log_filename)(self.log_filename, "rt")
         self.init_records(self.csv_filename)
 
-        window_size = 200
+        window_size = 600
         window = deque(maxlen=window_size)
 
         #logs_first_message=
@@ -391,6 +407,10 @@ class ProcessSlurmCtrdLog:
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "job_time_limits_testing", m_t,"NA")
 
+            if re.search("_slurmctld_background pid = ", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "slurmctld_background", m_t,"NA")
+
             # sim events
             # m = re.search("sim: process create real utime: ([0-9]+), process create sim utime: ([0-9]+)", window[0])
             # if m:
@@ -411,6 +431,33 @@ class ProcessSlurmCtrdLog:
                            process_create_real_time)
                 self.add_record("NA", "process_create_sim_time", m_t,
                            process_create_sim_time)
+                self.process_create_real_time = datetime.datetime.strptime(process_create_real_time, "%Y-%m-%dT%H:%M:%S.%f")
+                self.process_create_sim_time = datetime.datetime.strptime(process_create_sim_time, "%Y-%m-%dT%H:%M:%S.%f")
+
+            # debug3("Calling schedule from epilog_complete");
+            # debug3("Calling queue_job_scheduler from epilog_complete");
+            m = re.search(
+                r"Calling (schedule|queue_job_scheduler) from (\S+)",
+                window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "calling_" + m.group(1), m_t, m.group(2))
+
+            # debug3("Calling schedule from _slurmctld_background %ld %ld %ld",now,last_sched_time,now-last_sched_time);
+            m = re.search(
+                r"Calling schedule from _slurmctld_background (\S+) (\S+) (\S+)",
+                window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "_slurmctld_background_call_sched", m_t, m.group(1))
+
+            # debug3("_slurmctld_background cycle");
+            m = re.search(
+                r"_slurmctld_background cycle",
+                window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "_slurmctld_background_cycle", m_t, "NA")
 
             # read next line
             line = fin.readline()
