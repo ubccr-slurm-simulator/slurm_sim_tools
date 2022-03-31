@@ -524,7 +524,7 @@ def run_slurm(args):
     if run_slurmctld:
         for i in range(len(trace)):
             trace[i]['sim_submit_ts'] = jobs_starts + trace[i]['dt']
-    i_event=0
+    i_event = 0
     log.info("Starting job submittion")
 
     #pprint(trace)
@@ -594,9 +594,11 @@ def run_slurm(args):
     real_endtime_datetime = datetime.datetime.now()
     # get time
     slurmctld_log = ProcessSlurmCtrdLog(slurm_conf['SlurmctldLogFile'.lower()], None, time='datetime')
-    slurmctld_log.run()
-    sim_start_datetime = slurmctld_log.records["datetime"][0]
-    sim_endtime_datetime = slurmctld_log.records["datetime"][-1]
+
+    sim_start_datetime = slurmctld_log.get_sim_start_datetime()
+    #slurmctld_log.records["datetime"][0]
+    sim_endtime_datetime = slurmctld_log.get_sim_end_datetime()
+    #slurmctld_log.records["datetime"][-1]
 
     start_datetime = (sim_start_datetime - datetime.timedelta(days=3)).isoformat(timespec='seconds')
     endtime_datetime = (sim_endtime_datetime + datetime.timedelta(days=3)).isoformat(timespec='seconds')

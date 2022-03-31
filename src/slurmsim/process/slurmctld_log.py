@@ -233,6 +233,30 @@ class ProcessSlurmCtrdLog:
         file_records_out.close()
         file_records_out = None
 
+    def get_sim_start_datetime(self):
+        import slurmanalyser.utils
+        fin = slurmanalyser.utils.get_file_open(self.log_filename)(self.log_filename, "rt")
+        first_line = fin.readline()
+        m_t, m_ts = get_datatime(first_line)
+        print("first_line",first_line,m_t,m_ts)
+        return m_t
+
+    def get_sim_end_datetime(self):
+        import slurmanalyser.utils
+        import os
+
+        fin = slurmanalyser.utils.get_file_open(self.log_filename)(self.log_filename, "rb")
+        try:  # catch OSError in case of a one line file
+            fin.seek(-2, os.SEEK_END)
+            while fin.read(1) != b'\n':
+                fin.seek(-2, os.SEEK_CUR)
+        except OSError:
+            fin.seek(0)
+        last_line = fin.readline().decode()
+        m_t, m_ts = get_datatime(last_line)
+        print("last_line",last_line,m_t,m_ts)
+        return m_t
+
     def run(self):
         import slurmanalyser.utils
         r=[]
