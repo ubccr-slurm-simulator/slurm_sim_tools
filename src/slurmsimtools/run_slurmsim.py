@@ -24,6 +24,10 @@ from .sperf import get_process_realtimestat, system_info
 import inspect
 
 
+# @TODO list
+# slurmdbd: fatal: slurmdbd.conf file /home/nikolays/slurm_sim_ws/slurm_model/ubhpc/etc_sim/slurmdbd.conf should be 600 is 664 accessible for group or others
+# add FrontendName
+
 # Determine is it global or local installation
 cur_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, os.path.abspath(os.path.dirname(cur_dir)))
