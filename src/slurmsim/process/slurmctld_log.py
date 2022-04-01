@@ -308,11 +308,11 @@ class ProcessSlurmCtrdLog:
                     m = re.match("jobid_(\d+)", m_job_name)
                     if m:
                         m_job_name__m_job_id = m.group(1)
-                        m_job_rec_id = m.group(1)
+                        m_job_rec_id = str(int(m_job_name__m_job_id))
                         if m_job_id is not None:
-                            if m_job_id != m.group(1):
+                            if m_job_id != m_job_rec_id:
                                 print("Error: job id dont match %s != %s" % (
-                                m_job_id, m.group(1)))
+                                m_job_id, m_job_rec_id))
                         else:
                             print("Error: didn't find job id, set it from job name (%s). Please check the match by other means" % (m_job_name__m_job_id))
                             m_job_id = m_job_name__m_job_id
