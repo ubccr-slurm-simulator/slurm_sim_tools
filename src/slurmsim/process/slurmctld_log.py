@@ -305,7 +305,10 @@ class ProcessSlurmCtrdLog:
                         break
 
                 if m_job_name is not None:
+                    m_job_rec_id = None
                     m = re.match("jobid_(\d+)", m_job_name)
+                    if not m:
+                        m = re.match("job_(\d+)", m_job_name)
                     if m:
                         m_job_name__m_job_id = m.group(1)
                         m_job_rec_id = str(int(m_job_name__m_job_id))
@@ -316,7 +319,8 @@ class ProcessSlurmCtrdLog:
                         else:
                             print("Error: didn't find job id, set it from job name (%s). Please check the match by other means" % (m_job_name__m_job_id))
                             m_job_id = m_job_name__m_job_id
-                    else:
+
+                    if m_job_rec_id is None:
                         print(
                             "Warning: job name (%s) is not in jobid_<job id> format" % m_job_name)
 
