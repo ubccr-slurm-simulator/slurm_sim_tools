@@ -89,7 +89,7 @@ def set_kwargs_for_run_as_otheruser(username, kwargs):
 
 
 def popen_as_otheruser(username, args, **kwargs):
-    kwargs = set_kwargs_for_run_as_otheruser(username, kwargs)
+    #kwargs = set_kwargs_for_run_as_otheruser(username, kwargs)
     #pprint(args)
     #pprint(kwargs)
     
@@ -100,7 +100,7 @@ def popen_as_otheruser(username, args, **kwargs):
 
 
 def run_as_otheruser(username, args, **kwargs):
-    kwargs = set_kwargs_for_run_as_otheruser(username, kwargs)
+    #kwargs = set_kwargs_for_run_as_otheruser(username, kwargs)
     if 'stdout' not in kwargs:
         kwargs['stdout'] = subprocess.PIPE
     if 'stderr' not in kwargs:
@@ -330,7 +330,8 @@ def run_slurm(args):
         try:
             conn = pymysql.connect(host=slurmdbd_conf["StorageHost".lower()], 
                                    user=slurmdbd_conf["StorageUser".lower()], 
-                                   passwd=slurmdbd_conf["StoragePass".lower()])
+                                   passwd=slurmdbd_conf["StoragePass".lower()],
+                                   port=int(slurmdbd_conf.get("StoragePort".lower(),0)))
             cur = conn.cursor()
             
             trancate=[

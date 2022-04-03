@@ -187,7 +187,7 @@ class ProcessSlurmCtrdLog:
         if self.job_id_method == "job_name":
             if len(self.job_id_to_name) == 0:
                 log.errog("No job names will use ids!")
-                self.job_id_method == "job_id"
+                self.job_id_method = "job_id"
             else:
                 self.records['job_name'] = [v for v in self.records['job_id']]
                 for i in range(len(self.records['ts'])):
