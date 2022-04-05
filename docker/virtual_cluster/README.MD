@@ -136,7 +136,7 @@ export VERSION=3.9.7 && # adjust this as necessary \
 ## Singularity Containers
 
 ```bash
-
+sudo rm -rf ../slurmsim.sif
 docker build -f docker/virtual_cluster/SlurmSim.Dockerfile -t nsimakov/slurm_sim:dev .
 docker push nsimakov/slurm_sim:dev
 sudo singularity build ../slurmsim.sif docker-daemon://nsimakov/slurm_sim:dev
