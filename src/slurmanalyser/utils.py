@@ -1,10 +1,12 @@
 from typing import Tuple
 
+import os
 import pandas as pd
 import numpy as np
 
 from slurmsim import log
-
+import re
+import datetime
 
 def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete',
                         decimals=1, length=50, fill = '█', print_end ="\r"):
@@ -38,7 +40,6 @@ def get_file_open(filename):
     @param filename:
     @return: file open function
     """
-    import os
     if os.path.splitext(filename)[-1] == '.bz2':
         import bz2
         m_open = bz2.open
@@ -202,6 +203,45 @@ def util_slurm_datetime_to_datetime(v: pd.Series, check_na='ignore', na_is=None)
     x = pd.to_datetime(v, errors='coerce').astype('datetime64[ns]')
     util_check_na(v, x, check_na=check_na, na_is=na_is)
     return x
+
+
+def util_slurm_duration_to_timedelta(v: str) -> datetime.timedelta:
+    """
+    Slur, formats time formats include "minutes",
+    "minutes:seconds", "hours:minutes:seconds", "days-hours", "days-hours:minutes" and "days-hours:minutes:seconds".
+    @param v:
+    @param check_na:
+    @param na_is:
+    @return:
+    """
+    # days-hours:minutes:seconds"
+    m = re.match(r"^(\d+)-(\d+):(\d+):([0-9.]+)$", v)
+    if m:
+        return datetime.timedelta(days=int(m.group(1)), hours=int(m.group(2)), minutes=int(m.group(3)),seconds=float(m.group(4)))
+    # days-hours:minutes
+    m = re.match(r"^(\d+)-(\d+):(\d+)$", v)
+    if m:
+        return datetime.timedelta(days=int(m.group(1)), hours=int(m.group(2)), minutes=int(m.group(3)))
+    # days-hours
+    m = re.match(r"^(\d+)-(\d+)$", v)
+    if m:
+        return datetime.timedelta(days=int(m.group(1)), hours=int(m.group(2)))
+    # hours:minutes:seconds
+    m = re.match(r"^(\d+):(\d+):([0-9.]+)$", v)
+    if m:
+        return datetime.timedelta(hours=int(m.group(1)), minutes=int(m.group(2)),seconds=float(m.group(3)))
+    # minutes:seconds
+    m = re.match(r"^(\d+):([0-9.]+)$", v)
+    if m:
+        return datetime.timedelta(minutes=int(m.group(1)),seconds=float(m.group(2)))
+    # minutes
+    m = re.match(r"^(\d+)$", v)
+    if m:
+        return datetime.timedelta(minutes=int(m.group(1)))
+    if v in default_na_is:
+        return None
+    else:
+        raise Exception(f"Unknown format for slurm duration: {v}")
 
 
 def util_slurm_duration_to_duration(v: pd.Series, check_na='ignore', na_is=None) -> pd.Series:

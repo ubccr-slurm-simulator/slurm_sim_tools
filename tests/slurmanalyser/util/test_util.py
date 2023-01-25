@@ -143,6 +143,18 @@ def test_util_slurm_datetime_to_datetime():
         util_slurm_datetime_to_datetime(v, check_na='error')
 
 
+def test_util_slurm_duration_to_timedelta():
+    from slurmanalyser.utils import util_slurm_duration_to_timedelta
+    import datetime
+    x_list = ["123", "132:45.0123", "132:45", "12:05:55", "12:05:55.0123", "11-12", "11-12:05", "11-12:05:55", "11-12:05:55.0123", '', 'Unknown', 'NA', 'NaN', 'NaT','nan']
+    ref_list = [7380000000000, 7965012300000, 7965000000000, 43555000000000, 43555012300000, 993600000000000, 993900000000000, 993955000000000, 993955012300000, None, None, None, None, None, None]
+    for x, ref in zip(x_list,ref_list):
+        if ref is not None:
+            assert util_slurm_duration_to_timedelta(x) == datetime.timedelta(seconds=ref/1e9)
+        else:
+            assert util_slurm_duration_to_timedelta(x) is None
+
+
 def test_util_slurm_duration_to_duration():
     from slurmanalyser.utils import util_slurm_duration_to_duration
     import pandas as pd
