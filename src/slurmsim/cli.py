@@ -89,6 +89,35 @@ def add_command_run_sim_0(parent_parser):
     parser.set_defaults(func=handler)
 
 
+
+def add_command_convert(parent_parser):
+    """
+    convert commands
+    """
+    parser = parent_parser.add_parser('convert', description=add_command_convert.__doc__)
+    subparsers = parser.add_subparsers(title=add_command_convert.__doc__)
+
+    add_command_convert_workload(subparsers)
+
+
+def add_command_convert_workload(parent_parser):
+    """
+    convert workloads between different formats
+    """
+    parser = parent_parser.add_parser('workload',  description=add_command_convert_workload.__doc__)
+
+    parser.add_argument('-ievents', default=None, type=str,
+                        help="input: ub slurm sim workload format")
+    parser.add_argument('-oswf', default=None, type=str,
+                        help="output: bsc slurm sim workload format (swf, trace_format = 2)")
+
+    def handler(args):
+        from slurmsimtools.workload import convert_workload
+        convert_workload(ievents=args.ievents, oswf=args.oswf)
+
+    parser.set_defaults(func=handler)
+
+
 class CLI:
     """
     slurm sim command line interface
@@ -125,9 +154,10 @@ class CLI:
         self.verbose = False
         self.very_verbose = False
 
+        add_command_run_sim(self.subparsers)
         add_command_archive(self.subparsers)
         add_command_process(self.subparsers)
-        add_command_run_sim(self.subparsers)
+        add_command_convert(self.subparsers)
 
     def process_common_args(self, cli_args):
         """
