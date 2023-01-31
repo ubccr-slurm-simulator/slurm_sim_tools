@@ -557,6 +557,12 @@ class SacctLog:
                 # no | in comment or jobname
                 extra_pipe = line.count("|") - (ncols-1)
                 iline += 1
+                if extra_pipe < 0:
+                    # i.e. new line in one of the fields
+                    while extra_pipe < 0:
+                        line = line.rstrip() + next(fin)
+                        extra_pipe = line.count("|") - (ncols - 1)
+                        iline += 1
                 if extra_pipe == 0:
                     yield line.rstrip().split("|")
                     continue
@@ -588,7 +594,7 @@ class SacctLog:
                         fields = [line[col_pos[i] + 1:col_pos[i + 1]] for i in range(ncols)]
                         print("can not read, too many |")
 
-                        print(iline, line.count("|") + 1, ncols, match)
+                        print(f"line: {iline}, found: {line.count('|') + 1} |, expect {ncols} columns", match)
                         print(line)
                         for k, v in zip(columns, fields):
                             print(f"{k}=|{v}|")
