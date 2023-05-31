@@ -5,7 +5,7 @@ def test_job_sacct_log(datadir):
     import numpy as np
 
     for filename, filename_ref in (('sacct_dump2101.log','sacctlog_dump2101_str.pkl'),('sacct_dump2110.log','sacctlog_dump2110_str.pkl')):
-        sacctlog = slurmanalyser.sacctlog.SacctLog.from_logfile(str(datadir / filename), convert_data=False)
+        sacctlog = slurmanalyser.sacctlog.SacctLog.read_logfile(str(datadir / filename), convert_data=False)
         df_ref = pd.read_pickle(str(datadir / filename_ref))
 
     # pd.set_option('display.max_columns', None)
@@ -27,3 +27,12 @@ def test_format_sacctlog(datadir):
     formatted = open(str(datadir / "sacct_simple_formatted.log"),"rt").read()
     expected = open(str(datadir / "sacct_simple_formatted_expected.log"),"rt").read()
     assert formatted == expected
+
+
+def test_job_sacct_log_multiline(datadir):
+    import slurmanalyser.sacctlog
+    import pandas as pd
+    import numpy as np
+
+    sacctlog = slurmanalyser.sacctlog.SacctLog.read_logfile(str(datadir / "sacct_submitline_multiline.log"), convert_data=False)
+    #f_ref = pd.read_pickle(str(datadir / filename_ref))
