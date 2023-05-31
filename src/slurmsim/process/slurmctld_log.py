@@ -283,7 +283,7 @@ class ProcessSlurmCtrdLog:
         line_number = 1
         eof_count = 0
         while True:
-
+            # logpe2
             m = re.search("Processing RPC: REQUEST_SUBMIT_BATCH_JOB from (?:uid|UID)=(\S*)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -294,10 +294,12 @@ class ProcessSlurmCtrdLog:
                 m_priority = None
                 for i in range(1,window_size):
                     if m_job_name is None and re.search("JobDesc: user_id=", window[i]):
+                        # logpe3
                         m = re.search("JobDesc: user_id=\S* JobId=\S* partition=\S* name=(\S*)", window[i])
                         m_job_name = m.group(1)
 
                     if m_job_id is None and re.search("initial priority for job \S* is ", window[i]):
+                        # logpe2
                         m = re.search("initial priority for job (\S+) is (\d+)", window[i])
                         m_job_id = m.group(1)
                         m_priority = m.group(2)
@@ -321,8 +323,7 @@ class ProcessSlurmCtrdLog:
                             m_job_id = m_job_name__m_job_id
 
                     if m_job_rec_id is None:
-                        print(
-                            "Warning: job name (%s) is not in jobid_<job id> format" % m_job_name)
+                        print("Warning: job name (%s) is not in jobid_<job id> format" % m_job_name)
 
                 if m_job_name is not None and m_job_id is not None:
                     self.add_record(m_job_id, "job_name", m_t, m_job_name)
@@ -337,7 +338,7 @@ class ProcessSlurmCtrdLog:
                     print("Error: something is wrong can identify job_name or m_job_id on line %d" % line_number)
                 if m_priority:
                     self.add_record(m_job_id, "initial_priority", m_t, m_priority)
-
+            # sched_info
             m = re.search("sched: Allocate JobId=(\S+) NodeList=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -347,6 +348,7 @@ class ProcessSlurmCtrdLog:
                 self.add_record(m_job_id, "nodes", m_t, m_nodes)
 
             #[2022-02-02T13:51:06.147191] sched/backfill: _start_job: Started JobId=1001 in normal on n1
+            # outdated format
             m = re.search("backfill: Started JobId=(\S+) in \S+ on (\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -355,6 +357,7 @@ class ProcessSlurmCtrdLog:
                 self.add_record(m_job_id, "launch_job", m_t, "backfill")
                 self.add_record(m_job_id, "nodes", m_t, m_nodes)
             # [2022-02-02T13:51:06.147191] sched/backfill: _start_job: Started JobId=1001 in normal on n1
+            # info in plugin
             m = re.search("sched/backfill: _start_job: Started JobId=(\S+) in \S+ on (\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -362,13 +365,19 @@ class ProcessSlurmCtrdLog:
                 m_nodes = m.group(2)
                 self.add_record(m_job_id, "launch_job", m_t, "backfill")
                 self.add_record(m_job_id, "nodes", m_t, m_nodes)
-
+            # logpe2
             m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from uid=\S+ JobId=(\d+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "request_complete_job", m_t,"NA")
             m = re.search("_slurm_rpc_complete_batch_script JobId=(\d+)", window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                m_job_id = m.group(1)
+                self.add_record(m_job_id, "request_complete_job", m_t,"NA")
+            #logpe3("Processing RPC details: REQUEST_COMPLETE_BATCH_SCRIPT for JobId=%u"
+            m = re.search("Processing RPC: REQUEST_COMPLETE_BATCH_SCRIPT from JobId=(\d+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
@@ -381,31 +390,33 @@ class ProcessSlurmCtrdLog:
             # [2022-01-27T18:01:51.407073] _job_complete: JobId=1000 done
             # [2022-01-27T18:01:51.407079] debug2: _slurm_rpc_complete_batch_script JobId=1000 usec=270
 
-
+            # logpe2
             m = re.search("Spawning RPC agent for msg_type REQUEST_TERMINATE_JOB for JobId=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "request_terminate_job", m_t,"NA")
-
+            # info
             m = re.search("Time limit exhausted for JobId=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "time_limit_exhausted", m_t, "NA")
-
+            # logpe2
             m = re.search("Spawning RPC agent for msg_type REQUEST_KILL_TIMELIMIT for JobId=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "request_kill_timelimit", m_t, "NA")
 
+            # logpe2
             m = re.search("Processing RPC: MESSAGE_EPILOG_COMPLETE uid=\S+ JobId=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 m_job_id = m.group(1)
                 self.add_record(m_job_id, "message_epilog_complete", m_t, "NA")
 
+            # logpe2
             m = re.search("job_epilog_complete for JobId=(\S+) with node=(\S+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -414,12 +425,18 @@ class ProcessSlurmCtrdLog:
                 self.add_record(m_job_id, "job_epilog_complete", m_t, m_node)
 
             # slurm controller events
+            #info if backfill debug
+            #sched/backfill: _attempt_backfill: beginning
             if re.search("backfill: beginning", window[0]):
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "backfill", m_t,"start")
             if re.search("backfill: reached end of job queue", window[0]):
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "backfill", m_t, "end")
+            if re.search("bf_max_job_test: limit of ([0-9]+) reached", window[0]):
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "backfill", m_t, "end")
+            #info if backfill debug
             m = re.search("backfill: completed testing ([0-9]+)\(([0-9]+)\) jobs, usec=([0-9.]+)", window[0])
             if m:
                 m_t, m_ts = get_datatime(window[0])
@@ -427,14 +444,17 @@ class ProcessSlurmCtrdLog:
                 self.add_record("NA", "backfill_cycle_time", m_t, float(m.group(3))*1e6)
             # backfill: completed testing 2(2) jobs, usec=1773
 
+            # sched_debug -> debug?
             if re.search("sched: Running job scheduler", window[0]):
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "sched", m_t,"start")
 
+            # logpe2
             if re.search("Testing job time limits and checkpoints", window[0]):
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "job_time_limits_testing", m_t,"NA")
 
+            # logpe3
             if re.search("_slurmctld_background pid = ", window[0]):
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "slurmctld_background", m_t,"NA")
@@ -448,6 +468,7 @@ class ProcessSlurmCtrdLog:
             #     add_record("NA", "process_create_real_time", m_t, "%.6f" % process_create_real_time)
             #     add_record("NA", "process_create_sim_time", m_t, "%.6f" % process_create_sim_time)
 
+            # info
             m = re.search(
                 "sim: process create real time: (\S+), process create sim time: (\S+)",
                 window[0])
@@ -462,8 +483,8 @@ class ProcessSlurmCtrdLog:
                 self.process_create_real_time = datetime.datetime.strptime(process_create_real_time, "%Y-%m-%dT%H:%M:%S.%f")
                 self.process_create_sim_time = datetime.datetime.strptime(process_create_sim_time, "%Y-%m-%dT%H:%M:%S.%f")
 
-            # debug3("Calling schedule from epilog_complete");
-            # debug3("Calling queue_job_scheduler from epilog_complete");
+            # logpe3("Calling schedule from epilog_complete");
+            # logpe3("Calling queue_job_scheduler from epilog_complete");
             m = re.search(
                 r"Calling (schedule|queue_job_scheduler) from (\S+)",
                 window[0])
@@ -471,7 +492,7 @@ class ProcessSlurmCtrdLog:
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "calling_" + m.group(1), m_t, m.group(2))
 
-            # debug3("Calling schedule from _slurmctld_background %ld %ld %ld",now,last_sched_time,now-last_sched_time);
+            # logpe3("Calling schedule from _slurmctld_background %ld %ld %ld",now,last_sched_time,now-last_sched_time);
             m = re.search(
                 r"Calling schedule from _slurmctld_background (\S+) (\S+) (\S+)",
                 window[0])
@@ -479,6 +500,7 @@ class ProcessSlurmCtrdLog:
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "_slurmctld_background_call_sched", m_t, m.group(1))
 
+            # it is disabled
             # debug3("_slurmctld_background cycle");
             m = re.search(
                 r"_slurmctld_background cycle",
@@ -486,7 +508,14 @@ class ProcessSlurmCtrdLog:
             if m:
                 m_t, m_ts = get_datatime(window[0])
                 self.add_record("NA", "_slurmctld_background_cycle", m_t, "NA")
-
+            # logpe2
+            m = re.search(
+                r"queue_job_scheduler request from (\S+) job_sched_cnt=(\d+)",
+                window[0])
+            if m:
+                m_t, m_ts = get_datatime(window[0])
+                self.add_record("NA", "queue_job_scheduler:from", m_t, m.group(1))
+                self.add_record("NA", "queue_job_scheduler:job_sched_cnt", m_t, m.group(2))
             # read next line
             line = fin.readline()
             window.append(line.rstrip('\n'))

@@ -470,17 +470,18 @@ def run_slurm(args):
         #let the slurmctrl to spin-off
         sleep(5)
 
-        # check that all nodes up
-        ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
-        print(ssinfo)
-        for sline in ssinfo[1:]:
-            #sfields = sline.split()
-            if sline.count("down")>0:
-                print("Nodes %s are down, resuming them" % sfields[5])
-                #print(subprocess.check_output(
-                #    ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
-        print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
-    
+        # check that all nodes up (slurmsim don't support rpc calls now)
+        if False:
+            ssinfo = subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8").splitlines()
+            print(ssinfo)
+            for sline in ssinfo[1:]:
+                #sfields = sline.split()
+                if sline.count("down")>0:
+                    print("Nodes %s are down, resuming them" % sfields[5])
+                    #print(subprocess.check_output(
+                    #    ['scontrol', "update", "NodeName="+sfields[5], "State=RESUME"]).decode("utf-8"))
+            print(subprocess.check_output([sinfo_loc],env={'SLURM_CONF':slurm_conf_loc}).decode("utf-8"))
+
     #start monitor
     global monitor_proc    
     # monitor_proc=popen_as_otheruser(SlurmUser, [monitor_loc], env={'SLURM_CONF':slurm_conf_loc, 'SLURM_HOME':args.slurm})

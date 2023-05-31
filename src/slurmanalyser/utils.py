@@ -279,3 +279,84 @@ def util_timedelta_to_slurm_duration(v: pd.Series) -> pd.Series:
         str).str.zfill(2)
     s[v.isna()] = "NA"
     return s
+
+ZSTD_LOC = None
+
+def get_find_compressor(compression):
+    if compression != "zstd":
+        global ZSTD_LOC
+        if ZSTD_LOC is None:
+            # detect zstd
+            out = subprocess.run(["which", "zstd"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            if out.returncode != 0:
+                raise Exception("Can not find zstd binary, install it")
+            ZSTD_LOC = out.stdout.strip()
+            log.debug(f"zstd in {ZSTD_LOC}")
+        return ZSTD_LOC
+    else:
+        raise NotImplementedError("only zstd implemented so far!")
+def compress(filename, overwrite=False, compressor_loc=None, compression="zstd", keep=False, threads=None):
+    """
+    compress <filename> to <filename>.<std extention for that compression format>
+    @param filename:
+    @param overwrite:
+    @param compressor_loc:
+    @param compression:
+    @return:
+    """
+    if compression != "zstd":
+        raise NotImplementedError("only zstd implemented so far!")
+    if compressor_loc is None:
+        compressor_loc = get_find_compressor(compression)
+
+    log.debug(f"compressing {filename}")
+    if os.path.exists(f"{filename}.zst"):
+        if self.overwrite:
+            os.remove(f"{filename}.zst")
+        else:
+            log.error(f"Both file {filename} and it compressed version {filename}.zst exist."
+                      f"The compressed might be incomplete. Delete it and try again!")
+            raise FileExistsError()
+
+    args = [
+        compressor_loc,
+        '-19']
+    if not keep:
+        args.append('--rm')
+
+    args.append(f"-T{threads}")
+    args.append(filename)
+
+    out = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if out.returncode != 0:
+        print(out.stdout)
+        raise Exception(f"Can not compress {filename}!")
+
+def decompress(filename, overwrite=False, compressor_loc=None, compression="zstd", keep=False,threads=None):
+    if compression != "zstd":
+        raise NotImplementedError("only zstd implemented so far!")
+    if compressor_loc is None:
+        compressor_loc = get_find_compressor(compression)
+
+    log.debug(f"compressing {filename}")
+    if os.path.exists(f"{filename}.zst"):
+        if self.overwrite:
+            os.remove(f"{filename}.zst")
+        else:
+            log.error(f"Both file {filename} and it compressed version {filename}.zst exist."
+                      f"The compressed might be incomplete. Delete it and try again!")
+            raise FileExistsError()
+
+    args = [
+        compressor_loc,
+        '-19']
+    if not keep:
+        args.append('--rm')
+
+    args.append(f"-T{self.threads_per_file}")
+    args.append(filename)
+
+    out = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if out.returncode != 0:
+        print(out.stdout)
+        raise Exception(f"Can not compress {filename}!")
