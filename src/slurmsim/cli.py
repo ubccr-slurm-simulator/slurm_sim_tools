@@ -59,9 +59,9 @@ def add_command_process_slurmctrd_log(parent_parser):
 
 def add_command_run_sim(parent_parser):
     """
-    Run simulation
+    Run Slurm Simulation
     """
-    parser = parent_parser.add_parser('run_sim',  description=add_command_run_sim_0.__doc__)
+    parser = parent_parser.add_parser('run_sim',  description=add_command_run_sim.__doc__)
 
     from slurmsimtools.run_slurmsim import run_sim_set_argparse
     run_sim_set_argparse(parser)
@@ -154,6 +154,7 @@ class CLI:
         self.verbose = False
         self.very_verbose = False
 
+        # add_command_run_single_sim(self.subparsers)
         add_command_run_sim(self.subparsers)
         add_command_archive(self.subparsers)
         add_command_process(self.subparsers)
