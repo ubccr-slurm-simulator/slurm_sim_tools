@@ -17,3 +17,5 @@ __pycache__
 /docker/virtual_cluster/RPMS_sim/
 /tutorials/micro_cluster/var
 /tutorials/micro_cluster/log
+/tutorials/micro_cluster/results
+

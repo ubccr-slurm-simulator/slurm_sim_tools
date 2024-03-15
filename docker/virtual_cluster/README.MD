@@ -245,7 +245,7 @@ CLUS_DIR=`pwd`
   >& ./results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}.out
 
 
-workload=$SCRIPT_DIR/job_traces/workload.events
+workload=$SCRIPT_DIR/workload/workload.events
 run_ids="1"
 dtstarts="55 137 37 232 234 49 79 241 71 261"
 

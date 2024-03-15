@@ -276,8 +276,14 @@ def read_trace(trace_file_name):
 
 def run_slurm(args):
     # read trace
-    read_trace(args.trace)
+    read_trace(args.events_file)
     ##
+    if args.slurm == "":
+        if re.match("/opt/slurm_sim_tools", cur_dir):
+            args.slurm = "/opt/slurm_sim"
+        else:
+            args.slurm = "/usr/local"
+
     # start all slurm daemons
     slurm_conf_loc = os.path.join(args.etc, 'slurm.conf')
     slurmdbd_conf_loc = os.path.join(args.etc, 'slurmdbd.conf')
@@ -502,8 +508,8 @@ def run_slurm(args):
     if run_slurmctld:
         global slurmctld_proc
         log.info(f"Launching slurmctld")
-        print([slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)])
-        slurmctld_proc = popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)],
+        print([slurmctld_loc, '-e', args.events_file, "-dtstart", str(args.dtstart)])
+        slurmctld_proc = popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.events_file, "-dtstart", str(args.dtstart)],
                                             env={'SLURM_CONF': slurm_conf_loc},
                                             stdout=slurmctld_out, stderr=slurmctld_out)
         # let the slurmctrl to spin-off
@@ -692,6 +698,13 @@ ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
     if slurmd_out != None and slurmd_out != subprocess.DEVNULL:
         slurmd_out.close()
 
+    # Copy std out
+    for param, filename in {"SlurmctldStdoutFile": args.octld, "SlurmdbdStdoutFile": args.odbd}.items():
+        if filename is not None and filename != "":
+            log.info("copying resulting file " + filename + " to " + results_dir)
+            shutil.copy(filename, results_dir)
+            resfiles[param] = os.path.join(results_dir, os.path.basename(slurm_conf[paraml]))
+
     log.info("Simulated time: %s", str(sim_endtime_datetime - sim_start_datetime))
     log.info("Real time: %s", str(real_endtime_datetime - real_start_datetime))
     log.info("Acceleration: %f", (sim_endtime_datetime - sim_start_datetime).total_seconds() / (
@@ -700,12 +713,12 @@ ncpus,reqcpus,reqmem,reqtres,timelimit,qos,nodelist,jobname,NTasks \
 
 
 def run_sim_set_argparse(parser):
-    parser.add_argument('-s', '--slurm', required=True, type=str, default="/usr",
-                        help="top directory of slurm installation. Default: /usr")
+    parser.add_argument('-s', '--slurm', required=False, type=str, default="",
+                        help="top directory of slurm installation. Default: /opt/slurm_sim")
     parser.add_argument('-e', '--etc', required=True, type=str, default="/etc/slurm",
                         help="etc directory for current simulation. Default: /etc/slurm")
-    parser.add_argument('-t', '--trace', required=True, type=str,
-                        help="job trace events file")
+    parser.add_argument('-w', '--events-file', required=True, type=str,
+                        help="Workload specified as events file.")
     parser.add_argument('-d', '--delete', action='store_true',
                         help="delete files from previous simulation")
     parser.add_argument('-nc', '--no-slurmctld', action='store_true',
@@ -726,97 +739,3 @@ def run_sim_set_argparse(parser):
                         help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
     parser.add_argument('-r', '--results', required=False, type=str, default="results",
                         help="copy results to that directory")
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="turn on verbose logging")
-
-
-def add_command_run_single_sim(parent_parser, create_subcommand=True):
-    """
-    Run Single Slurm Simulation
-    """
-    if create_subcommand:
-        parser = parent_parser.add_parser('run_single_sim', description=add_command_run_single_sim.__doc__)
-    else:
-        parser = parent_parser
-
-    parser.add_argument('-e', '--etc', required=True, type=str, default="etc",
-                        help="etc directory for current simulation. Default: <current workdir>/etc."
-                             "Files from etc will be copied to <results>/<machinename>/<simulation_name>/etc."
-                             "The config content will be modified for new locations and usernames")
-    parser.add_argument('-t', '--trace', required=True, type=str,
-                        help="job trace events file"
-                             "Event filewill be copied to <results>/<machinename>/<simulation_name>.")
-    parser.add_argument('-r', '--results', required=False, type=str, default="results",
-                        help="results storage top directory. Default: <current workdir>/results"
-                             "Results will be strored in "
-                             "<results>/<machinename>/<small>/dtstart_<dtstart>_<run_id>")
-    parser.add_argument('-dtstart', '--dtstart', required=False, type=int, default=30,
-                        help="seconds before first job")
-    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
-                        help="script for sacctmgr to setup accounts")
-
-    parser.add_argument('-s', '--slurm', required=False, type=str,
-                        default="<slurm_sim_tools>/../slurm_simulator/build_opt/install",
-                        help="top directory of slurm simulator binary installation. Default: <slurm_sim_tools>/../slurm_simulator/build_opt/install")
-    parser.add_argument('-d', '--delete', action='store_true',
-                        help="delete files from previous simulation")
-    parser.add_argument('-nc', '--no-slurmctld', action='store_true',
-                        help="do not start slurmctld (used in debugging)")
-    # parser.add_argument('-nd', '--no-slurmd', action='store_true',
-    #                    help="do not start slurmd")
-    # parser.add_argument('-octld', '--octld', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmctld to octrd")
-    # parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmdbd to odbd")
-    # parser.add_argument('-od', '--od', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmd to od")
-
-    parser.add_argument('-rt', '--run-time', required=False, type=int, default=0,
-                        help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
-
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="turn on verbose logging")
-
-
-# def _handler(args):
-#     run_slurm(args)
-#     parser.set_defaults(func=handler)
-
-def run_sim_set_argparse_new(parser):
-    parser.add_argument('-e', '--etc', required=True, type=str, default="etc",
-                        help="etc directory for current simulation. Default: <current workdir>/etc."
-                             "Files from etc will be copied to <results>/<machinename>/<simulation_name>/etc."
-                             "The config content will be modified for new locations and usernames")
-    parser.add_argument('-t', '--trace', required=True, type=str,
-                        help="job trace events file"
-                             "Event filewill be copied to <results>/<machinename>/<simulation_name>.")
-    parser.add_argument('-r', '--results', required=False, type=str, default="results",
-                        help="results storage top directory. Default: <current workdir>/results"
-                             "Results will be strored in "
-                             "<results>/<machinename>/<small>/dtstart_<dtstart>_<run_id>")
-    parser.add_argument('-dtstart', '--dtstart', required=False, type=int, default=30,
-                        help="seconds before first job")
-    parser.add_argument('-a', '--acct-setup', required=False, type=str, default="",
-                        help="script for sacctmgr to setup accounts")
-
-    parser.add_argument('-s', '--slurm', required=False, type=str,
-                        default="<slurm_sim_tools>/../slurm_simulator/build_opt/install",
-                        help="top directory of slurm simulator binary installation. Default: <slurm_sim_tools>/../slurm_simulator/build_opt/install")
-    parser.add_argument('-d', '--delete', action='store_true',
-                        help="delete files from previous simulation")
-    parser.add_argument('-nc', '--no-slurmctld', action='store_true',
-                        help="do not start slurmctld (used in debugging)")
-    # parser.add_argument('-nd', '--no-slurmd', action='store_true',
-    #                    help="do not start slurmd")
-    # parser.add_argument('-octld', '--octld', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmctld to octrd")
-    # parser.add_argument('-odbd', '--odbd', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmdbd to odbd")
-    # parser.add_argument('-od', '--od', required=False, type=str, default="",
-    #                    help="redirect stdout and stderr of slurmd to od")
-
-    parser.add_argument('-rt', '--run-time', required=False, type=int, default=0,
-                        help="total time for slurm to run in seconds, -1 run forever, 0 till last job is done, >0 seconds to run")
-
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="turn on verbose logging")
