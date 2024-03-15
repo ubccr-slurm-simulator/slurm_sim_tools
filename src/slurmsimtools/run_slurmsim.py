@@ -20,7 +20,7 @@ import json
 import datetime
 from collections import OrderedDict
 from .sperf import get_process_realtimestat, system_info
-
+from slurmanalyser.utils import eval_shell_cmd
 import inspect
 
 
@@ -317,12 +317,34 @@ def run_slurm(args):
     slurmdbd_conf=slurm_conf_parser(slurmdbd_conf_loc)
     
     slurm_conf["SlurmdbdLogFile".lower()]=slurmdbd_conf["LogFile".lower()]
-    
+
+    # In VC we have to be able to change users  in simulator we run as our current user
+    this_user = subprocess.check_output(['id', '-u', '-n']).decode("utf-8").strip()
+    this_group = subprocess.check_output(['id', '-g', '-n']).decode("utf-8").strip()
+
     SlurmUser=slurm_conf.get("SlurmUser".lower(), 'slurm')
+    SlurmUserGroup=this_group
     SlurmdUser=slurm_conf.get("SlurmdUser".lower(),'root')
-        
+
+    if this_user != SlurmUser:
+        raise Exception(f"SlurmUser in slurm.conf should match current user! SlurmUser={SlurmUser} this_user={this_user}")
+
     if 'PidFile'.lower() in slurmdbd_conf:
         slurm_conf["SlurmdbdPidFile".lower()]=slurmdbd_conf["PidFile".lower()]
+
+    # Ensure that /opt/slurm_sim/sbin/slurmdbd and ctrl is not running
+    def get_users_processes():
+        s = eval_shell_cmd(f"ps -u {this_user} -o pid,comm --no-headers")[0]
+        p = [v.split() for v in s.splitlines()]
+        processes = [v[1] for v in p]
+        pids = [int(v[0]) for v in p]
+        return processes, pids
+
+    processes = get_users_processes()
+    if 'slurmdbd' in processes[0]:
+        raise Exception(f"slurmdbd is running. Previous simulation might still be up. Kill the process if you sure that it shouldn't be up.")
+    if 'slurmctld' in processes[0]:
+        raise Exception(f"slurmctld is running. Previous simulation might still be up. Kill the process if you sure that it shouldn't be up.")
     
     #clean db
     if "StorageHost".lower() in slurmdbd_conf and args.delete:
@@ -365,11 +387,11 @@ def run_slurm(args):
                 #mkdir if needed
                 os.makedirs(os.path.dirname(slurm_conf[filetype_lower]), mode=0o755)
             if os.path.isdir(slurm_conf[filetype_lower]):
-                os.system("chown -R "+SlurmUser+":"+SlurmUser+" "+slurm_conf[filetype_lower])
+                os.system("chown -R "+SlurmUser+":"+SlurmUserGroup+" "+slurm_conf[filetype_lower])
             else:
                 m_dir = os.path.dirname(slurm_conf[filetype_lower])
                 if m_dir not in ('/var/lib', '/usr/lib'):
-                    os.system("chown -R "+SlurmUser+":"+SlurmUser+" "+m_dir)
+                    os.system("chown -R "+SlurmUser+":"+SlurmUserGroup+" "+m_dir)
     #delete spool and state
     for filetype in ["StateSaveLocation","SlurmdSpoolDir"]:
         filetype_lower=filetype.lower()
@@ -393,11 +415,11 @@ def run_slurm(args):
                 #mkdir if needed
                 os.makedirs(slurm_conf[filetype_lower], mode=0o755)
             if os.path.isdir(slurm_conf[filetype_lower]):
-                os.system("chown -R " + SlurmUser + ":" + SlurmUser + " " + slurm_conf[filetype_lower])
+                os.system("chown -R " + SlurmUser + ":" + SlurmUserGroup + " " + slurm_conf[filetype_lower])
             else:
                 m_dir = os.path.dirname(slurm_conf[filetype_lower])
                 if m_dir not in ('/var/lib', '/usr/lib'):
-                    os.system("chown -R " + SlurmUser + ":" + SlurmUser + " " + m_dir)
+                    os.system("chown -R " + SlurmUser + ":" + SlurmUserGroup + " " + m_dir)
     #
     if os.path.exists(results_dir):
         if(args.delete):
@@ -407,7 +429,7 @@ def run_slurm(args):
             raise Exception("previous "+results_dir+" results directory is present on file-system. Can not continue simulation."+\
                             "move it or run with flag -d to automatically delete it.")
     os.makedirs(results_dir, mode=0o755, exist_ok=True)
-    os.system("chown -R "+SlurmUser+":"+SlurmUser+" "+results_dir)
+    os.system("chown -R "+SlurmUser+":"+SlurmUserGroup+" "+results_dir)
     os.chdir(results_dir)
 
     perf_profile = open(results_perf_profile_loc, "wt")
@@ -425,7 +447,14 @@ def run_slurm(args):
     slurmdbd_out=subprocess.DEVNULL
     slurmctld_out=subprocess.DEVNULL
     slurmd_out=subprocess.DEVNULL
-    
+
+    if args.octld == "" and "SlurmctldLogFile".lower() in slurm_conf:
+        args.octld = slurm_conf["SlurmctldLogFile".lower()].rsplit('.', 1)[0] + "_stdout.log"
+        log.debug(f"Set stdout/stderr for slurmctld to {args.octld}")
+    if args.odbd == "" and "LogFile".lower() in slurmdbd_conf:
+        args.odbd = slurmdbd_conf["LogFile".lower()].rsplit('.', 1)[0] + "_stdout.log"
+        log.debug(f"Set stdout/stderr for slurmdbd to {args.odbd}")
+
     if args.octld!="":
         slurmctld_out=open(args.octld,"wt")
     if args.odbd!="":
@@ -436,6 +465,7 @@ def run_slurm(args):
     
     #start slurmdbd
     global slurmdbd_proc
+    log.info("Launching slurmdbd")
     slurmdbd_proc=popen_as_otheruser(SlurmUser, [slurmdbd_loc, '-Dvv'], env={'SLURM_CONF':slurm_conf_loc},
                                      stdout=slurmdbd_out, stderr=slurmdbd_out)
     #let the slurmdbd to spin-off
@@ -443,6 +473,7 @@ def run_slurm(args):
     
     #load accounting datals
     if args.acct_setup!="":
+        log.info(f"Running sacctmgr script from {args.acct_setup}")
         sacctmgr_proc=popen_as_otheruser(SlurmUser, sacctmgr_loc + ' -i < ' + args.acct_setup,
                                          env={'SLURM_CONF':slurm_conf_loc}, shell=True)
         sacctmgr_proc.wait()
@@ -456,13 +487,14 @@ def run_slurm(args):
     if args.no_slurmd == False:
         slurmd_proc = popen_as_otheruser(
             SlurmdUser,[slurmd_loc,'-Dvv'],env={'SLURM_CONF':slurm_conf_loc},
-            stdout=slurmd_out,stderr=slurmd_out)
-    #let the slurmd to spin-off
-    sleep(1)
+                stdout=slurmd_out,stderr=slurmd_out)
+        #let the slurmd to spin-off
+        sleep(1)
     
     #start slurmctrl
     if run_slurmctld:
         global slurmctld_proc
+        log.info(f"Launching slurmctld")
         print([slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)])
         slurmctld_proc=popen_as_otheruser(SlurmUser, [slurmctld_loc, '-e', args.trace, "-dtstart", str(args.dtstart)],
                                           env={'SLURM_CONF':slurm_conf_loc},
@@ -537,6 +569,7 @@ def run_slurm(args):
     if run_slurmctld:
         last_job_submit_time = time() + 2*365*24*3600
         try:
+            log.info("Monitoring slurmctld until completion")
             while slurmctld_proc.poll() is None:
                 if args.run_time>0 and time()-start>args.run_time:
                     break

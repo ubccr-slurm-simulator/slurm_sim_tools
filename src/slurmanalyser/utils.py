@@ -360,3 +360,26 @@ def decompress(filename, overwrite=False, compressor_loc=None, compression="zstd
     if out.returncode != 0:
         print(out.stdout)
         raise Exception(f"Can not compress {filename}!")
+
+
+def eval_shell_cmd(command, debug=False):
+    import subprocess
+    processes = command.split('|')
+
+    if debug:
+        print('Processes:', processes)
+
+    for index, value in enumerate(processes):
+        args = value.split(' ')
+
+        if debug:
+            print(index, args)
+
+        if index == 0:
+            p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        else:
+            p = subprocess.Popen(args, stdin=p.stdout, stdout=subprocess.PIPE)
+
+        if index == len(processes) - 1:
+            result, error = p.communicate()
+            return result.decode('utf-8'), error

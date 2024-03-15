@@ -20,6 +20,7 @@ WORKDIR /root
 # copy daemons starters
 COPY ./docker/virtual_cluster/utils/cmd_setup ./docker/virtual_cluster/utils/cmd_start ./docker/virtual_cluster/utils/cmd_stop /usr/local/sbin/
 COPY ./docker/virtual_cluster/vctools /opt/cluster/vctools
+
 # directories
 RUN mkdir /scratch && chmod 777 /scratch && \
     mkdir /scratch/jobs && chmod 777 /scratch/jobs

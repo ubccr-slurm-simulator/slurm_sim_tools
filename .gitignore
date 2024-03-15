@@ -4,6 +4,7 @@
 .Ruserdata
 .project
 .pydevproject
+.ipynb_checkpoints
 __pycache__
 /.idea
 /ubccr
@@ -14,3 +15,5 @@ __pycache__
 /src/slurmanalyser/cyutilization.cpython-39-x86_64-linux-gnu.so
 /docker/virtual_cluster/RPMS_ref/
 /docker/virtual_cluster/RPMS_sim/
+/tutorials/micro_cluster/var
+/tutorials/micro_cluster/log

@@ -18,7 +18,7 @@ setup(
 )
 
 # Run dependency:
-#    numpy, pandas
+#    numpy, pandas, pymysql
 # Run analysis:
 #    pyarrow
 # Build dependency:

@@ -24,6 +24,7 @@ start_process(){
     fi
 }
 
+
 # Start process and confirm it launches by looking for a
 # confirm_sentence in log_file.
 # Format:

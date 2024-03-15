@@ -1,5 +1,36 @@
 # Documentation on Development
 
+`slurm_sim_tools` is a parent repo for slurm simulator.
+It includes necessary tools and `slurm_simulator` repo as a git-submodule.
+
+## Getting Source-Code
+
+```bash
+# create 
+mkdir ~/slurm_sim_ws
+cd ~/slurm_sim_ws
+
+# --recursive is important to get slurm_simulator copy automatically
+git clone --recursive https://github.com/ubccr-slurm-simulator/slurm_sim_tools.git
+```
+
+If you didn't use `--recursive` then you can get slurm_simulator manually:
+
+```bash
+git clone https://github.com/ubccr-slurm-simulator/slurm_sim_tools.git
+cd slurm_sim_tool
+git submodule update --init --recursive
+```
+
+### Updating local copy with origin
+
+```bash
+git pull
+git submodule update
+```
+
+## Folders Structure
+
 ```
 /home/slurm                       - Slurm user home derectory
       └── slurm_sim_ws            - Slurm simulator work space
@@ -16,6 +47,36 @@
           ├── slurm_sim_deb       - Slurm simulator debug binary installation directory
           ├── slurm_sim_tools     - Slurm simulator toolkit
           └── slurm_simulator     - Slurm simulator source code
+```
+
+## Containers Structure
+
+Slurm simulator use both Docker and apptainer for containerezation. 
+Docker is more common on personal machines which apptainer is often available on HPC resource.
+We want to be able to run in both ways.
+
+Possible troubles:
+* apptainer by default uses host's ports, should we be able to have flexible port addresses 
+  for all services (mysql, slurmdbd, slurmctrld)
+  * network virtualization?
+* apptainer by default use the host username, while slurm config have hardcoded username
+  * username mapping: <https://apptainer.org/docs/admin/main/user_namespace.html>
+
+```
+/opt
+    slurm_sim_tools - that is a source code
+        slurm_simulator - slurm simulator source code
+    slurm_sim - release version of slurm simulator binaries
+    slurm_sim_run? - bindable directory for running simulator (to use for full paths)
+        etc
+        run
+        mysql?
+```
+
+## Container Building
+
+```bash
+
 ```
 
 # Building
