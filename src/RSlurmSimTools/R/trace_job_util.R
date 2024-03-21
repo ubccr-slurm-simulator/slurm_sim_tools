@@ -364,7 +364,7 @@ extract_slurm_period <- function(v) {
 
 
 
-read_sacct_out <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
+read_sacct_out_old <- function(filename,nodes_desc=NULL,extract_node_list=FALSE){
     #slurm_log <- read.table(filename, header = TRUE, sep = "|",as.is = TRUE)
     slurm_log <- data.table::fread(filename,sep="|",header=TRUE)
     
