@@ -1,0 +1,767 @@
+---
+title: "Slurm Simulator: Micro Cluster Tutorial"
+author: nikolays@buffalo.edu
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+    toc: yes
+    toc_float: yes
+    toc_depth: 4
+    mathjax: null
+    css: doc.css
+    df_print: paged
+
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+# Slurm Simulator: Micro Cluster Tutorial
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load R libraries (warnings on masking are ok)
+library(tidyverse)
+library(plotly)
+library(cowplot)
+library(devtools)
+library(reticulate)
+library(knitr)
+use_condaenv(condaenv="base")
+
+# rebuild RSlurmSimTools
+load_all("/opt/slurm_sim_tools/src/RSlurmSimTools")
+# library(RSlurmSimTools)
+```
+
+```{bash}
+# Check that MySQL Server is up
+ps -Af | grep mariadbd 
+```
+
+## Overview
+
+This tutorial will teach you how to run a Slurm Simulator using an example of a
+small 10-node Micro-Cluster.
+
+The tutorial will walk you through the Slurm simulation configuration.
+
+You will run two simulations with identical workloads but different timing
+between the start-up and first job to investigate scheduling stochasticity.
+
+Finally, you'll run ten independent simulations with the same workload and
+calculate statistics other than runs.
+
+The files needed for this tutorial are located at
+`slurm_sim_tools/tutorials/micro_cluster`.
+
+## Micro-Cluster Description
+
+In this tutorial small model cluster, named Micro-Cluster, will be simulated.
+Micro-Cluster is created to test various aspects of the slurm simulator usage.
+It consists of 10 compute nodes (see Table below). There are two types of
+general compute nodes with different CPU types to test features request
+(constrains), one GPU node to test GRes and one big memory node to test proper
+allocation of jobs with large memory requests.
+
+| Node Type       | Node Name | Number of Cores | CPU Type | Memory Size | Number of GPUs |
+|-----------------|-----------|-----------------|----------|-------------|----------------|
+| General Compute | n[1-4]    | 12              | CPU-N    | 48GiB       | -              |
+| General Compute | m[1-4]    | 12              | CPU-M    | 48GiB       | -              |
+| GPU node        | g1        | 12              | CPU-G    | 48GiB       | 2              |
+| Big memory      | b1        | 12              | CPU-G    | 512GiB      | -              |
+
+: Micro-Cluster compute nodes description
+
+The nodes are connected as follows:
+
+```         
+Top Switch
+ ├─IBN Switch
+ │  ├─Node n1
+ │  ├─Node n2
+ │  ├─Node n3
+ │  └─Node n4
+ ├─IBM Switch
+ │  ├─Node m1
+ │  ├─Node m2
+ │  ├─Node m3
+ │  └─Node m4
+ └─IBG Switch
+    ├─Node g1
+   `└─Node b1
+
+
+```
+
+## Slurm Simulation Configuration
+
+The UB Slurm Simulator is made from Slurm source code and so it shares many
+configurations with actual Slurm installation. In addition, you also need to
+specify that simulated users will submit to the simulated cluster and some
+simulation parameters.
+
+In order to run Slurm simulation you need:
+
+1.  Adopt the Slurm configuration (`slurm.conf` and friends) for simulation
+    -   Some options are not supported and files, typically used in slurm need
+        to be renamed and point to user space.
+2.  Set-up users and accounts: create `sacctmgr.script` and `user.sim`.
+3.  Specify simulation parameters
+    -   `sim.conf` some of parameters needed to be reset at run-time
+4.  Create events file with workload specification (a.k.a. job-traces or
+    events-list).
+
+```{bash}
+ls etc
+```
+
+### Adopting the Slurm Configuration for Simulation
+
+The simulator is built from Slurm code and uses regular Slurm configuration.
+
+In the `etc` directory, you can find several familiar Slurm configuration files:
+`slurm.conf`, `topology.conf`, `gres.conf` and `slurmdbd.conf`.
+
+When you start from the actual cluster configuration, some modifications are
+needed to point to different file system locations and disable some features
+which the simulator cannot work with.
+
+The files in this tutorial are already modified to be executed in simulator
+mode. In the following sub-section, we will list those changes.
+
+#### Changes in `slurm.conf`
+
+```ini
+# (optional) Different cluster name might be useful
+ClusterName=micro
+
+# Authentication is turned off
+AuthType=auth/none
+
+# This user will be used to run slurm simulator
+SlurmUser=slurm
+# (not needed) UB Slurm simulator does not use slurmd
+SlurmdUser=root
+# (not needed) This parameter is for Virtual Clusters (not used in Simulator)
+SlurmdParameters=config_overrides
+
+# Change Slurm control daemon address to localhost
+ControlMachine=localhost
+ControlAddr=localhost
+# Change Slurm Database daemon address to localhost
+AccountingStorageHost=localhost
+
+# Change file location
+JobCredentialPrivateKey=/home/slurm/work/micro_cluster/etc/slurm.key
+JobCredentialPublicCertificate=/home/slurm/work/micro_cluster/etc/slurm.cert
+SlurmSchedLogFile=/home/slurm/work/micro_cluster/log/sched.log
+SlurmctldLogFile=/home/slurm/work/micro_cluster/log/slurmctld.log
+SlurmdLogFile=/home/slurm/work/micro_cluster/log/slurmd.log
+SlurmdSpoolDir=/home/slurm/work/micro_cluster/var/spool
+StateSaveLocation=/home/slurm/work/micro_cluster/var/state
+JobCompLoc=/home/slurm/work/micro_cluster/log/jobcomp.log
+
+# Have to set it as simulator uses front-end mode
+FrontEndName=localhost
+```
+
+#### Changes in `slurmdbd.conf`
+
+```ini
+# Change Slurm Database daemon address to localhost
+DbdHost=localhost
+# Authentication is turned off
+AuthType=auth/none
+
+# Change file location
+PidFile=/home/slurm/work/micro_cluster/var/slurmdbd.pid
+LogFile=/home/slurm/work/micro_cluster/log/slurmdbd.log
+
+# Change mysql server address to localhost and accounts
+StorageHost=localhost
+StorageUser=slurm
+StoragePass=slurm
+# This user will be used to run slurm dbd
+SlurmUser=jovyan
+# (optional) database name in mysql to use
+StorageLoc=slurmdb_micro
+```
+
+#### Changes to `gres.conf`
+
+```ini
+# There is no actual hardware everything should be specified manually
+AutoDetect=off
+```
+
+#### Changes to `topology.conf`
+
+It should be fine as is.
+
+### Set up Users, Accounts, QoS Specs
+
+Usually system administrator will create user and accounts on the HPC resource
+on per need base. In simulator, we need to create a file with simulated system
+usernames and a script for Slurm `sacctmgr` utility to initiate cluster QoS-es,
+users and accounts.
+
+#### System User names and Groups - `users.sim`
+
+`users.sim` fount in `etc` folder specify simulated system users and group names
+and ids. The file format is one line per user with colon (`:`) separated four
+fields:
+
+```         
+<user named>:<user id>:<group name>:<group id>
+```
+
+The used `users.sim` file is as follows:
+
+```         
+admin:1000:admin:1000
+user1:1001:group1:1001
+user2:1002:group2:1002
+user3:1003:group3:1003
+user4:1004:group2:1002
+user5:1005:group1:1001
+```
+
+#### Adding Users, Accounts and QoS - `sacctmgr.script`
+
+`sacctmgr.script` is a script which will be executed by `sacctmgr` before the
+simulation. It adds slurm users, accounts, QoS and all other things sys-admins
+will do with sacctmgr.
+
+Below is a listing of used `sacctmgr.script`:
+
+``` shell
+# add/modify QOS
+modify QOS set normal Priority=0
+add QOS Name=supporters Priority=100
+# add cluster
+add cluster Name=micro Fairshare=1 QOS=normal,supporters
+# add accounts
+add account name=account0 Fairshare=100
+add account name=account1 Fairshare=100
+add account name=account2 Fairshare=100
+# add admin
+add user name=admin DefaultAccount=account0 MaxSubmitJobs=1000 AdminLevel=Administrator
+# add users
+add user name=user1 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user2 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user3 DefaultAccount=account1 MaxSubmitJobs=1000
+add user name=user4 DefaultAccount=account2 MaxSubmitJobs=1000
+add user name=user5 DefaultAccount=account2 MaxSubmitJobs=1000
+# add users to qos level
+modify user set qoslevel="normal,supporters"
+
+# check results
+list associations format=Account,Cluster,User,Fairshare tree withd
+```
+
+The script starts with modification of `normal` QoS and adding new QoS,
+`priority`, with higher priority factor.
+
+Then, we add Slurm users and accounts. Slurm user names should match the system
+user names we specified at `users.sim`.
+
+Here we have 5 users (user1, user2, user3, user4, user5) grouped into 2 accounts
+(account1, account2). There is also an admin user with an associated account. We
+allowed all users to use both QoS-es.
+
+Finally, we printed created association (relationship between users and
+accounts)
+
+## Simulation Parameters
+
+In the etc directory, you can find several configuration files:
+
+``` ini
+# Simulation Configuration
+
+## Unix time stamp for the simulated start time
+TimeStart = 1641013200.0
+## Unix time stamp for the simulated stop time, 0 - run till all jobs are finished
+TimeStop = 0
+## Time between simulator start and first job execution (can be overwritten by `slurmsim run_sim`)
+SecondsBeforeFirstJob = 126
+## CPU clock scaling
+ClockScaling = 1.0
+## Events File (can be overwritten by `slurmsim run_sim`)
+EventsFile = /home/slurm/work/micro_cluster/job_traces/jobs500_shrinked.events
+## Seconds after all events are done, -1 keep spinning time_after_all_events_done.
+TimeAfterAllEventsDone = 10
+
+## Some time delays to mimic start-up times of actual Slurm controller
+FirstJobDelay = -0.32
+CompJobDelay = 0.000
+TimeLimitDelay = 0.000
+```
+
+Some of these parameters can be overwritten from the command line
+
+## Workload Specification (events file, a.k.a. job traces)
+
+In `job_traces` you can find many files finished with `.events` extension, these
+are events list file which used to specify users activities on simulated
+cluster.
+
+Here is the listing of `small.events`:
+
+``` bash
+-dt 0 -e submit_batch_job | -J jobid_1001 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
+-dt 1 -e submit_batch_job | -J jobid_1002 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 2 -e submit_batch_job | -J jobid_1003 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 16 -e submit_batch_job | -J jobid_1004 -sim-walltime 21 --uid=user3 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 19 -e submit_batch_job | -J jobid_1005 -sim-walltime 2 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --mem=500000 pseudo.job
+-dt 19 -e submit_batch_job | -J jobid_1006 -sim-walltime 9 --uid=user3 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 19 -e submit_batch_job | -J jobid_1007 -sim-walltime -1 --uid=user4 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 22 -e submit_batch_job | -J jobid_1008 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-M pseudo.job
+-dt 26 -e submit_batch_job | -J jobid_1009 -sim-walltime 2 --uid=user1 -t 00:01:00 -n 96 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 26 -e submit_batch_job | -J jobid_1010 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 29 -e submit_batch_job | -J jobid_1011 -sim-walltime 0 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --gres=gpu:1 pseudo.job
+-dt 32 -e submit_batch_job | -J jobid_1012 -sim-walltime -1 --uid=user5 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal pseudo.job
+-dt 36 -e submit_batch_job | -J jobid_1013 -sim-walltime 0 --uid=user2 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --mem=500000 pseudo.job
+-dt 36 -e submit_batch_job | -J jobid_1014 -sim-walltime 7 --uid=user5 -t 00:01:00 -n 24 --ntasks-per-node=12 -A account2 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 39 -e submit_batch_job | -J jobid_1015 -sim-walltime 18 --uid=user2 -t 00:01:00 -n 6 --ntasks-per-node=6 -A account1 -p normal -q normal pseudo.job
+-dt 40 -e submit_batch_job | -J jobid_1016 -sim-walltime 25 --uid=user1 -t 00:01:00 -n 2 --ntasks-per-node=2 -A account1 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 42 -e submit_batch_job | -J jobid_1017 -sim-walltime 1 --uid=user1 -t 00:01:00 -n 48 --ntasks-per-node=12 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+-dt 42 -e submit_batch_job | -J jobid_1018 -sim-walltime 0 --uid=user3 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account1 -p normal -q normal pseudo.job
+-dt 43 -e submit_batch_job | -J jobid_1019 -sim-walltime 34 --uid=user4 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal --gres=gpu:2 pseudo.job
+-dt 43 -e submit_batch_job | -J jobid_1020 -sim-walltime 14 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
+```
+
+Each line corresponds to a single event, the arguments till the first pipe
+symbol (`|`) correspond to event time and event type, and arguments after the
+pipe symbol (`|`) correspond to event parameters. For the user's job submission
+format, the arguments are just like you submit to the `sbatch` command (it is
+processed by the same function), there are some additional arguments and some
+normal `sbatch` arguments which have to follow certain format. Bellow is the
+format:
+
+```         
+-dt <time to submit since the start of slurm controller> -e submit_batch_job | -J jobid_<jobid> -sim-walltime <walltime in seconds> --uid=<user> -t <requested time> -A <account> <Other Normal Slurm Arguments> pseudo.job
+```
+
+Here is a list of some often used `sbatch` arguments and simulator-augmented
+
+-   `-J jobid_<jobid>`: `-J` is a normal Slurm argument to specify jobname, we
+    use it for results processing automation, so give all jobs names like
+    `jobid_<jobid>`, where `<jobid>` is numeric job-id. Some-times your
+    simulation can be misconfigured and automatically assigned numeric `job-id`
+    can be misalligned.
+-   `-sim-walltime <walltime in seconds>`: specify walltime for job to run.
+    Value `0` means job have to be killed by Slurm due to running outside of
+    time-limit.
+-   `--uid=<user>`: it is a normal Slurm argument but we is it to specify which
+    user submit job
+-   `-t <requested time>`: it is a normal Slurm argument for time request
+-   `-A <account>`: it is a normal Slurm argument for specifying which account
+    to use
+-   `<Other normal Slurm arguments>`:
+    -   `-n <nomber of noded>`
+    -   `--ntasks-per-node=<ntasks-per-node>`
+    -   `--gres=<gres request>`
+    -   `--constraint=<features request>`
+    -   `--mem=<memory request>`
+    -   Try other `sbatch` arguments, they might work as well
+-   `pseudo.job`: should finished with script name, this also used in VC
+
+```{bash}
+pwd
+```
+
+## Run First Simulations
+
+`slurmsim` is a utility for various Slurm simulation tasks. To run the
+simulation, we will use the `run_sim` subcommand. Execute following:
+
+```bash
+export CLUS_DIR=$(pwd)
+export MACHINE_NAME="slurmsimcont"
+export RUN_NAME="test1"
+export dtstart=59
+export replica=1
+
+slurmsim -v run_sim  -d \
+            -e ${CLUS_DIR}/etc \
+            -a ${CLUS_DIR}/etc/sacctmgr.script \
+            -w ${CLUS_DIR}/workload/small.events \
+            -r ${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica} \
+            -dtstart $dtstart
+```
+
+```         
+    Logger initialization
+    [INFO] Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+    [INFO] NumExpr defaulting to 8 threads.
+    [INFO] Read from /home/slurm/work/micro_cluster/job_traces/small.events 20 even ts
+    [INFO] slurm.conf: /home/slurm/work/micro_cluster/etc/slurm.conf
+    [INFO] slurmdbd: /opt/slurm_sim/sbin/slurmdbd
+    [INFO] slurmd: /opt/slurm_sim/sbin/slurmd
+    [INFO] slurmctld: /opt/slurm_sim/sbin/slurmctld
+    [INFO] dropping db from previous runs
+    DROP DATABASE IF EXISTS slurmdb_micro
+    [INFO] directory (/home/slurm/work/micro_cluster/log) does not exist, creating it 
+    [INFO] deleting previous SlurmdbdPidFile file: /home/slurm/work/micro_cluster/var/slurmdbd.pid
+    [INFO] deleting previous StateSaveLocation files from /home/slurm/work/micro_cluster/var/state
+    [DEBUG] Set stdout/stderr for slurmctld to /home/slurm/work/micro_cluster/log/slurmctld_stdout.log
+    [DEBUG] Set stdout/stderr for slurmdbd to /home/slurm/work/micro_cluster/log/slurmdbd_stdout.log
+    [INFO] Launching slurmdbd
+    [INFO] Running sacctmgr script from /home/slurm/work/micro_cluster/etc/sacctmgr.script
+    sacctmgr: sacctmgr:  Modified qos...
+      normal
+    sacctmgr:  Adding QOS(s)
+      supporters
+     Settings
+      Description    = supporters
+      Priority                 = 100
+    sacctmgr: sacctmgr:  Adding Cluster(s)
+      Name           = micro
+     Setting
+      Default Limits:
+      Fairshare     = 1
+      QOS           = normal,supporters
+    sacctmgr: sacctmgr:  Adding Account(s)
+      account0
+     Settings
+      Description     = Account Name
+      Organization    = Parent/Account Name
+     Associations
+      A = account0   C = micro     
+     Settings
+      Fairshare     = 100
+      Parent        = root
+    sacctmgr:  Adding Account(s)
+      account1
+     Settings
+      Description     = Account Name
+      Organization    = Parent/Account Name
+     Associations
+      A = account1   C = micro     
+     Settings
+      Fairshare     = 100
+      Parent        = root
+    sacctmgr:  Adding Account(s)
+      account2
+     Settings
+      Description     = Account Name
+      Organization    = Parent/Account Name
+     Associations
+      A = account2   C = micro     
+     Settings
+      Fairshare     = 100
+      Parent        = root
+    sacctmgr: sacctmgr:  Adding User(s)
+      admin
+     Settings =
+      Default Account = account0
+      Admin Level     = Administrator
+     Associations =
+      U = admin     A = account0   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr: sacctmgr:  Adding User(s)
+      user1
+     Settings =
+      Default Account = account1
+     Associations =
+      U = user1     A = account1   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr:  Adding User(s)
+      user2
+     Settings =
+      Default Account = account1
+     Associations =
+      U = user2     A = account1   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr:  Adding User(s)
+      user3
+     Settings =
+      Default Account = account1
+     Associations =
+      U = user3     A = account1   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr:  Adding User(s)
+      user4
+     Settings =
+      Default Account = account2
+     Associations =
+      U = user4     A = account2   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr:  Adding User(s)
+      user5
+     Settings =
+      Default Account = account2
+     Associations =
+      U = user5     A = account2   C = micro     
+     Non Default Settings
+      MaxSubmitJobs = 1000
+    sacctmgr: sacctmgr:  Modified user associations...
+      C = micro      A = account2             U = user5    
+      C = micro      A = account2             U = user4    
+      C = micro      A = account1             U = user3    
+      C = micro      A = account1             U = user2    
+      C = micro      A = account1             U = user1    
+      C = micro      A = account0             U = admin    
+      C = micro      A = root                 U = root     
+    sacctmgr: sacctmgr: sacctmgr: Account                 Cluster       User     Share 
+    -------------------- ---------- ---------- --------- 
+    root                      micro                    1 
+     root                     micro       root         1 
+     account0                 micro                  100 
+      account0                micro      admin         1 
+     account1                 micro                  100 
+      account1                micro      user1         1 
+      account1                micro      user2         1 
+      account1                micro      user3         1 
+     account2                 micro                  100 
+      account2                micro      user4         1 
+      account2                micro      user5         1 
+    sacctmgr: 
+    [INFO] Launching slurmctld
+    ['/opt/slurm_sim/sbin/slurmctld', '-e', '/home/slurm/work/micro_cluster/job_traces/small.events', '-dtstart', '59']
+    [INFO] Current time 1710513133.6579173
+    [INFO] slurmdbd_create_time=1710513112.42
+    [INFO] slurmctld_create_time=1710513128.36
+    [INFO] slurmd_create_time=1710513127.36
+    [INFO] Starting job submittion
+    [INFO] Monitoring slurmctld until completion
+    [INFO] All jobs submitted wrapping up
+    [INFO] slurmctld took 30.056071043014526 seconds to run.
+    first_line [2022-01-01T05:00:15.938834] error: Unable to open pidfile `/var/run/slurmctld.pid': Permission denied
+     2022-01-01 05:00:15.938834 2022-01-01 05:00:15.938834
+    last_line [2022-01-01T05:03:57.912788] All done.
+     2022-01-01 05:03:57.912788 2022-01-01 05:03:57.912788
+    [INFO] Copying results to :/home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [INFO] copying resulting file /home/slurm/work/micro_cluster/log/jobcomp.log to /home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [INFO] copying resulting file /home/slurm/work/micro_cluster/log/slurmctld.log to /home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [INFO] copying resulting file /home/slurm/work/micro_cluster/log/sched.log to /home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [DEBUG] Submit time for first job: 2022-01-01 05:01:14.315371
+    [INFO] copying resulting file /home/slurm/work/micro_cluster/log/slurmctld_stdout.log to /home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [INFO] copying resulting file /home/slurm/work/micro_cluster/log/slurmdbd_stdout.log to /home/slurm/work/micro_cluster/results/slurmsimcont/test1/dtstart_59_1
+    [INFO] Simulated time: 0:03:41.973954
+    [INFO] Real time: 0:00:30.056383
+    [INFO] Acceleration: 7.385252
+    [INFO] Done
+```
+
+While it is running, we can take a look at specified arguments.
+First, we started with setting some bash variables, which will be convenient later when we automate runs for multiple simulations.
+We will go through all of them and describe what it is and why we are doing it in this way.
+
+```bash
+export CLUS_DIR=$(pwd)
+```
+
+It is convenient to specify pathways relative to our cluster simulation directory:
+
+```bash
+export MACHINE_NAME="slurmsimcont"
+```
+IT specidy machine name. 
+Just like with real Slurm, the speed of actual hardware can affect the scheduling, so it is helpful to track which hardware was used for simulation.
+
+```bash
+export RUN_NAME="test1"
+```
+
+`RUN_NAME` is used to label a particular test, for example, control, high-priority, and so on.
+
+```bash
+export dtstart=59
+export replica=1
+```
+
+Due to *stochasticity*, we need to have multiple runs. 
+We track them with `replica` parameter for identical run and `dtstart` for additional randomization.
+
+`replica` parameter is usually having values like 1,2,3,....
+
+`dtstart` specifies the time delay between the slurm controller start-up and the first job submission.
+It is the main randomization mechanism in Slurm Simulator.
+
+
+The following arguments were used for `slurmsim` CLI:
+* `-v` for extra messages
+* `run_sim` command to run single Slurm simulation.
+* `-d` remove results from the previous simulation
+* `-e` specify the location of slurm `etc.` directory `slurm.conf` and friends should be where
+* `-a` specify the sacctmgr script to set up accounts, users, qos and other things
+* `-w` specify workload event file (a.k.a. job traces file)
+*  `-r` specify results storage directory, we use following format:
+  `${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}`
+* `-dtstart` specifies the time delay between the slurm controller start-up and the first job submission.
+
+
+The `run_sim` command simplifies the execution of the Slurm Simulator. It does the following:
+
+1.  With `-d` option, it removes results from the previous simulation (clean DB, remove logs, shared memory, etc)
+2. Check the configuration files; some of the options are not supported in the Simulator, and some others should be set to a particular value. The configuration checking helps to run the simulation. Note that not everything is checked.
+3. Create missing directories
+4. Launch `slurmdbd`
+5. Execute `sacctmgr` script
+6. Launch `slurmctld` and start simulation
+7. On finishing `slurmctld` process termenate `slurmdbd`.
+8. Prepocess some outputs so that they can be loaded to R.
+9. Copy all resulting files to the results directory (set with `-r` option)
+
+
+Now take a closer look at the output, you should be able to see the above steps. At the end you will see something like this:
+```
+[INFO] Simulated time: 0:03:41.973954
+[INFO] Real time: 0:00:30.056383
+[INFO] Acceleration: 7.3852
+```
+
+This informs you on simulated time and the time acceleration.
+
+Take look at result directory:
+
+```{bash}
+ls results/slurmsimcont/test1/dtstart_59_1
+```
+
+```         
+jobcomp.log
+perf_profile.log
+perf_stat.log
+sched.log
+slurm_acct.out
+slurmctld.log
+slurmctld_log.csv
+slurmctld_stdout.log
+slurmdbd_stdout.log
+```
+
+There are a lot of logs and output files:
+
+-   `sched.log` - scheduler log, usually emptyl
+-   `slurm_acct.out` - `sacct` output at the end of the simulation
+-   `jobcomp.log` - log from `jobcomp` plug-in
+-   `slurmctl.log` - log from `slurmctld`
+-   `slurmctld_stdout.log` - standard output and standard error from
+    `slurmctld`, useful if simulation failed
+-   `slurmdbd_stdout.log` - standard output and standard error from `slurmdbd`
+    daemon, useful if simulation failed
+-   `slurmctld_log.csv` - Slurm controller events generated from `slurmctld.log`
+    processing
+
+Lets take a look at `slurm_acct.out`
+
+``` bash
+head -n 5 results/slurmsimcont/test1/dtstart_59_1/slurm_acct.out
+```
+
+```         
+    JobID|JobIDRaw|Cluster|Partition|Account|Group|GID|User|UID|Submit|Eligible|Start|End|Elapsed|ExitCode|State|NNodes|NCPUS|ReqCPUS|ReqMem|ReqTRES|Timelimit|QOS|NodeList|JobName|NTasks
+    1001|1001|micro|normal|account2|slurm|1000|user5|1005|2022-01-01T05:01:14|2022-01-01T05:01:14|2022-01-01T05:01:14|2022-01-01T05:01:14|00:00:00|0:0|COMPLETED|1|12|12|33600M|billing=12,cpu=12,mem=33600M,node=1|00:01:00|normal|b1|jobid_1001|
+    1002|1002|micro|normal|account1|slurm|1000|user1|1001|2022-01-01T05:01:15|2022-01-01T05:01:15|2022-01-01T05:01:16|2022-01-01T05:02:16|00:01:00|0:0|TIMEOUT|1|1|1|2800M|billing=1,cpu=1,mem=2800M,node=1|00:01:00|normal|n1|jobid_1002|
+    1003|1003|micro|normal|account2|slurm|1000|user4|1004|2022-01-01T05:01:16|2022-01-01T05:01:16|2022-01-01T05:01:16|2022-01-01T05:01:21|00:00:05|0:0|COMPLETED|1|1|1|500000M|billing=1,cpu=1,mem=500000M,node=1|00:01:00|normal|b1|jobid_1003|
+    1004|1004|micro|normal|account1|slurm|1000|user3|1003|2022-01-01T05:01:30|2022-01-01T05:01:30|2022-01-01T05:01:30|2022-01-01T05:01:51|00:00:21|0:0|COMPLETED|2|24|24|67200M|billing=24,cpu=24,mem=67200M,node=1|00:01:00|normal|b1,g1|jobid_1004|
+```
+
+It contains information on compleded jobs. It will be used for our analysis.
+
+You also can find two new directories `log` and `var`. Thouse are used temporary
+while Slurm Simulator is running all importent files are eventually copied to
+results directory.
+
+We rarely would have only one simulation (need statistics), so before moving to
+results reading lets make another simulation:
+
+``` bash
+export CLUS_DIR=$(pwd)
+export MACHINE_NAME="slurmsimcont"
+export RUN_NAME="test1"
+export dtstart=79
+export replica=1
+
+slurmsim -v run_sim  -d \
+            -e ${CLUS_DIR}/etc \
+            -a ${CLUS_DIR}/etc/sacctmgr.script \
+            -w ${CLUS_DIR}/workload/small.events \
+            -r ${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica} \
+            -dtstart $dtstart
+```
+
+## Read Results
+
+Because there is a need to handle multiple runs at a same time we have developed a 
+tools which help us with that.
+`read_sacct_out_multiple` will read multiple `slurm_acct.out` from simulations 
+with different start time and replicas.
+
+```{r}
+sacct <- read_sacct_out_multiple(
+    slurm_mode="test1", # name of simulation
+    results_root_dir="results/slurmsimcont/test1",
+    dtstart_list=c(59, 79), # start time list
+    run_id_list=1, # replicas list
+    # sacct_out="slurm_acct.out"  # non-standard name of sacct_out
+)
+
+sacct
+```
+`read_sacct_out_multiple` also recalculates `SubmitTime`, `StartTime` and `EndTime` 
+in reference to the submission of first job.
+
+`read_events_multiple` read events which ever extracted from slurmctrl logs:
+
+```{r}
+events_time <- read_events_multiple(
+    slurm_mode="test1", # name of simulation
+    results_root_dir="results/slurmsimcont/test1",
+    dtstart_list=c(59, 79), # start time list
+    run_id_list=1, # replicas list
+    #events_csv="slurmctld_log.csv" # non-standard name of slurmctld_log.csv
+)
+events_time
+```
+## Make Events Plot
+
+Let's make a plot for starting times of our two simulations
+
+```{r}
+plot_grid(
+  ggplot(sacct, aes(
+    x=SubmitTime,y=JobRecID,color=factor(dtstart),shape=factor(dtstart)))+
+    geom_point() + scale_shape_manual(values = c(3,4)),
+  ggplot(sacct, aes(
+    x=StartTime,y=JobRecID,color=factor(dtstart),shape=factor(dtstart)))+
+    geom_point() + scale_shape_manual(values = c(3,4)),
+  labels = c("A","B"), nrow=2
+)
+
+```
+You can find that even though submit time is same between two realization the start time can be substantially different.
+
+What are the reasons for such behavior? 
+Many Slurm routines are executed in cyclic manner: some will go to sleep for 
+predefined amount of time before repeating the cycle, others will check time to time
+was a predefined amount of time passed since the last time cycle was started.
+
+For example the function that 
+kills jobs running over the requested walltime, start a new cycle 
+if 30 seconds passed from last run and then it willcheck all jobs. 
+The thread which do the job also do other things so time between checks is not always exact 30 seconds.
+
+In addition we don't know a-priori. at which stage of these varying stop and start cycles the job submission ended up.
+So we have to try all different possibilities and report an average behaiviour.
+
+To identify what exactly went different we can use event diagramm:
+
+```{r}
+
+
+```
+
+
+
+

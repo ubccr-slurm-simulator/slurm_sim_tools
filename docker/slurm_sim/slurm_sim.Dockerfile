@@ -78,12 +78,14 @@ RUN mkdir /var/log/slurm  && \
 # more r and python dependencies
 RUN fix-permissions "${CONDA_DIR}" && \
     mamba install --yes \
-    'pymysql' && \
+    'pymysql' 'qgrid'&& \
     mamba install --yes \
-    'r-plotly' 'r-repr' 'r-irdisplay' 'r-pbdzmq'&& \
+    'r-plotly' 'r-repr' 'r-irdisplay' 'r-pbdzmq' 'r-reticulate' 'r-cowplot' && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
-    fix-permissions "/home/${NB_USER}"
+    fix-permissions "/home/${NB_USER}" && \
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
+    jupyter labextension install qgrid2
 
 # Install eclipse for development porposes
 RUN cd /tmp && \
@@ -171,7 +173,11 @@ RUN apt-get update \
 #  && mkdir -p /etc/services.d/rstudio
   && echo "#!/usr/bin/env bash" > /usr/local/bin/before-notebook.d/rstudio-run \
   && echo "exec /usr/lib/rstudio-server/bin/rserver" >> /usr/local/bin/before-notebook.d/rstudio-run \
-    && chmod 755 /usr/local/bin/before-notebook.d/rstudio-run
+  && chmod 755 /usr/local/bin/before-notebook.d/rstudio-run \
+  # Server Configuration File
+  && echo "rsession-which-r=/opt/conda/bin/R" >> /etc/rstudio/rserver.conf \
+  && echo "auth-stay-signed-in-days=365" >> /etc/rstudio/rserver.conf \
+  && echo "session-timeout-minutes=3000" >> /etc/rstudio/rserver.conf
 #  && echo '#!/bin/bash \
 #          \n rstudio-server stop' \
 #          > /etc/services.d/rstudio/finish \
@@ -224,7 +230,7 @@ RUN mkdir -p /opt/slurm_sim_bld/slurm_sim_opt && \
        'CFLAGS=-g -O0 -Wno-error=unused-variable -Wno-error=implicit-function-declaration' \
        --enable-simulator && \
     make -j 8 && \
-    make -j 8 install \
+    make -j 8 install
 # install R Slurm Simulator Toolkit
 # install.packages("/home/slurm/slurm_sim_ws/slurm_sim_tools/src/RSlurmSimTools", repos = NULL, type="source")
 
