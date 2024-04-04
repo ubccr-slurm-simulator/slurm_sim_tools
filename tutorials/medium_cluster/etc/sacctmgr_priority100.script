@@ -1,0 +1,337 @@
+# add/modify QOS
+remove QOS where Name=normal
+add QOS Name=general-compute Priority=0 MaxSubmitJobsPerUser=10000
+add QOS Name=supporters Priority=100 MaxSubmitJobsPerUser=1000
+add QOS Name=priority Priority=100 MaxSubmitJobsPerUser=10000
+add QOS Name=priority-supporters Priority=200 MaxSubmitJobsPerUser=1000
+add QOS Name=debug Priority=0 MaxSubmitJobsPerUser=20
+
+# add cluster
+add cluster Name=ubhpc Fairshare=1 QOS=general-compute,supporters,priority,priority-supporters,debug
+
+# add accounts
+add account name=account0 Fairshare=100
+add account Name=account001 Description=account001 Organization=account001 Fairshare=100
+add account Name=account002 Description=account002 Organization=account002 Fairshare=100
+add account Name=account003 Description=account003 Organization=account003 Fairshare=100
+add account Name=account004 Description=account004 Organization=account004 Fairshare=100
+add account Name=account005 Description=account005 Organization=account005 Fairshare=100
+add account Name=account006 Description=account006 Organization=account006 Fairshare=100
+add account Name=account007 Description=account007 Organization=account007 Fairshare=100
+add account Name=account008 Description=account008 Organization=account008 Fairshare=100
+add account Name=account009 Description=account009 Organization=account009 Fairshare=100
+add account Name=account010 Description=account010 Organization=account010 Fairshare=100
+add account Name=account011 Description=account011 Organization=account011 Fairshare=100
+add account Name=account012 Description=account012 Organization=account012 Fairshare=100
+add account Name=account013 Description=account013 Organization=account013 Fairshare=100
+add account Name=account014 Description=account014 Organization=account014 Fairshare=100
+add account Name=account015 Description=account015 Organization=account015 Fairshare=100
+add account Name=account016 Description=account016 Organization=account016 Fairshare=100
+add account Name=account017 Description=account017 Organization=account017 Fairshare=100
+add account Name=account018 Description=account018 Organization=account018 Fairshare=100
+add account Name=account019 Description=account019 Organization=account019 Fairshare=100
+add account Name=account020 Description=account020 Organization=account020 Fairshare=100
+add account Name=account021 Description=account021 Organization=account021 Fairshare=100
+add account Name=account022 Description=account022 Organization=account022 Fairshare=100
+add account Name=account023 Description=account023 Organization=account023 Fairshare=100
+add account Name=account024 Description=account024 Organization=account024 Fairshare=100
+add account Name=account025 Description=account025 Organization=account025 Fairshare=100
+add account Name=account026 Description=account026 Organization=account026 Fairshare=100
+add account Name=account027 Description=account027 Organization=account027 Fairshare=100
+add account Name=account028 Description=account028 Organization=account028 Fairshare=100
+add account Name=account029 Description=account029 Organization=account029 Fairshare=100
+add account Name=account030 Description=account030 Organization=account030 Fairshare=100
+add account Name=account031 Description=account031 Organization=account031 Fairshare=100
+add account Name=account032 Description=account032 Organization=account032 Fairshare=100
+add account Name=account033 Description=account033 Organization=account033 Fairshare=100
+add account Name=account034 Description=account034 Organization=account034 Fairshare=100
+add account Name=account035 Description=account035 Organization=account035 Fairshare=100
+add account Name=account036 Description=account036 Organization=account036 Fairshare=100
+add account Name=account037 Description=account037 Organization=account037 Fairshare=100
+add account Name=account038 Description=account038 Organization=account038 Fairshare=100
+add account Name=account039 Description=account039 Organization=account039 Fairshare=100
+add account Name=account040 Description=account040 Organization=account040 Fairshare=100
+add account Name=account041 Description=account041 Organization=account041 Fairshare=100
+add account Name=account042 Description=account042 Organization=account042 Fairshare=100
+add account Name=account043 Description=account043 Organization=account043 Fairshare=100
+add account Name=account044 Description=account044 Organization=account044 Fairshare=100
+add account Name=account045 Description=account045 Organization=account045 Fairshare=100
+add account Name=account046 Description=account046 Organization=account046 Fairshare=100
+add account Name=account047 Description=account047 Organization=account047 Fairshare=100
+add account Name=account048 Description=account048 Organization=account048 Fairshare=100
+add account Name=account049 Description=account049 Organization=account049 Fairshare=100
+add account Name=account050 Description=account050 Organization=account050 Fairshare=100
+add account Name=account051 Description=account051 Organization=account051 Fairshare=100
+add account Name=account052 Description=account052 Organization=account052 Fairshare=100
+add account Name=account053 Description=account053 Organization=account053 Fairshare=100
+add account Name=account054 Description=account054 Organization=account054 Fairshare=100
+add account Name=account055 Description=account055 Organization=account055 Fairshare=100
+add account Name=account056 Description=account056 Organization=account056 Fairshare=100
+add account Name=account057 Description=account057 Organization=account057 Fairshare=100
+add account Name=account058 Description=account058 Organization=account058 Fairshare=100
+add account Name=account059 Description=account059 Organization=account059 Fairshare=100
+add account Name=account060 Description=account060 Organization=account060 Fairshare=100
+add account Name=account061 Description=account061 Organization=account061 Fairshare=100
+
+# add admin
+add user name=admin DefaultAccount=account0 MaxSubmitJobs=1000 AdminLevel=Administrator
+
+# add users
+add user Name=user001 DefaultAccount=account001 Fairshare=parent Account=account001
+add user Name=user002 DefaultAccount=account002 Fairshare=parent Account=account002
+add user Name=user003 DefaultAccount=account003 Fairshare=parent Account=account003
+add user Name=user004 DefaultAccount=account004 Fairshare=parent Account=account004
+add user Name=user005 DefaultAccount=account005 Fairshare=parent Account=account005
+add user Name=user006 DefaultAccount=account006 Fairshare=parent Account=account006
+add user Name=user007 DefaultAccount=account007 Fairshare=parent Account=account007
+add user Name=user008 DefaultAccount=account008 Fairshare=parent Account=account008
+add user Name=user009 DefaultAccount=account009 Fairshare=parent Account=account009
+add user Name=user010 DefaultAccount=account010 Fairshare=parent Account=account010
+add user Name=user011 DefaultAccount=account011 Fairshare=parent Account=account011
+add user Name=user012 DefaultAccount=account012 Fairshare=parent Account=account012
+add user Name=user013 DefaultAccount=account013 Fairshare=parent Account=account013
+add user Name=user014 DefaultAccount=account001 Fairshare=parent Account=account001
+add user Name=user015 DefaultAccount=account012 Fairshare=parent Account=account012
+add user Name=user016 DefaultAccount=account014 Fairshare=parent Account=account014
+add user Name=user017 DefaultAccount=account004 Fairshare=parent Account=account004
+add user Name=user018 DefaultAccount=account015 Fairshare=parent Account=account015
+add user Name=user019 DefaultAccount=account016 Fairshare=parent Account=account016
+add user Name=user020 DefaultAccount=account017 Fairshare=parent Account=account017
+add user Name=user021 DefaultAccount=account018 Fairshare=parent Account=account018
+add user Name=user022 DefaultAccount=account010 Fairshare=parent Account=account010
+add user Name=user023 DefaultAccount=account019 Fairshare=parent Account=account019
+add user Name=user024 DefaultAccount=account020 Fairshare=parent Account=account020
+add user Name=user025 DefaultAccount=account021 Fairshare=parent Account=account018
+add user Name=user026 DefaultAccount=account022 Fairshare=parent Account=account022
+add user Name=user027 DefaultAccount=account023 Fairshare=parent Account=account023
+add user Name=user028 DefaultAccount=account024 Fairshare=parent Account=account024
+add user Name=user029 DefaultAccount=account025 Fairshare=parent Account=account025
+add user Name=user030 DefaultAccount=account026 Fairshare=parent Account=account026
+add user Name=user031 DefaultAccount=account027 Fairshare=parent Account=account027
+add user Name=user032 DefaultAccount=account028 Fairshare=parent Account=account028
+add user Name=user033 DefaultAccount=account029 Fairshare=parent Account=account029
+add user Name=user034 DefaultAccount=account028 Fairshare=parent Account=account028
+add user Name=user035 DefaultAccount=account030 Fairshare=parent Account=account030
+add user Name=user036 DefaultAccount=account031 Fairshare=parent Account=account059
+add user Name=user037 DefaultAccount=account028 Fairshare=parent Account=account028
+add user Name=user038 DefaultAccount=account032 Fairshare=parent Account=account032
+add user Name=user039 DefaultAccount=account008 Fairshare=parent Account=account008
+add user Name=user040 DefaultAccount=account033 Fairshare=parent Account=account006
+add user Name=user041 DefaultAccount=account034 Fairshare=parent Account=account034
+add user Name=user042 DefaultAccount=account035 Fairshare=parent Account=account035
+add user Name=user043 DefaultAccount=account036 Fairshare=parent Account=account036
+add user Name=user044 DefaultAccount=account037 Fairshare=parent Account=account001
+add user Name=user045 DefaultAccount=account016 Fairshare=parent Account=account016
+add user Name=user046 DefaultAccount=account035 Fairshare=parent Account=account035
+add user Name=user047 DefaultAccount=account016 Fairshare=parent Account=account016
+add user Name=user048 DefaultAccount=account038 Fairshare=parent Account=account038
+add user Name=user049 DefaultAccount=account039 Fairshare=parent Account=account039
+add user Name=user050 DefaultAccount=account040 Fairshare=parent Account=account053
+add user Name=user051 DefaultAccount=account037 Fairshare=parent Account=account001
+add user Name=user052 DefaultAccount=account040 Fairshare=parent Account=account040
+add user Name=user053 DefaultAccount=account041 Fairshare=parent Account=account041
+add user Name=user054 DefaultAccount=account013 Fairshare=parent Account=account013
+add user Name=user055 DefaultAccount=account042 Fairshare=parent Account=account042
+add user Name=user056 DefaultAccount=account006 Fairshare=parent Account=account006
+add user Name=user057 DefaultAccount=account018 Fairshare=parent Account=account018
+add user Name=user058 DefaultAccount=account043 Fairshare=parent Account=account043
+add user Name=user059 DefaultAccount=account044 Fairshare=parent Account=account044
+add user Name=user060 DefaultAccount=account045 Fairshare=1 Account=account045
+add user Name=user061 DefaultAccount=account042 Fairshare=parent Account=account042
+add user Name=user062 DefaultAccount=account015 Fairshare=parent Account=account015
+add user Name=user063 DefaultAccount=account046 Fairshare=parent Account=account046
+add user Name=user064 DefaultAccount=account047 Fairshare=parent Account=account047
+add user Name=user065 DefaultAccount=account037 Fairshare=parent Account=account048
+add user Name=user066 DefaultAccount=account008 Fairshare=parent Account=account008
+add user Name=user067 DefaultAccount=account049 Fairshare=parent Account=account049
+add user Name=user068 DefaultAccount=account031 Fairshare=parent Account=account031
+add user Name=user069 DefaultAccount=account037 Fairshare=parent Account=account037
+add user Name=user070 DefaultAccount=account037 Fairshare=parent Account=account001
+add user Name=user071 DefaultAccount=account050 Fairshare=parent Account=account050
+add user Name=user072 DefaultAccount=account032 Fairshare=parent Account=account032
+add user Name=user073 DefaultAccount=account051 Fairshare=parent Account=account051
+add user Name=user074 DefaultAccount=account052 Fairshare=parent Account=account052
+add user Name=user075 DefaultAccount=account053 Fairshare=parent Account=account053
+add user Name=user076 DefaultAccount=account054 Fairshare=parent Account=account054
+add user Name=user077 DefaultAccount=account024 Fairshare=parent Account=account024
+add user Name=user078 DefaultAccount=account044 Fairshare=parent Account=account044
+add user Name=user079 DefaultAccount=account028 Fairshare=parent Account=account028
+add user Name=user080 DefaultAccount=account055 Fairshare=parent Account=account055
+add user Name=user081 DefaultAccount=account056 Fairshare=parent Account=account018
+add user Name=user082 DefaultAccount=account047 Fairshare=parent Account=account047
+add user Name=user083 DefaultAccount=account035 AdminLevel=Administrator Fairshare=parent Account=account035
+add user Name=user084 DefaultAccount=account007 Fairshare=parent Account=account007
+add user Name=user086 DefaultAccount=account057 Fairshare=parent Account=account057
+add user Name=user087 DefaultAccount=account008 Fairshare=parent Account=account008
+add user Name=user088 DefaultAccount=account058 Fairshare=parent Account=account058
+add user Name=user089 DefaultAccount=account059 Fairshare=parent Account=account059
+add user Name=user090 DefaultAccount=account060 Fairshare=parent Account=account060
+add user Name=user091 DefaultAccount=account020 Fairshare=parent Account=account020
+add user Name=user092 DefaultAccount=account061 Fairshare=parent Account=account061
+add user Name=user093 DefaultAccount=account059 Fairshare=parent Account=account059
+add user Name=user094 DefaultAccount=account002 Fairshare=parent Account=account002
+add user Name=user095 DefaultAccount=account006 Fairshare=parent Account=account006
+add user Name=user085 DefaultAccount=account014 Fairshare=parent Account=account014
+
+# add users to qos level
+#modify user set qoslevel="general-compute,supporters,priority,priority-supporters,debug"
+modify account name=account001 set qos=debug,general-compute
+modify account name=account002 set qos=debug,general-compute
+modify account name=account003 set qos=debug,general-compute
+modify account name=account004 set qos=priority-supporters,supporters,general-compute,debug
+modify account name=account005 set qos=debug,general-compute
+modify account name=account006 set qos=priority,debug,general-compute
+modify account name=account007 set qos=priority-supporters,debug,general-compute
+modify account name=account008 set qos=debug,general-compute
+modify account name=account009 set qos=debug,general-compute
+modify account name=account010 set qos=debug,general-compute
+modify account name=account011 set qos=debug,general-compute
+modify account name=account012 set qos=debug,general-compute
+modify account name=account013 set qos=priority,debug,general-compute
+modify account name=account014 set qos=priority,debug,general-compute
+modify account name=account015 set qos=debug,general-compute
+modify account name=account016 set qos=debug,general-compute
+modify account name=account017 set qos=debug,general-compute
+modify account name=account018 set qos=debug,general-compute
+modify account name=account019 set qos=debug,general-compute
+modify account name=account020 set qos=debug,general-compute
+modify account name=account021 set qos=debug,general-compute
+modify account name=account022 set qos=debug,general-compute
+modify account name=account023 set qos=supporters,debug,general-compute
+modify account name=account024 set qos=debug,general-compute
+modify account name=account025 set qos=debug,general-compute
+modify account name=account026 set qos=debug,general-compute
+modify account name=account027 set qos=debug,general-compute
+modify account name=account028 set qos=debug,general-compute
+modify account name=account029 set qos=debug,general-compute
+modify account name=account030 set qos=priority,debug,general-compute
+modify account name=account031 set qos=debug,general-compute
+modify account name=account032 set qos=debug,general-compute
+modify account name=account033 set qos=debug,general-compute
+modify account name=account034 set qos=debug,general-compute
+modify account name=account035 set qos=debug,general-compute
+modify account name=account036 set qos=priority,debug,general-compute
+modify account name=account037 set qos=debug,general-compute
+modify account name=account038 set qos=debug,general-compute
+modify account name=account039 set qos=supporters,debug,general-compute
+modify account name=account040 set qos=debug,general-compute
+modify account name=account041 set qos=debug,general-compute
+modify account name=account042 set qos=debug,general-compute
+modify account name=account043 set qos=debug,general-compute
+modify account name=account044 set qos=debug,general-compute
+modify account name=account045 set qos=debug,general-compute
+modify account name=account046 set qos=debug,general-compute
+modify account name=account047 set qos=debug,general-compute
+modify account name=account048 set qos=priority,debug,general-compute
+modify account name=account049 set qos=debug,general-compute
+modify account name=account050 set qos=priority,debug,general-compute
+modify account name=account051 set qos=debug,general-compute
+modify account name=account052 set qos=debug,general-compute
+modify account name=account053 set qos=priority,debug,general-compute
+modify account name=account054 set qos=debug,general-compute
+modify account name=account055 set qos=debug,general-compute
+modify account name=account056 set qos=debug,general-compute
+modify account name=account057 set qos=debug,general-compute
+modify account name=account058 set qos=debug,general-compute
+modify account name=account059 set qos=debug,general-compute
+modify account name=account060 set qos=debug,general-compute
+modify account name=account061 set qos=debug,general-compute
+
+modify user name=user001 set qos=debug,general-compute
+modify user name=user002 set qos=debug,general-compute
+modify user name=user003 set qos=debug,general-compute
+modify user name=user004 set qos=debug,general-compute
+modify user name=user005 set qos=debug,general-compute
+modify user name=user006 set qos=priority,debug,general-compute
+modify user name=user007 set qos=priority-supporters,debug,general-compute
+modify user name=user008 set qos=debug,general-compute
+modify user name=user009 set qos=debug,general-compute
+modify user name=user010 set qos=debug,general-compute
+modify user name=user011 set qos=debug,general-compute
+modify user name=user012 set qos=debug,general-compute
+modify user name=user013 set qos=priority,debug,general-compute
+modify user name=user014 set qos=debug,general-compute
+modify user name=user015 set qos=debug,general-compute
+modify user name=user016 set qos=priority,debug,general-compute
+modify user name=user017 set qos=priority-supporters,supporters,general-compute,debug
+modify user name=user018 set qos=debug,general-compute
+modify user name=user019 set qos=debug,general-compute
+modify user name=user020 set qos=debug,general-compute
+modify user name=user021 set qos=debug,general-compute
+modify user name=user022 set qos=debug,general-compute
+modify user name=user023 set qos=debug,general-compute
+modify user name=user024 set qos=debug,general-compute
+modify user name=user025 set qos=debug,general-compute
+modify user name=user026 set qos=debug,general-compute
+modify user name=user027 set qos=supporters,debug,general-compute
+modify user name=user028 set qos=debug,general-compute
+modify user name=user029 set qos=debug,general-compute
+modify user name=user030 set qos=debug,general-compute
+modify user name=user031 set qos=debug,general-compute
+modify user name=user032 set qos=debug,general-compute
+modify user name=user033 set qos=debug,general-compute
+modify user name=user034 set qos=debug,general-compute
+modify user name=user035 set qos=priority,debug,general-compute
+modify user name=user036 set qos=debug,general-compute
+modify user name=user037 set qos=debug,general-compute
+modify user name=user038 set qos=debug,general-compute
+modify user name=user039 set qos=debug,general-compute
+modify user name=user040 set qos=debug,general-compute
+modify user name=user041 set qos=debug,general-compute
+modify user name=user042 set qos=debug,general-compute
+modify user name=user043 set qos=priority,debug,general-compute
+modify user name=user044 set qos=debug,general-compute
+modify user name=user045 set qos=debug,general-compute
+modify user name=user046 set qos=debug,general-compute
+modify user name=user047 set qos=debug,general-compute
+modify user name=user048 set qos=debug,general-compute
+modify user name=user049 set qos=supporters,debug,general-compute
+modify user name=user050 set qos=debug,general-compute
+modify user name=user051 set qos=debug,general-compute
+modify user name=user052 set qos=debug,general-compute
+modify user name=user053 set qos=debug,general-compute
+modify user name=user054 set qos=priority,debug,general-compute
+modify user name=user055 set qos=debug,general-compute
+modify user name=user056 set qos=priority,debug,general-compute
+modify user name=user057 set qos=debug,general-compute
+modify user name=user058 set qos=debug,general-compute
+modify user name=user059 set qos=debug,general-compute
+modify user name=user060 set qos=debug,general-compute
+modify user name=user061 set qos=debug,general-compute
+modify user name=user062 set qos=debug,general-compute
+modify user name=user063 set qos=debug,general-compute
+modify user name=user064 set qos=debug,general-compute
+modify user name=user065 set qos=priority,debug,general-compute
+modify user name=user066 set qos=debug,general-compute
+modify user name=user067 set qos=debug,general-compute
+modify user name=user068 set qos=debug,general-compute
+modify user name=user069 set qos=debug,general-compute
+modify user name=user070 set qos=debug,general-compute
+modify user name=user071 set qos=priority,debug,general-compute
+modify user name=user072 set qos=debug,general-compute
+modify user name=user073 set qos=debug,general-compute
+modify user name=user074 set qos=debug,general-compute
+modify user name=user075 set qos=priority,debug,general-compute
+modify user name=user076 set qos=debug,general-compute
+modify user name=user077 set qos=debug,general-compute
+modify user name=user078 set qos=debug,general-compute
+modify user name=user079 set qos=debug,general-compute
+modify user name=user080 set qos=debug,general-compute
+modify user name=user081 set qos=debug,general-compute
+modify user name=user082 set qos=debug,general-compute
+modify user name=user083 set qos=debug,general-compute
+modify user name=user084 set qos=debug,general-compute
+modify user name=user086 set qos=debug,general-compute
+modify user name=user087 set qos=debug,general-compute
+modify user name=user088 set qos=debug,general-compute
+modify user name=user089 set qos=debug,general-compute
+modify user name=user090 set qos=debug,general-compute
+modify user name=user091 set qos=debug,general-compute
+modify user name=user092 set qos=debug,general-compute
+modify user name=user093 set qos=debug,general-compute
+modify user name=user094 set qos=debug,general-compute
+modify user name=user095 set qos=debug,general-compute
+modify user name=user085 set qos=debug,general-compute
+
+# check results
+list associations format=Account,Cluster,User,Fairshare,QoS tree withd

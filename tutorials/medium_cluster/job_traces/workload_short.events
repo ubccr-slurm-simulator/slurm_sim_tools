@@ -1,0 +1,20 @@
+-dt          10.50 -e submit_batch_job | -sim-walltime   84805.00 --uid=user001 -J jobid_00001 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=500G pseudo.job
+-dt          10.75 -e submit_batch_job | -sim-walltime   12688.00 --uid=user002 -J jobid_00002 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=187000M pseudo.job
+-dt          11.00 -e submit_batch_job | -sim-walltime    2009.00 --uid=user003 -J jobid_00003 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          11.25 -e submit_batch_job | -sim-walltime    2003.00 --uid=user003 -J jobid_00004 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          11.50 -e submit_batch_job | -sim-walltime    2004.00 --uid=user003 -J jobid_00005 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          11.75 -e submit_batch_job | -sim-walltime    2024.00 --uid=user003 -J jobid_00006 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          12.00 -e submit_batch_job | -sim-walltime    2024.00 --uid=user003 -J jobid_00007 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          12.25 -e submit_batch_job | -sim-walltime    2061.00 --uid=user003 -J jobid_00008 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          12.50 -e submit_batch_job | -sim-walltime    2023.00 --uid=user003 -J jobid_00009 -N    2 -n     18 -t 3-00:00:00 -q general-compute -p general-compute --mem=250G pseudo.job
+-dt          37.00 -e submit_batch_job | -sim-walltime  259214.00 --uid=user004 -J jobid_00107 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=80000M pseudo.job
+-dt          37.25 -e submit_batch_job | -sim-walltime  259214.00 --uid=user004 -J jobid_00108 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=80000M pseudo.job
+-dt          37.50 -e submit_batch_job | -sim-walltime  259214.00 --uid=user004 -J jobid_00109 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=80000M pseudo.job
+-dt          37.75 -e submit_batch_job | -sim-walltime  259214.00 --uid=user004 -J jobid_00110 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=80000M pseudo.job
+-dt          38.00 -e submit_batch_job | -sim-walltime      12.00 --uid=user005 -J jobid_00111 -N    2 -n     80 -t 3-00:00:00 -q general-compute -p general-compute --gres=gpu:2 --gres=gpu:2 --mem=180G pseudo.job
+-dt          38.25 -e submit_batch_job | -sim-walltime      12.00 --uid=user005 -J jobid_00112 -N    2 -n     80 -t 3-00:00:00 -q general-compute -p general-compute --gres=gpu:2 --gres=gpu:2 --mem=180G pseudo.job
+-dt          38.50 -e submit_batch_job | -sim-walltime      18.00 --uid=user006 -J jobid_00113 -N    1 -n     32 -t 3-00:00:00 -q priority -p general-compute --mem=62G --exclusive=user pseudo.job
+-dt          38.75 -e submit_batch_job | -sim-walltime      17.00 --uid=user006 -J jobid_00114 -N    1 -n     32 -t 3-00:00:00 -q priority -p general-compute --mem=62G --exclusive=user pseudo.job
+-dt          39.00 -e submit_batch_job | -sim-walltime   11430.00 --uid=user002 -J jobid_00115 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=187000M --exclusive pseudo.job
+-dt          39.25 -e submit_batch_job | -sim-walltime    4446.00 --uid=user002 -J jobid_00116 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=187000M --exclusive pseudo.job
+-dt          39.50 -e submit_batch_job | -sim-walltime    4460.00 --uid=user002 -J jobid_00117 -N    1 -n     32 -t 3-00:00:00 -q general-compute -p general-compute --mem=187000M --exclusive pseudo.job

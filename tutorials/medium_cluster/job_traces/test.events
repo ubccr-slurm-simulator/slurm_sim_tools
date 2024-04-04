@@ -1,0 +1,26 @@
+-dt 0 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1core -q general-compute -N 1 -t 5:00 pseudo.job
+-dt 0 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 1 -n 40 -t 5:00 pseudo.job
+-dt 0 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J bigmem -q general-compute -N 1 -n 40 -t 5:00 --mem=512G pseudo.job
+-dt 0 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J gpu1 -q general-compute -N 1 -n 1 --gres=gpu:1 -t 5:00 pseudo.job
+-dt 1 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J gpu2 -q general-compute -N 1 -n 2 --gres=gpu:2 -t 5:00 pseudo.job
+-dt 1 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J gpu1 -q general-compute -N 1 -n 1 --gres=gpu:1 -t 5:00 pseudo.job
+-dt 1 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg8cores -q general-compute -N 1 -n 8 -t 5:00 pseudo.job
+
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1core -q general-compute -N 1 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 2 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 4 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 8 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1core -q general-compute -N 1 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 2 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user001 -J reg1node -q general-compute -N 4 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user001 -cancel-in 10 -J reg1node -q general-compute -N 8 --ntasks-per-node=32 -t 5:00 pseudo.job
+
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1core -q general-compute -N 1 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1node -q general-compute -N 2 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1node -q general-compute -N 4 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 2.5 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1node -q general-compute -N 8 --ntasks-per-node=40 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1core -q general-compute -N 1 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1node -q general-compute -N 2 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user002 -J reg1node -q general-compute -N 4 --ntasks-per-node=32 -t 5:00 pseudo.job
+-dt 3 -e submit_batch_job | -sim-walltime 300 --uid=user002  -cancel-in 10.5 -J reg1node -q general-compute -N 8 --ntasks-per-node=32 -t 5:00 pseudo.job
+

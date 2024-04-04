@@ -1,0 +1,50 @@
+---
+title: "Slurm Simulator: Middium Cluster Tutorial"
+author: nikolays@buffalo.edu
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 4
+    mathjax: null
+    css: ../doc.css
+    df_print: paged
+
+editor_options:
+  markdown:
+    wrap: 80
+---
+
+# Slurm Simulator: Micro Cluster Tutorial
+
+In this exercise the idea is to check how different priorities affect wait time
+
+Check following files in etc directory:
+```
+sacctmgr_nopriority.script
+sacctmgr_priority100.script
+sacctmgr_priority200.script
+```
+Notice that they have different priorities for QoS
+
+...
+
+
+
+...
+
+
+### Adopting the Slurm Configuration for Simulation
+
+The simulator is built from Slurm code and uses regular Slurm configuration.
+
+In `etc` directory you can find several Slurm configuration files that were used in Virtual Clusters (actual unmodified Slurm installation where each compute node is represented as docker container).
+
+First, we need to modify it for the simulation purposes.
+
+The Slurm configuration files:
+* `slurm.conf`
+* `topology.conf`
+* `gres.conf`
+* `slurmdbd.conf`
