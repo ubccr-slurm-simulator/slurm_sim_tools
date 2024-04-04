@@ -1,13 +1,23 @@
 Package: RSlurmSimTools
 Type: Package
 Title: R Toolkit for Slurm Simulator 
-Version: 2.0
-Date: 2020-12-29
+Version: 3.0
+Date: 2024-03-15
 Author: Nikolay Simakov
 Maintainer: Nikolay Simakov <nikolays@buffalo.edu>
 Description: R utilities for job traces preparation and results analysis for Slurm Simulator
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.8),reticulate,stringr,lubridate
+Imports:
+    Rcpp (>= 0.12.8),
+    dplyr,
+    ggplot2,
+    lubridate,
+    stringr,
+    plotly,
+    magrittr,
+    reticulate,
+    scales,
+    tibble
 LinkingTo: Rcpp
-SystemRequirements: python (>=2.7.10)
+SystemRequirements: python (>=3.8.10)
 RoxygenNote: 7.1.1

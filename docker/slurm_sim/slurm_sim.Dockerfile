@@ -80,7 +80,8 @@ RUN fix-permissions "${CONDA_DIR}" && \
     mamba install --yes \
     'pymysql' 'qgrid'&& \
     mamba install --yes \
-    'r-plotly' 'r-repr' 'r-irdisplay' 'r-pbdzmq' 'r-reticulate' 'r-cowplot' && \
+    'r-plotly' 'r-repr' 'r-irdisplay' 'r-pbdzmq' 'r-reticulate' 'r-cowplot' \
+    'r-magrittr' && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}" && \
@@ -144,15 +145,15 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/ \
   ## RStudio wants an /etc/R, will populate from $R_HOME/etc
-#  && mkdir -p /etc/R \
-#  ## Write config files in $R_HOME/etc
-#  && echo '\n\
-#    \n# Configure httr to perform out-of-band authentication if HTTR_LOCALHOST \
-#    \n# is not set since a redirect to localhost may not work depending upon \
-#    \n# where this Docker container is running. \
-#    \nif(is.na(Sys.getenv("HTTR_LOCALHOST", unset=NA))) { \
-#    \n  options(httr_oob_default = TRUE) \
-#    \n}' >> /usr/local/lib/R/etc/Rprofile.site \
+  && mkdir -p /etc/R \
+  ## Write config files in $R_HOME/etc
+  && echo '' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo '# Configure httr to perform out-of-band authentication if HTTR_LOCALHOST ' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo '# is not set since a redirect to localhost may not work depending upon ' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo '# where this Docker container is running. ' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo 'if(is.na(Sys.getenv("HTTR_LOCALHOST", unset=NA))) { ' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo '  options(httr_oob_default = TRUE) ' >> /opt/conda/lib/R/etc/Rprofile.site \
+  && echo '}' >> /opt/conda/lib/R/etc/Rprofile.site \
 #  && echo "PATH=${PATH}" >> /usr/local/lib/R/etc/Renviron \
 #  ## Need to configure non-root user for RStudio
 #  && useradd rstudio \
@@ -160,10 +161,13 @@ RUN apt-get update \
 #	&& mkdir /home/rstudio \
 #	&& chown rstudio:rstudio /home/rstudio \
 #	&& addgroup rstudio staff \
-#  ## Prevent rstudio from deciding to use /usr/bin/R if a user apt-get installs a package
-#  &&  echo 'rsession-which-r=/usr/local/bin/R' >> /etc/rstudio/rserver.conf \
-#  ## use more robust file locking to avoid errors when using shared volumes:
-#  && echo 'lock-type=advisory' >> /etc/rstudio/file-locks \
+  ## Prevent rstudio from deciding to use /usr/bin/R if a user apt-get installs a package
+  && echo "rsession-which-r=/opt/conda/bin/R" >> /etc/rstudio/rserver.conf \
+  ## Server Configuration File \
+  && echo "auth-timeout-minutes=0" >> /etc/rstudio/rserver.conf \
+  && echo "auth-stay-signed-in-days=365" >> /etc/rstudio/rserver.conf \
+  ## use more robust file locking to avoid errors when using shared volumes:
+  && echo 'lock-type=advisory' >> /etc/rstudio/file-locks \
 #  ## configure git not to request password each time
 #  && git config --system credential.helper 'cache --timeout=3600' \
 #  && git config --system push.default simple \
@@ -174,19 +178,15 @@ RUN apt-get update \
   && echo "#!/usr/bin/env bash" > /usr/local/bin/before-notebook.d/rstudio-run \
   && echo "exec /usr/lib/rstudio-server/bin/rserver" >> /usr/local/bin/before-notebook.d/rstudio-run \
   && chmod 755 /usr/local/bin/before-notebook.d/rstudio-run \
-  # Server Configuration File
-  && echo "rsession-which-r=/opt/conda/bin/R" >> /etc/rstudio/rserver.conf \
-  && echo "auth-stay-signed-in-days=365" >> /etc/rstudio/rserver.conf \
-  && echo "session-timeout-minutes=3000" >> /etc/rstudio/rserver.conf
 #  && echo '#!/bin/bash \
 #          \n rstudio-server stop' \
 #          > /etc/services.d/rstudio/finish \
-#  && mkdir -p /home/rstudio/.rstudio/monitored/user-settings \
-#  && echo 'alwaysSaveHistory="0" \
-#          \nloadRData="0" \
-#          \nsaveAction="0"' \
-#          > /home/rstudio/.rstudio/monitored/user-settings/user-settings \
-#  && chown -R rstudio:rstudio /home/rstudio/.rstudio
+  && mkdir -p /home/${NB_USER}/.rstudio/monitored/user-settings \
+  && echo 'alwaysSaveHistory="0" \
+          \nloadRData="0" \
+          \nsaveAction="0"' \
+          > /home/${NB_USER}/.rstudio/monitored/user-settings/user-settings \
+  && chown -R ${NB_USER}:${NB_GROUP} /home/${NB_USER}/.rstudio
 
 #COPY userconf.sh /etc/cont-init.d/userconf
 #
