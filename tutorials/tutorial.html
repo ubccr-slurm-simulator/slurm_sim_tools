@@ -2756,7 +2756,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Slurm Simulator Tutorial</h1>
 <h4 class="author"><a href="mailto:nikolays@buffalo.edu" class="email">nikolays@buffalo.edu</a></h4>
-<h4 class="date">28 March, 2024</h4>
+<h4 class="date">28 May, 2024</h4>
 
 </div>
 
@@ -2846,9 +2846,10 @@ mkdir -p $HOME/slurm_sim_wsp
 cd $HOME/slurm_sim_wsp
 # Get Slurm Simulator tools
 git clone --recurse-submodules git@github.com:ubccr-slurm-simulator/slurm_sim_tools.git</code></pre>
-<pre class="bash"><code>docker run -p 0.0.0.0:8888:8888 0.0.0.0:8787:8787 -it --rm \
+<pre class="bash"><code>docker run -p 0.0.0.0:8888:8888 -p 0.0.0.0:8787:8787 -it --rm \
     --name slurmsim -h slurmsim \
-    -v $HOME/slurm_sim_wsp:/home/slurm/work \
+    -v $HOME/slurm_sim_wsp:/home/slurm/slurm_sim_wsp \
+    -v $HOME/slurm_sim_wsp/slurm_sim_tools/tutorials:/home/slurm/work \
     -v $HOME/slurm_sim_wsp/slurm_sim_tools:/opt/slurm_sim_tools \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/wslg:/mnt/wslg \
     -e DISPLAY=$DISPLAY -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
@@ -2873,9 +2874,12 @@ some of the docker-stacks magics.</p>
 </div>
 <div id="get-tutorial-files-and-starting-tutorial" class="section level1">
 <h1>Get Tutorial Files and Starting Tutorial</h1>
-<p>Launch Jupyter Lab and the terminal window in it. Copy all tutorial
-files to <code>/home/slurm/work</code>:</p>
-<pre class="bash"><code>cp -r /opt/slurm_sim_tools/tutorials/* /home/slurm/work/</code></pre>
+<p>If you haven’t did it alread launch RStudio server at <a href="http://localhost:8787" class="uri">http://localhost:8787</a>
+(username is <code>slurm</code> and password is also
+<code>slurm</code>). In the terminal window copy all tutorial files to
+<code>/home/slurm/work</code>:</p>
+<pre class="bash"><code>cd /home/slurm/work
+cp -r /opt/slurm_sim_tools/tutorials/* /home/slurm/work/</code></pre>
 <p>Get to <code>/home/slurm/work/micro_cluster</code> directory and
 start <code>micro_cluster_tutorial.Rmd</code> notebook. Follow the
 directions in a notebook.</p>

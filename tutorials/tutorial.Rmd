@@ -10,11 +10,24 @@ output:
     mathjax: null
     css: doc.css
     df_print: paged
-
+  github_document:
+    toc: true
+    toc_depth: 4
+    html_preview: false
 editor_options: 
   markdown: 
     wrap: 80
 ---
+
+```{r echo=FALSE}
+if(knitr::pandoc_to()=='html'){
+  ext_output <- "html"
+} else if(knitr::pandoc_to()=='gfm'){
+  ext_output <- "md"
+} else {
+  ext_output <- "Rmd"
+}
+```
 
 # Overview
 
@@ -105,9 +118,10 @@ git clone --recurse-submodules git@github.com:ubccr-slurm-simulator/slurm_sim_to
 ```
 
 ```bash
-docker run -p 0.0.0.0:8888:8888 0.0.0.0:8787:8787 -it --rm \
+docker run -p 0.0.0.0:8888:8888 -p 0.0.0.0:8787:8787 -it --rm \
     --name slurmsim -h slurmsim \
-    -v $HOME/slurm_sim_wsp:/home/slurm/work \
+    -v $HOME/slurm_sim_wsp:/home/slurm/slurm_sim_wsp \
+    -v $HOME/slurm_sim_wsp/slurm_sim_tools/tutorials:/home/slurm/work \
     -v $HOME/slurm_sim_wsp/slurm_sim_tools:/opt/slurm_sim_tools \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/wslg:/mnt/wslg \
     -e DISPLAY=$DISPLAY -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
@@ -133,7 +147,7 @@ Because the container is built on top of <https://github.com/jupyter/docker-stac
 
 # Get Tutorial Files and Starting Tutorial
 
-If you haven't did it alread launch RStudio server at <http://localhost:8787>.
+If you haven't did it alread launch RStudio server at <http://localhost:8787> (username is `slurm` and password is also `slurm`).
 In the terminal window copy all tutorial files to `/home/slurm/work`:
 
 ```bash
@@ -144,4 +158,4 @@ cp -r /opt/slurm_sim_tools/tutorials/* /home/slurm/work/
 Get to `/home/slurm/work/micro_cluster` directory and start `micro_cluster_tutorial.Rmd` notebook.
 Follow the directions in a notebook.
 
-[Next: Micro Cluster Tutorial](./micro_cluster/micro_cluster_tutorial.html)
+[Next: Micro Cluster Tutorial](./micro_cluster/micro_cluster_tutorial.`r ext_output`)
