@@ -12,7 +12,11 @@ RUN apt update && \
     apt install -y munge libmunge-dev libhdf5-dev \
         libjwt-dev libyaml-dev libdbus-1-dev \
         libmariadb-dev mariadb-server mariadb-client && \
-    apt install -y libssl-dev openssh-server openssh-client libssh-dev
+    apt install -y libssl-dev openssh-server openssh-client libssh-dev && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    sudo apt install -y ./google-chrome-stable_current_amd64.deb && \
+    rm ./google-chrome-stable_current_amd64.deb
+
 
 # rename user:group to slurm:slurm
 ARG NB_USER="slurm"
@@ -81,7 +85,7 @@ RUN fix-permissions "${CONDA_DIR}" && \
     'pymysql' 'qgrid'&& \
     mamba install --yes \
     'r-plotly' 'r-repr' 'r-irdisplay' 'r-pbdzmq' 'r-reticulate' 'r-cowplot' \
-    'r-magrittr' && \
+    'r-magrittr' 'r-webshot2' && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}" && \
