@@ -3,10 +3,6 @@ title: "Slurm Simulator Tutorial"
 author: nikolays@buffalo.edu
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  github_document:
-    toc: true
-    toc_depth: 4
-    html_preview: false
   html_document: 
     toc: yes
     toc_float: yes
@@ -14,20 +10,24 @@ output:
     mathjax: null
     css: doc.css
     df_print: paged
+  github_document:
+    toc: true
+    toc_depth: 4
+    html_preview: false
 editor_options: 
   markdown: 
     wrap: 80
 ---
 
-```{r echo=FALSE}
-if(knitr::pandoc_to()=='html'){
-  ext_output <- "html"
-} else if(knitr::pandoc_to()=='gfm'){
-  ext_output <- "md"
-} else {
-  ext_output <- "Rmd"
-}
-```
+# Table of Content
+
+* Tutorial Overview (this page)
+* [Micro Cluster Tutorial](./micro_cluster/`r if(knitr::pandoc_to()=='gfm') "" else "readme.html"`)
+* [Medium Cluster Tutorial](./micro_cluster/`r if(knitr::pandoc_to()=='gfm') "" else "readme.html"`)
+* Other Topics
+  * Slurm sacct log convertion to saccmng script
+  * SWF conversion
+
 
 # Overview
 
@@ -158,4 +158,4 @@ cp -r /opt/slurm_sim_tools/tutorials/* /home/slurm/work/
 Get to `/home/slurm/work/micro_cluster` directory and start `micro_cluster_tutorial.Rmd` notebook.
 Follow the directions in a notebook.
 
-[Next: Micro Cluster Tutorial](./micro_cluster/readme.`r ext_output`)
+[Next: Micro Cluster Tutorial](./micro_cluster/`r if(knitr::pandoc_to()=='gfm') "" else "readme.html"`)

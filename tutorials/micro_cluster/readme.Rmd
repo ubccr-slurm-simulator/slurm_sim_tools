@@ -7,6 +7,7 @@ output:
     toc: true
     toc_depth: 4
     html_preview: false
+    df_print: kable
   html_document: 
     toc: yes
     toc_float: yes
@@ -14,21 +15,11 @@ output:
     mathjax: null
     css: ../doc.css
     df_print: paged
-    output_file: readme.md
 editor_options: 
   markdown: 
     wrap: 80
 ---
 
-```{r echo=FALSE}
-if(knitr::pandoc_to()=='html'){
-  ext_output <- "html"
-} else if(knitr::pandoc_to()=='gfm'){
-  ext_output <- "md"
-} else {
-  ext_output <- "Rmd"
-}
-```
 
 # Slurm Simulator: Micro Cluster Tutorial
 
@@ -48,13 +39,6 @@ use_condaenv(condaenv="base")
 
 load_all("/opt/slurm_sim_tools/src/RSlurmSimTools")
 # library(RSlurmSimTools)
-```
-
-```{r}
-library(webshot2)
-
-# Single page
-webshot("https://www.r-project.org")
 ```
 
 ```{bash}
@@ -611,6 +595,7 @@ It is the main randomization mechanism in Slurm Simulator.
 
 
 The following arguments were used for `slurmsim` CLI:
+
 * `-v` for extra messages
 * `run_sim` command to run single Slurm simulation.
 * `-d` remove results from the previous simulation
@@ -751,7 +736,7 @@ events_time
 
 Let's make a plot for starting times of our two simulations
 
-```{r}
+```{r submit_start}
 plot_grid(
   ggplot(sacct, aes(
     x=SubmitTime,y=JobRecID,color=factor(dtstart),shape=factor(dtstart)))+
@@ -781,7 +766,7 @@ To identify what exactly went different we can use event diagramm:
 
 
 
-```{r}
+```{r events_diagramm}
 make_events_diagramm(
   events_time |> filter(slurm_mode=="test1" & dtstart==59 & run_id==1L),
   events_time |> filter(slurm_mode=="test1" & dtstart==79 & run_id==1L)

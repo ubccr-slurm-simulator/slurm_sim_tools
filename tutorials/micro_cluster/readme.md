@@ -31,24 +31,15 @@ Slurm Simulator: Micro Cluster Tutorial
 
 # Slurm Simulator: Micro Cluster Tutorial
 
-``` r
-library(webshot2)
-
-# Single page
-webshot("https://www.r-project.org")
-```
-
-![](micro_cluster_tutorial_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
-
 ``` bash
 # Check that MySQL Server is up
 ps -Af | grep mariadbd 
 ```
 
-    ## mysql      151    23  0 18:45 pts/0    00:00:00 /usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
-    ## slurm     4836  3436  0 18:48 ?        00:00:00 sh -c 'bash'  -c '# Check that MySQL Server is up ps -Af | grep mariadbd ' 2>&1
-    ## slurm     4837  4836  0 18:48 ?        00:00:00 bash -c # Check that MySQL Server is up ps -Af | grep mariadbd 
-    ## slurm     4839  4837  0 18:48 ?        00:00:00 grep mariadbd
+    ## mysql      151    23  0 18:45 pts/0    00:00:01 /usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+    ## slurm    29089 27777  0 21:14 ?        00:00:00 sh -c 'bash'  -c '# Check that MySQL Server is up ps -Af | grep mariadbd ' 2>&1
+    ## slurm    29090 29089  0 21:14 ?        00:00:00 bash -c # Check that MySQL Server is up ps -Af | grep mariadbd 
+    ## slurm    29092 29090  0 21:14 ?        00:00:00 grep mariadbd
 
 ## Overview
 
@@ -611,17 +602,20 @@ randomization.
 and the first job submission. It is the main randomization mechanism in
 Slurm Simulator.
 
-The following arguments were used for `slurmsim` CLI: \* `-v` for extra
-messages \* `run_sim` command to run single Slurm simulation. \* `-d`
-remove results from the previous simulation \* `-e` specify the location
-of slurm `etc.` directory `slurm.conf` and friends should be where \*
-`-a` specify the sacctmgr script to set up accounts, users, qos and
-other things \* `-w` specify workload event file (a.k.a. job traces
-file) \* `-r` specify results storage directory, we use following
-format:
-`${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}`
-\* `-dtstart` specifies the time delay between the slurm controller
-start-up and the first job submission.
+The following arguments were used for `slurmsim` CLI:
+
+- `-v` for extra messages
+- `run_sim` command to run single Slurm simulation.
+- `-d` remove results from the previous simulation
+- `-e` specify the location of slurm `etc.` directory `slurm.conf` and
+  friends should be where
+- `-a` specify the sacctmgr script to set up accounts, users, qos and
+  other things
+- `-w` specify workload event file (a.k.a. job traces file)
+- `-r` specify results storage directory, we use following format:
+  `${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}`
+- `-dtstart` specifies the time delay between the slurm controller
+  start-up and the first job submission.
 
 The `run_sim` command simplifies the execution of the Slurm Simulator.
 It does the following:
@@ -750,342 +744,52 @@ sacct <- read_sacct_out_multiple(
 sacct
 ```
 
-    ##     slurm_mode dtstart run_id JobRecID SubmitTime StartTime EndTime WallTime
-    ##  1:      test1      59      1     1001          0         0       0        0
-    ##  2:      test1      59      1     1002          1         2      62       60
-    ##  3:      test1      59      1     1003          2         2       7        5
-    ##  4:      test1      59      1     1004         16        16      37       21
-    ##  5:      test1      59      1     1005         19        62      64        2
-    ##  6:      test1      59      1     1006         19        19      28        9
-    ##  7:      test1      59      1     1007         19        62     122       60
-    ##  8:      test1      59      1     1008         22        62      62        0
-    ##  9:      test1      59      1     1009         26        39      41        2
-    ## 10:      test1      59      1     1010         26        65      65        0
-    ## 11:      test1      59      1     1011         29       122     122        0
-    ## 12:      test1      59      1     1012         32        92     152       60
-    ## 13:      test1      59      1     1013         36        92      92        0
-    ## 14:      test1      59      1     1014         36        65      72        7
-    ## 15:      test1      59      1     1015         39        65      83       18
-    ## 16:      test1      59      1     1016         40        97     122       25
-    ## 17:      test1      59      1     1017         42        62      63        1
-    ## 18:      test1      59      1     1018         42        62      62        0
-    ## 19:      test1      59      1     1019         43        62      96       34
-    ## 20:      test1      59      1     1020         43        92     106       14
-    ## 21:      test1      79      1     1001          0         0       0        0
-    ## 22:      test1      79      1     1002          1         3      72       69
-    ## 23:      test1      79      1     1003          2         3       8        5
-    ## 24:      test1      79      1     1004         16        16      37       21
-    ## 25:      test1      79      1     1005         19        61      63        2
-    ## 26:      test1      79      1     1006         19        19      28        9
-    ## 27:      test1      79      1     1007         19        61     132       71
-    ## 28:      test1      79      1     1008         22        61      61        0
-    ## 29:      test1      79      1     1009         26        39      41        2
-    ## 30:      test1      79      1     1010         26        74      74        0
-    ## 31:      test1      79      1     1011         29       122     122        0
-    ## 32:      test1      79      1     1012         32        91     162       71
-    ## 33:      test1      79      1     1013         36        91      91        0
-    ## 34:      test1      79      1     1014         36        74      81        7
-    ## 35:      test1      79      1     1015         39        74      92       18
-    ## 36:      test1      79      1     1016         40        97     122       25
-    ## 37:      test1      79      1     1017         42        72      73        1
-    ## 38:      test1      79      1     1018         42        61      61        0
-    ## 39:      test1      79      1     1019         43        61      95       34
-    ## 40:      test1      79      1     1020         43        91     105       14
-    ##     slurm_mode dtstart run_id JobRecID SubmitTime StartTime EndTime WallTime
-    ##     WaitTime JobId JobIdRaw  GID  UID NodeCount NCPUS ReqCPUS
-    ##  1:        0  1001     1001 1000 1005         1    12      12
-    ##  2:        1  1002     1002 1000 1001         1     1       1
-    ##  3:        0  1003     1003 1000 1004         1     1       1
-    ##  4:        0  1004     1004 1000 1003         2    24      24
-    ##  5:       43  1005     1005 1000 1005         1    12      12
-    ##  6:        0  1006     1006 1000 1003         4    48      48
-    ##  7:       43  1007     1007 1000 1004         2    24      24
-    ##  8:       40  1008     1008 1000 1004         1    12      12
-    ##  9:       13  1009     1009 1000 1001         8    96      96
-    ## 10:       39  1010     1010 1000 1005         1    12      12
-    ## 11:       93  1011     1011 1000 1004         1     1       1
-    ## 12:       60  1012     1012 1000 1005         1     1       1
-    ## 13:       56  1013     1013 1000 1002         1     1       1
-    ## 14:       29  1014     1014 1000 1005         2    24      24
-    ## 15:       26  1015     1015 1000 1002         1     6       6
-    ## 16:       57  1016     1016 1000 1001         1     2       2
-    ## 17:       20  1017     1017 1000 1001         4    48      48
-    ## 18:       20  1018     1018 1000 1003         1    12      12
-    ## 19:       19  1019     1019 1000 1004         1    12      12
-    ## 20:       49  1020     1020 1000 1001         1     1       1
-    ## 21:        0  1001     1001 1000 1005         1    12      12
-    ## 22:        2  1002     1002 1000 1001         1     1       1
-    ## 23:        1  1003     1003 1000 1004         1     1       1
-    ## 24:        0  1004     1004 1000 1003         2    24      24
-    ## 25:       42  1005     1005 1000 1005         1    12      12
-    ## 26:        0  1006     1006 1000 1003         4    48      48
-    ## 27:       42  1007     1007 1000 1004         2    24      24
-    ## 28:       39  1008     1008 1000 1004         1    12      12
-    ## 29:       13  1009     1009 1000 1001         8    96      96
-    ## 30:       48  1010     1010 1000 1005         1    12      12
-    ## 31:       93  1011     1011 1000 1004         1     1       1
-    ## 32:       59  1012     1012 1000 1005         1     1       1
-    ## 33:       55  1013     1013 1000 1002         1     1       1
-    ## 34:       38  1014     1014 1000 1005         2    24      24
-    ## 35:       35  1015     1015 1000 1002         1     6       6
-    ## 36:       57  1016     1016 1000 1001         1     2       2
-    ## 37:       30  1017     1017 1000 1001         4    48      48
-    ## 38:       19  1018     1018 1000 1003         1    12      12
-    ## 39:       18  1019     1019 1000 1004         1    12      12
-    ## 40:       48  1020     1020 1000 1001         1     1       1
-    ##     WaitTime JobId JobIdRaw  GID  UID NodeCount NCPUS ReqCPUS
-    ##                                  ReqTRES         NodeList    JobName NTasks
-    ##  1:  billing=12,cpu=12,mem=33600M,node=1               b1 jobid_1001     NA
-    ##  2:     billing=1,cpu=1,mem=2800M,node=1               n1 jobid_1002     NA
-    ##  3:   billing=1,cpu=1,mem=500000M,node=1               b1 jobid_1003     NA
-    ##  4:  billing=24,cpu=24,mem=67200M,node=1            b1,g1 jobid_1004     NA
-    ##  5: billing=12,cpu=12,mem=500000M,node=1               b1 jobid_1005     NA
-    ##  6: billing=48,cpu=48,mem=134400M,node=1           m[1-4] jobid_1006     NA
-    ##  7:  billing=24,cpu=24,mem=67200M,node=1           m[1-2] jobid_1007     NA
-    ##  8:  billing=12,cpu=12,mem=33600M,node=1               m3 jobid_1008     NA
-    ##  9: billing=96,cpu=96,mem=262.50G,node=1 b1,m[1-4],n[2-4] jobid_1009     NA
-    ## 10:  billing=12,cpu=12,mem=33600M,node=1               n3 jobid_1010     NA
-    ## 11:     billing=1,cpu=1,mem=2800M,node=1               g1 jobid_1011     NA
-    ## 12:     billing=1,cpu=1,mem=2800M,node=1               b1 jobid_1012     NA
-    ## 13:   billing=1,cpu=1,mem=500000M,node=1               b1 jobid_1013     NA
-    ## 14:  billing=24,cpu=24,mem=67200M,node=1           n[1-2] jobid_1014     NA
-    ## 15:    billing=6,cpu=6,mem=16800M,node=1               n4 jobid_1015     NA
-    ## 16:     billing=2,cpu=2,mem=5600M,node=1               g1 jobid_1016     NA
-    ## 17: billing=48,cpu=48,mem=134400M,node=1           n[1-4] jobid_1017     NA
-    ## 18:  billing=12,cpu=12,mem=33600M,node=1               m4 jobid_1018     NA
-    ## 19:  billing=12,cpu=12,mem=33600M,node=1               g1 jobid_1019     NA
-    ## 20:     billing=1,cpu=1,mem=2800M,node=1               n1 jobid_1020     NA
-    ## 21:  billing=12,cpu=12,mem=33600M,node=1               b1 jobid_1001     NA
-    ## 22:     billing=1,cpu=1,mem=2800M,node=1               n1 jobid_1002     NA
-    ## 23:   billing=1,cpu=1,mem=500000M,node=1               b1 jobid_1003     NA
-    ## 24:  billing=24,cpu=24,mem=67200M,node=1            b1,g1 jobid_1004     NA
-    ## 25: billing=12,cpu=12,mem=500000M,node=1               b1 jobid_1005     NA
-    ## 26: billing=48,cpu=48,mem=134400M,node=1           m[1-4] jobid_1006     NA
-    ## 27:  billing=24,cpu=24,mem=67200M,node=1           m[1-2] jobid_1007     NA
-    ## 28:  billing=12,cpu=12,mem=33600M,node=1               m3 jobid_1008     NA
-    ## 29: billing=96,cpu=96,mem=262.50G,node=1 b1,m[1-4],n[2-4] jobid_1009     NA
-    ## 30:  billing=12,cpu=12,mem=33600M,node=1               n3 jobid_1010     NA
-    ## 31:     billing=1,cpu=1,mem=2800M,node=1               g1 jobid_1011     NA
-    ## 32:     billing=1,cpu=1,mem=2800M,node=1               b1 jobid_1012     NA
-    ## 33:   billing=1,cpu=1,mem=500000M,node=1               b1 jobid_1013     NA
-    ## 34:  billing=24,cpu=24,mem=67200M,node=1           n[1-2] jobid_1014     NA
-    ## 35:    billing=6,cpu=6,mem=16800M,node=1               n4 jobid_1015     NA
-    ## 36:     billing=2,cpu=2,mem=5600M,node=1               g1 jobid_1016     NA
-    ## 37: billing=48,cpu=48,mem=134400M,node=1           n[1-4] jobid_1017     NA
-    ## 38:  billing=12,cpu=12,mem=33600M,node=1               m4 jobid_1018     NA
-    ## 39:  billing=12,cpu=12,mem=33600M,node=1               g1 jobid_1019     NA
-    ## 40:     billing=1,cpu=1,mem=2800M,node=1               n1 jobid_1020     NA
-    ##                                  ReqTRES         NodeList    JobName NTasks
-    ##                  Submit            Eligible               Start
-    ##  1: 2022-01-01 05:01:14 2022-01-01 05:01:14 2022-01-01 05:01:14
-    ##  2: 2022-01-01 05:01:15 2022-01-01 05:01:15 2022-01-01 05:01:16
-    ##  3: 2022-01-01 05:01:16 2022-01-01 05:01:16 2022-01-01 05:01:16
-    ##  4: 2022-01-01 05:01:30 2022-01-01 05:01:30 2022-01-01 05:01:30
-    ##  5: 2022-01-01 05:01:33 2022-01-01 05:01:33 2022-01-01 05:02:16
-    ##  6: 2022-01-01 05:01:33 2022-01-01 05:01:33 2022-01-01 05:01:33
-    ##  7: 2022-01-01 05:01:33 2022-01-01 05:01:33 2022-01-01 05:02:16
-    ##  8: 2022-01-01 05:01:36 2022-01-01 05:01:36 2022-01-01 05:02:16
-    ##  9: 2022-01-01 05:01:40 2022-01-01 05:01:40 2022-01-01 05:01:53
-    ## 10: 2022-01-01 05:01:40 2022-01-01 05:01:40 2022-01-01 05:02:19
-    ## 11: 2022-01-01 05:01:43 2022-01-01 05:01:43 2022-01-01 05:03:16
-    ## 12: 2022-01-01 05:01:46 2022-01-01 05:01:46 2022-01-01 05:02:46
-    ## 13: 2022-01-01 05:01:50 2022-01-01 05:01:50 2022-01-01 05:02:46
-    ## 14: 2022-01-01 05:01:50 2022-01-01 05:01:50 2022-01-01 05:02:19
-    ## 15: 2022-01-01 05:01:53 2022-01-01 05:01:53 2022-01-01 05:02:19
-    ## 16: 2022-01-01 05:01:54 2022-01-01 05:01:54 2022-01-01 05:02:51
-    ## 17: 2022-01-01 05:01:56 2022-01-01 05:01:56 2022-01-01 05:02:16
-    ## 18: 2022-01-01 05:01:56 2022-01-01 05:01:56 2022-01-01 05:02:16
-    ## 19: 2022-01-01 05:01:57 2022-01-01 05:01:57 2022-01-01 05:02:16
-    ## 20: 2022-01-01 05:01:57 2022-01-01 05:01:57 2022-01-01 05:02:46
-    ## 21: 2022-01-01 05:01:34 2022-01-01 05:01:34 2022-01-01 05:01:34
-    ## 22: 2022-01-01 05:01:35 2022-01-01 05:01:35 2022-01-01 05:01:37
-    ## 23: 2022-01-01 05:01:36 2022-01-01 05:01:36 2022-01-01 05:01:37
-    ## 24: 2022-01-01 05:01:50 2022-01-01 05:01:50 2022-01-01 05:01:50
-    ## 25: 2022-01-01 05:01:53 2022-01-01 05:01:53 2022-01-01 05:02:35
-    ## 26: 2022-01-01 05:01:53 2022-01-01 05:01:53 2022-01-01 05:01:53
-    ## 27: 2022-01-01 05:01:53 2022-01-01 05:01:53 2022-01-01 05:02:35
-    ## 28: 2022-01-01 05:01:56 2022-01-01 05:01:56 2022-01-01 05:02:35
-    ## 29: 2022-01-01 05:02:00 2022-01-01 05:02:00 2022-01-01 05:02:13
-    ## 30: 2022-01-01 05:02:00 2022-01-01 05:02:00 2022-01-01 05:02:48
-    ## 31: 2022-01-01 05:02:03 2022-01-01 05:02:03 2022-01-01 05:03:36
-    ## 32: 2022-01-01 05:02:06 2022-01-01 05:02:06 2022-01-01 05:03:05
-    ## 33: 2022-01-01 05:02:10 2022-01-01 05:02:10 2022-01-01 05:03:05
-    ## 34: 2022-01-01 05:02:10 2022-01-01 05:02:10 2022-01-01 05:02:48
-    ## 35: 2022-01-01 05:02:13 2022-01-01 05:02:13 2022-01-01 05:02:48
-    ## 36: 2022-01-01 05:02:14 2022-01-01 05:02:14 2022-01-01 05:03:11
-    ## 37: 2022-01-01 05:02:16 2022-01-01 05:02:16 2022-01-01 05:02:46
-    ## 38: 2022-01-01 05:02:16 2022-01-01 05:02:16 2022-01-01 05:02:35
-    ## 39: 2022-01-01 05:02:17 2022-01-01 05:02:17 2022-01-01 05:02:35
-    ## 40: 2022-01-01 05:02:17 2022-01-01 05:02:17 2022-01-01 05:03:05
-    ##                  Submit            Eligible               Start
-    ##                     End             Elapsed        Timelimit Cluster Partition
-    ##  1: 2022-01-01 05:01:14                  0s 60s (~1 minutes)   micro    normal
-    ##  2: 2022-01-01 05:02:16    60s (~1 minutes) 60s (~1 minutes)   micro    normal
-    ##  3: 2022-01-01 05:01:21                  5s 60s (~1 minutes)   micro    normal
-    ##  4: 2022-01-01 05:01:51                 21s 60s (~1 minutes)   micro    normal
-    ##  5: 2022-01-01 05:02:18                  2s 60s (~1 minutes)   micro    normal
-    ##  6: 2022-01-01 05:01:42                  9s 60s (~1 minutes)   micro    normal
-    ##  7: 2022-01-01 05:03:16    60s (~1 minutes) 60s (~1 minutes)   micro    normal
-    ##  8: 2022-01-01 05:02:16                  0s 60s (~1 minutes)   micro    normal
-    ##  9: 2022-01-01 05:01:55                  2s 60s (~1 minutes)   micro    normal
-    ## 10: 2022-01-01 05:02:19                  0s 60s (~1 minutes)   micro    normal
-    ## 11: 2022-01-01 05:03:16                  0s 60s (~1 minutes)   micro    normal
-    ## 12: 2022-01-01 05:03:46    60s (~1 minutes) 60s (~1 minutes)   micro    normal
-    ## 13: 2022-01-01 05:02:46                  0s 60s (~1 minutes)   micro    normal
-    ## 14: 2022-01-01 05:02:26                  7s 60s (~1 minutes)   micro    normal
-    ## 15: 2022-01-01 05:02:37                 18s 60s (~1 minutes)   micro    normal
-    ## 16: 2022-01-01 05:03:16                 25s 60s (~1 minutes)   micro    normal
-    ## 17: 2022-01-01 05:02:17                  1s 60s (~1 minutes)   micro    normal
-    ## 18: 2022-01-01 05:02:16                  0s 60s (~1 minutes)   micro    normal
-    ## 19: 2022-01-01 05:02:50                 34s 60s (~1 minutes)   micro    normal
-    ## 20: 2022-01-01 05:03:00                 14s 60s (~1 minutes)   micro    normal
-    ## 21: 2022-01-01 05:01:34                  0s 60s (~1 minutes)   micro    normal
-    ## 22: 2022-01-01 05:02:46 69s (~1.15 minutes) 60s (~1 minutes)   micro    normal
-    ## 23: 2022-01-01 05:01:42                  5s 60s (~1 minutes)   micro    normal
-    ## 24: 2022-01-01 05:02:11                 21s 60s (~1 minutes)   micro    normal
-    ## 25: 2022-01-01 05:02:37                  2s 60s (~1 minutes)   micro    normal
-    ## 26: 2022-01-01 05:02:02                  9s 60s (~1 minutes)   micro    normal
-    ## 27: 2022-01-01 05:03:46 71s (~1.18 minutes) 60s (~1 minutes)   micro    normal
-    ## 28: 2022-01-01 05:02:35                  0s 60s (~1 minutes)   micro    normal
-    ## 29: 2022-01-01 05:02:15                  2s 60s (~1 minutes)   micro    normal
-    ## 30: 2022-01-01 05:02:48                  0s 60s (~1 minutes)   micro    normal
-    ## 31: 2022-01-01 05:03:36                  0s 60s (~1 minutes)   micro    normal
-    ## 32: 2022-01-01 05:04:16 71s (~1.18 minutes) 60s (~1 minutes)   micro    normal
-    ## 33: 2022-01-01 05:03:05                  0s 60s (~1 minutes)   micro    normal
-    ## 34: 2022-01-01 05:02:55                  7s 60s (~1 minutes)   micro    normal
-    ## 35: 2022-01-01 05:03:06                 18s 60s (~1 minutes)   micro    normal
-    ## 36: 2022-01-01 05:03:36                 25s 60s (~1 minutes)   micro    normal
-    ## 37: 2022-01-01 05:02:47                  1s 60s (~1 minutes)   micro    normal
-    ## 38: 2022-01-01 05:02:35                  0s 60s (~1 minutes)   micro    normal
-    ## 39: 2022-01-01 05:03:09                 34s 60s (~1 minutes)   micro    normal
-    ## 40: 2022-01-01 05:03:19                 14s 60s (~1 minutes)   micro    normal
-    ##                     End             Elapsed        Timelimit Cluster Partition
-    ##      Account Group  User ExitCode     State    QOS ReqMemSize ReqMemPerNode
-    ##  1: account2 slurm user5      0:0 COMPLETED normal      33600          TRUE
-    ##  2: account1 slurm user1      0:0   TIMEOUT normal       2800          TRUE
-    ##  3: account2 slurm user4      0:0 COMPLETED normal     500000          TRUE
-    ##  4: account1 slurm user3      0:0 COMPLETED normal      67200          TRUE
-    ##  5: account2 slurm user5      0:0 COMPLETED normal     500000          TRUE
-    ##  6: account1 slurm user3      0:0 COMPLETED normal     134400          TRUE
-    ##  7: account2 slurm user4      0:0   TIMEOUT normal      67200          TRUE
-    ##  8: account2 slurm user4      0:0 COMPLETED normal      33600          TRUE
-    ##  9: account1 slurm user1      0:0 COMPLETED normal     268288          TRUE
-    ## 10: account2 slurm user5      0:0 COMPLETED normal      33600          TRUE
-    ## 11: account2 slurm user4      0:0 COMPLETED normal       2800          TRUE
-    ## 12: account2 slurm user5      0:0   TIMEOUT normal       2800          TRUE
-    ## 13: account1 slurm user2      0:0 COMPLETED normal     500000          TRUE
-    ## 14: account2 slurm user5      0:0 COMPLETED normal      67200          TRUE
-    ## 15: account1 slurm user2      0:0 COMPLETED normal      16800          TRUE
-    ## 16: account1 slurm user1      0:0 COMPLETED normal       5600          TRUE
-    ## 17: account1 slurm user1      0:0 COMPLETED normal     134400          TRUE
-    ## 18: account1 slurm user3      0:0 COMPLETED normal      33600          TRUE
-    ## 19: account2 slurm user4      0:0 COMPLETED normal      33600          TRUE
-    ## 20: account1 slurm user1      0:0 COMPLETED normal       2800          TRUE
-    ## 21: account2 slurm user5      0:0 COMPLETED normal      33600          TRUE
-    ## 22: account1 slurm user1      0:0   TIMEOUT normal       2800          TRUE
-    ## 23: account2 slurm user4      0:0 COMPLETED normal     500000          TRUE
-    ## 24: account1 slurm user3      0:0 COMPLETED normal      67200          TRUE
-    ## 25: account2 slurm user5      0:0 COMPLETED normal     500000          TRUE
-    ## 26: account1 slurm user3      0:0 COMPLETED normal     134400          TRUE
-    ## 27: account2 slurm user4      0:0   TIMEOUT normal      67200          TRUE
-    ## 28: account2 slurm user4      0:0 COMPLETED normal      33600          TRUE
-    ## 29: account1 slurm user1      0:0 COMPLETED normal     268288          TRUE
-    ## 30: account2 slurm user5      0:0 COMPLETED normal      33600          TRUE
-    ## 31: account2 slurm user4      0:0 COMPLETED normal       2800          TRUE
-    ## 32: account2 slurm user5      0:0   TIMEOUT normal       2800          TRUE
-    ## 33: account1 slurm user2      0:0 COMPLETED normal     500000          TRUE
-    ## 34: account2 slurm user5      0:0 COMPLETED normal      67200          TRUE
-    ## 35: account1 slurm user2      0:0 COMPLETED normal      16800          TRUE
-    ## 36: account1 slurm user1      0:0 COMPLETED normal       5600          TRUE
-    ## 37: account1 slurm user1      0:0 COMPLETED normal     134400          TRUE
-    ## 38: account1 slurm user3      0:0 COMPLETED normal      33600          TRUE
-    ## 39: account2 slurm user4      0:0 COMPLETED normal      33600          TRUE
-    ## 40: account1 slurm user1      0:0 COMPLETED normal       2800          TRUE
-    ##      Account Group  User ExitCode     State    QOS ReqMemSize ReqMemPerNode
-    ##       SubmitTS    StartTS      EndTS    WaitHours    WallHours    NodeHours
-    ##  1: 1641013274 1641013274 1641013274 0.0000000000 0.0000000000 0.0000000000
-    ##  2: 1641013275 1641013276 1641013336 0.0002777778 0.0166666667 0.0166666667
-    ##  3: 1641013276 1641013276 1641013281 0.0000000000 0.0013888889 0.0013888889
-    ##  4: 1641013290 1641013290 1641013311 0.0000000000 0.0058333333 0.0116666667
-    ##  5: 1641013293 1641013336 1641013338 0.0119444444 0.0005555556 0.0005555556
-    ##  6: 1641013293 1641013293 1641013302 0.0000000000 0.0025000000 0.0100000000
-    ##  7: 1641013293 1641013336 1641013396 0.0119444444 0.0166666667 0.0333333333
-    ##  8: 1641013296 1641013336 1641013336 0.0111111111 0.0000000000 0.0000000000
-    ##  9: 1641013300 1641013313 1641013315 0.0036111111 0.0005555556 0.0044444444
-    ## 10: 1641013300 1641013339 1641013339 0.0108333333 0.0000000000 0.0000000000
-    ## 11: 1641013303 1641013396 1641013396 0.0258333333 0.0000000000 0.0000000000
-    ## 12: 1641013306 1641013366 1641013426 0.0166666667 0.0166666667 0.0166666667
-    ## 13: 1641013310 1641013366 1641013366 0.0155555556 0.0000000000 0.0000000000
-    ## 14: 1641013310 1641013339 1641013346 0.0080555556 0.0019444444 0.0038888889
-    ## 15: 1641013313 1641013339 1641013357 0.0072222222 0.0050000000 0.0050000000
-    ## 16: 1641013314 1641013371 1641013396 0.0158333333 0.0069444444 0.0069444444
-    ## 17: 1641013316 1641013336 1641013337 0.0055555556 0.0002777778 0.0011111111
-    ## 18: 1641013316 1641013336 1641013336 0.0055555556 0.0000000000 0.0000000000
-    ## 19: 1641013317 1641013336 1641013370 0.0052777778 0.0094444444 0.0094444444
-    ## 20: 1641013317 1641013366 1641013380 0.0136111111 0.0038888889 0.0038888889
-    ## 21: 1641013294 1641013294 1641013294 0.0000000000 0.0000000000 0.0000000000
-    ## 22: 1641013295 1641013297 1641013366 0.0005555556 0.0191666667 0.0191666667
-    ## 23: 1641013296 1641013297 1641013302 0.0002777778 0.0013888889 0.0013888889
-    ## 24: 1641013310 1641013310 1641013331 0.0000000000 0.0058333333 0.0116666667
-    ## 25: 1641013313 1641013355 1641013357 0.0116666667 0.0005555556 0.0005555556
-    ## 26: 1641013313 1641013313 1641013322 0.0000000000 0.0025000000 0.0100000000
-    ## 27: 1641013313 1641013355 1641013426 0.0116666667 0.0197222222 0.0394444444
-    ## 28: 1641013316 1641013355 1641013355 0.0108333333 0.0000000000 0.0000000000
-    ## 29: 1641013320 1641013333 1641013335 0.0036111111 0.0005555556 0.0044444444
-    ## 30: 1641013320 1641013368 1641013368 0.0133333333 0.0000000000 0.0000000000
-    ## 31: 1641013323 1641013416 1641013416 0.0258333333 0.0000000000 0.0000000000
-    ## 32: 1641013326 1641013385 1641013456 0.0163888889 0.0197222222 0.0197222222
-    ## 33: 1641013330 1641013385 1641013385 0.0152777778 0.0000000000 0.0000000000
-    ## 34: 1641013330 1641013368 1641013375 0.0105555556 0.0019444444 0.0038888889
-    ## 35: 1641013333 1641013368 1641013386 0.0097222222 0.0050000000 0.0050000000
-    ## 36: 1641013334 1641013391 1641013416 0.0158333333 0.0069444444 0.0069444444
-    ## 37: 1641013336 1641013366 1641013367 0.0083333333 0.0002777778 0.0011111111
-    ## 38: 1641013336 1641013355 1641013355 0.0052777778 0.0000000000 0.0000000000
-    ## 39: 1641013337 1641013355 1641013389 0.0050000000 0.0094444444 0.0094444444
-    ## 40: 1641013337 1641013385 1641013399 0.0133333333 0.0038888889 0.0038888889
-    ##       SubmitTS    StartTS      EndTS    WaitHours    WallHours    NodeHours
-    ##     WaitHours4log WallHours4log
-    ##  1:    0.01666667    0.01666667
-    ##  2:    0.01666667    0.01666667
-    ##  3:    0.01666667    0.01666667
-    ##  4:    0.01666667    0.01666667
-    ##  5:    0.01666667    0.01666667
-    ##  6:    0.01666667    0.01666667
-    ##  7:    0.01666667    0.01666667
-    ##  8:    0.01666667    0.01666667
-    ##  9:    0.01666667    0.01666667
-    ## 10:    0.01666667    0.01666667
-    ## 11:    0.02583333    0.01666667
-    ## 12:    0.01666667    0.01666667
-    ## 13:    0.01666667    0.01666667
-    ## 14:    0.01666667    0.01666667
-    ## 15:    0.01666667    0.01666667
-    ## 16:    0.01666667    0.01666667
-    ## 17:    0.01666667    0.01666667
-    ## 18:    0.01666667    0.01666667
-    ## 19:    0.01666667    0.01666667
-    ## 20:    0.01666667    0.01666667
-    ## 21:    0.01666667    0.01666667
-    ## 22:    0.01666667    0.01916667
-    ## 23:    0.01666667    0.01666667
-    ## 24:    0.01666667    0.01666667
-    ## 25:    0.01666667    0.01666667
-    ## 26:    0.01666667    0.01666667
-    ## 27:    0.01666667    0.01972222
-    ## 28:    0.01666667    0.01666667
-    ## 29:    0.01666667    0.01666667
-    ## 30:    0.01666667    0.01666667
-    ## 31:    0.02583333    0.01666667
-    ## 32:    0.01666667    0.01972222
-    ## 33:    0.01666667    0.01666667
-    ## 34:    0.01666667    0.01666667
-    ## 35:    0.01666667    0.01666667
-    ## 36:    0.01666667    0.01666667
-    ## 37:    0.01666667    0.01666667
-    ## 38:    0.01666667    0.01666667
-    ## 39:    0.01666667    0.01666667
-    ## 40:    0.01666667    0.01666667
-    ##     WaitHours4log WallHours4log
+<div class="kable-table">
+
+| slurm_mode | dtstart | run_id | JobRecID | SubmitTime | StartTime | EndTime | WallTime | WaitTime | JobId | JobIdRaw |  GID |  UID | NodeCount | NCPUS | ReqCPUS | ReqTRES                              | NodeList             | JobName    | NTasks | Submit              | Eligible            | Start               | End                 |             Elapsed |        Timelimit | Cluster | Partition | Account  | Group | User  | ExitCode | State     | QOS    | ReqMemSize | ReqMemPerNode |   SubmitTS |    StartTS |      EndTS | WaitHours | WallHours | NodeHours | WaitHours4log | WallHours4log |
+|:-----------|--------:|-------:|---------:|-----------:|----------:|--------:|---------:|---------:|------:|---------:|-----:|-----:|----------:|------:|--------:|:-------------------------------------|:---------------------|:-----------|:-------|:--------------------|:--------------------|:--------------------|:--------------------|--------------------:|-----------------:|:--------|:----------|:---------|:------|:------|:---------|:----------|:-------|-----------:|:--------------|-----------:|-----------:|-----------:|----------:|----------:|----------:|--------------:|--------------:|
+| test1      |      59 |      1 |     1001 |          0 |         0 |       0 |        0 |        0 |  1001 |     1001 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | b1                   | jobid_1001 | NA     | 2022-01-01 05:01:14 | 2022-01-01 05:01:14 | 2022-01-01 05:01:14 | 2022-01-01 05:01:14 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013274 | 1641013274 | 1641013274 | 0.0000000 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1002 |          1 |         2 |      62 |       60 |        1 |  1002 |     1002 | 1000 | 1001 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | n1                   | jobid_1002 | NA     | 2022-01-01 05:01:15 | 2022-01-01 05:01:15 | 2022-01-01 05:01:16 | 2022-01-01 05:02:16 |    60s (~1 minutes) | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | TIMEOUT   | normal |       2800 | TRUE          | 1641013275 | 1641013276 | 1641013336 | 0.0002778 | 0.0166667 | 0.0166667 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1003 |          2 |         2 |       7 |        5 |        0 |  1003 |     1003 | 1000 | 1004 |         1 |     1 |       1 | billing=1,cpu=1,mem=500000M,node=1   | b1                   | jobid_1003 | NA     | 2022-01-01 05:01:16 | 2022-01-01 05:01:16 | 2022-01-01 05:01:16 | 2022-01-01 05:01:21 |                  5s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013276 | 1641013276 | 1641013281 | 0.0000000 | 0.0013889 | 0.0013889 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1004 |         16 |        16 |      37 |       21 |        0 |  1004 |     1004 | 1000 | 1003 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | b1,g1                | jobid_1004 | NA     | 2022-01-01 05:01:30 | 2022-01-01 05:01:30 | 2022-01-01 05:01:30 | 2022-01-01 05:01:51 |                 21s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |      67200 | TRUE          | 1641013290 | 1641013290 | 1641013311 | 0.0000000 | 0.0058333 | 0.0116667 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1005 |         19 |        62 |      64 |        2 |       43 |  1005 |     1005 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=500000M,node=1 | b1                   | jobid_1005 | NA     | 2022-01-01 05:01:33 | 2022-01-01 05:01:33 | 2022-01-01 05:02:16 | 2022-01-01 05:02:18 |                  2s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013293 | 1641013336 | 1641013338 | 0.0119444 | 0.0005556 | 0.0005556 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1006 |         19 |        19 |      28 |        9 |        0 |  1006 |     1006 | 1000 | 1003 |         4 |    48 |      48 | billing=48,cpu=48,mem=134400M,node=1 | m\[1-4\]             | jobid_1006 | NA     | 2022-01-01 05:01:33 | 2022-01-01 05:01:33 | 2022-01-01 05:01:33 | 2022-01-01 05:01:42 |                  9s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |     134400 | TRUE          | 1641013293 | 1641013293 | 1641013302 | 0.0000000 | 0.0025000 | 0.0100000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1007 |         19 |        62 |     122 |       60 |       43 |  1007 |     1007 | 1000 | 1004 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | m\[1-2\]             | jobid_1007 | NA     | 2022-01-01 05:01:33 | 2022-01-01 05:01:33 | 2022-01-01 05:02:16 | 2022-01-01 05:03:16 |    60s (~1 minutes) | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | TIMEOUT   | normal |      67200 | TRUE          | 1641013293 | 1641013336 | 1641013396 | 0.0119444 | 0.0166667 | 0.0333333 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1008 |         22 |        62 |      62 |        0 |       40 |  1008 |     1008 | 1000 | 1004 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | m3                   | jobid_1008 | NA     | 2022-01-01 05:01:36 | 2022-01-01 05:01:36 | 2022-01-01 05:02:16 | 2022-01-01 05:02:16 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013296 | 1641013336 | 1641013336 | 0.0111111 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1009 |         26 |        39 |      41 |        2 |       13 |  1009 |     1009 | 1000 | 1001 |         8 |    96 |      96 | billing=96,cpu=96,mem=262.50G,node=1 | b1,m\[1-4\],n\[2-4\] | jobid_1009 | NA     | 2022-01-01 05:01:40 | 2022-01-01 05:01:40 | 2022-01-01 05:01:53 | 2022-01-01 05:01:55 |                  2s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |     268288 | TRUE          | 1641013300 | 1641013313 | 1641013315 | 0.0036111 | 0.0005556 | 0.0044444 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1010 |         26 |        65 |      65 |        0 |       39 |  1010 |     1010 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | n3                   | jobid_1010 | NA     | 2022-01-01 05:01:40 | 2022-01-01 05:01:40 | 2022-01-01 05:02:19 | 2022-01-01 05:02:19 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013300 | 1641013339 | 1641013339 | 0.0108333 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1011 |         29 |       122 |     122 |        0 |       93 |  1011 |     1011 | 1000 | 1004 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | g1                   | jobid_1011 | NA     | 2022-01-01 05:01:43 | 2022-01-01 05:01:43 | 2022-01-01 05:03:16 | 2022-01-01 05:03:16 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |       2800 | TRUE          | 1641013303 | 1641013396 | 1641013396 | 0.0258333 | 0.0000000 | 0.0000000 |     0.0258333 |     0.0166667 |
+| test1      |      59 |      1 |     1012 |         32 |        92 |     152 |       60 |       60 |  1012 |     1012 | 1000 | 1005 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | b1                   | jobid_1012 | NA     | 2022-01-01 05:01:46 | 2022-01-01 05:01:46 | 2022-01-01 05:02:46 | 2022-01-01 05:03:46 |    60s (~1 minutes) | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | TIMEOUT   | normal |       2800 | TRUE          | 1641013306 | 1641013366 | 1641013426 | 0.0166667 | 0.0166667 | 0.0166667 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1013 |         36 |        92 |      92 |        0 |       56 |  1013 |     1013 | 1000 | 1002 |         1 |     1 |       1 | billing=1,cpu=1,mem=500000M,node=1   | b1                   | jobid_1013 | NA     | 2022-01-01 05:01:50 | 2022-01-01 05:01:50 | 2022-01-01 05:02:46 | 2022-01-01 05:02:46 |                  0s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user2 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013310 | 1641013366 | 1641013366 | 0.0155556 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1014 |         36 |        65 |      72 |        7 |       29 |  1014 |     1014 | 1000 | 1005 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | n\[1-2\]             | jobid_1014 | NA     | 2022-01-01 05:01:50 | 2022-01-01 05:01:50 | 2022-01-01 05:02:19 | 2022-01-01 05:02:26 |                  7s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      67200 | TRUE          | 1641013310 | 1641013339 | 1641013346 | 0.0080556 | 0.0019444 | 0.0038889 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1015 |         39 |        65 |      83 |       18 |       26 |  1015 |     1015 | 1000 | 1002 |         1 |     6 |       6 | billing=6,cpu=6,mem=16800M,node=1    | n4                   | jobid_1015 | NA     | 2022-01-01 05:01:53 | 2022-01-01 05:01:53 | 2022-01-01 05:02:19 | 2022-01-01 05:02:37 |                 18s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user2 | 0:0      | COMPLETED | normal |      16800 | TRUE          | 1641013313 | 1641013339 | 1641013357 | 0.0072222 | 0.0050000 | 0.0050000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1016 |         40 |        97 |     122 |       25 |       57 |  1016 |     1016 | 1000 | 1001 |         1 |     2 |       2 | billing=2,cpu=2,mem=5600M,node=1     | g1                   | jobid_1016 | NA     | 2022-01-01 05:01:54 | 2022-01-01 05:01:54 | 2022-01-01 05:02:51 | 2022-01-01 05:03:16 |                 25s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |       5600 | TRUE          | 1641013314 | 1641013371 | 1641013396 | 0.0158333 | 0.0069444 | 0.0069444 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1017 |         42 |        62 |      63 |        1 |       20 |  1017 |     1017 | 1000 | 1001 |         4 |    48 |      48 | billing=48,cpu=48,mem=134400M,node=1 | n\[1-4\]             | jobid_1017 | NA     | 2022-01-01 05:01:56 | 2022-01-01 05:01:56 | 2022-01-01 05:02:16 | 2022-01-01 05:02:17 |                  1s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |     134400 | TRUE          | 1641013316 | 1641013336 | 1641013337 | 0.0055556 | 0.0002778 | 0.0011111 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1018 |         42 |        62 |      62 |        0 |       20 |  1018 |     1018 | 1000 | 1003 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | m4                   | jobid_1018 | NA     | 2022-01-01 05:01:56 | 2022-01-01 05:01:56 | 2022-01-01 05:02:16 | 2022-01-01 05:02:16 |                  0s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013316 | 1641013336 | 1641013336 | 0.0055556 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1019 |         43 |        62 |      96 |       34 |       19 |  1019 |     1019 | 1000 | 1004 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | g1                   | jobid_1019 | NA     | 2022-01-01 05:01:57 | 2022-01-01 05:01:57 | 2022-01-01 05:02:16 | 2022-01-01 05:02:50 |                 34s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013317 | 1641013336 | 1641013370 | 0.0052778 | 0.0094444 | 0.0094444 |     0.0166667 |     0.0166667 |
+| test1      |      59 |      1 |     1020 |         43 |        92 |     106 |       14 |       49 |  1020 |     1020 | 1000 | 1001 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | n1                   | jobid_1020 | NA     | 2022-01-01 05:01:57 | 2022-01-01 05:01:57 | 2022-01-01 05:02:46 | 2022-01-01 05:03:00 |                 14s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |       2800 | TRUE          | 1641013317 | 1641013366 | 1641013380 | 0.0136111 | 0.0038889 | 0.0038889 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1001 |          0 |         0 |       0 |        0 |        0 |  1001 |     1001 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | b1                   | jobid_1001 | NA     | 2022-01-01 05:01:34 | 2022-01-01 05:01:34 | 2022-01-01 05:01:34 | 2022-01-01 05:01:34 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013294 | 1641013294 | 1641013294 | 0.0000000 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1002 |          1 |         3 |      72 |       69 |        2 |  1002 |     1002 | 1000 | 1001 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | n1                   | jobid_1002 | NA     | 2022-01-01 05:01:35 | 2022-01-01 05:01:35 | 2022-01-01 05:01:37 | 2022-01-01 05:02:46 | 69s (~1.15 minutes) | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | TIMEOUT   | normal |       2800 | TRUE          | 1641013295 | 1641013297 | 1641013366 | 0.0005556 | 0.0191667 | 0.0191667 |     0.0166667 |     0.0191667 |
+| test1      |      79 |      1 |     1003 |          2 |         3 |       8 |        5 |        1 |  1003 |     1003 | 1000 | 1004 |         1 |     1 |       1 | billing=1,cpu=1,mem=500000M,node=1   | b1                   | jobid_1003 | NA     | 2022-01-01 05:01:36 | 2022-01-01 05:01:36 | 2022-01-01 05:01:37 | 2022-01-01 05:01:42 |                  5s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013296 | 1641013297 | 1641013302 | 0.0002778 | 0.0013889 | 0.0013889 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1004 |         16 |        16 |      37 |       21 |        0 |  1004 |     1004 | 1000 | 1003 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | b1,g1                | jobid_1004 | NA     | 2022-01-01 05:01:50 | 2022-01-01 05:01:50 | 2022-01-01 05:01:50 | 2022-01-01 05:02:11 |                 21s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |      67200 | TRUE          | 1641013310 | 1641013310 | 1641013331 | 0.0000000 | 0.0058333 | 0.0116667 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1005 |         19 |        61 |      63 |        2 |       42 |  1005 |     1005 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=500000M,node=1 | b1                   | jobid_1005 | NA     | 2022-01-01 05:01:53 | 2022-01-01 05:01:53 | 2022-01-01 05:02:35 | 2022-01-01 05:02:37 |                  2s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013313 | 1641013355 | 1641013357 | 0.0116667 | 0.0005556 | 0.0005556 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1006 |         19 |        19 |      28 |        9 |        0 |  1006 |     1006 | 1000 | 1003 |         4 |    48 |      48 | billing=48,cpu=48,mem=134400M,node=1 | m\[1-4\]             | jobid_1006 | NA     | 2022-01-01 05:01:53 | 2022-01-01 05:01:53 | 2022-01-01 05:01:53 | 2022-01-01 05:02:02 |                  9s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |     134400 | TRUE          | 1641013313 | 1641013313 | 1641013322 | 0.0000000 | 0.0025000 | 0.0100000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1007 |         19 |        61 |     132 |       71 |       42 |  1007 |     1007 | 1000 | 1004 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | m\[1-2\]             | jobid_1007 | NA     | 2022-01-01 05:01:53 | 2022-01-01 05:01:53 | 2022-01-01 05:02:35 | 2022-01-01 05:03:46 | 71s (~1.18 minutes) | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | TIMEOUT   | normal |      67200 | TRUE          | 1641013313 | 1641013355 | 1641013426 | 0.0116667 | 0.0197222 | 0.0394444 |     0.0166667 |     0.0197222 |
+| test1      |      79 |      1 |     1008 |         22 |        61 |      61 |        0 |       39 |  1008 |     1008 | 1000 | 1004 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | m3                   | jobid_1008 | NA     | 2022-01-01 05:01:56 | 2022-01-01 05:01:56 | 2022-01-01 05:02:35 | 2022-01-01 05:02:35 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013316 | 1641013355 | 1641013355 | 0.0108333 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1009 |         26 |        39 |      41 |        2 |       13 |  1009 |     1009 | 1000 | 1001 |         8 |    96 |      96 | billing=96,cpu=96,mem=262.50G,node=1 | b1,m\[1-4\],n\[2-4\] | jobid_1009 | NA     | 2022-01-01 05:02:00 | 2022-01-01 05:02:00 | 2022-01-01 05:02:13 | 2022-01-01 05:02:15 |                  2s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |     268288 | TRUE          | 1641013320 | 1641013333 | 1641013335 | 0.0036111 | 0.0005556 | 0.0044444 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1010 |         26 |        74 |      74 |        0 |       48 |  1010 |     1010 | 1000 | 1005 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | n3                   | jobid_1010 | NA     | 2022-01-01 05:02:00 | 2022-01-01 05:02:00 | 2022-01-01 05:02:48 | 2022-01-01 05:02:48 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013320 | 1641013368 | 1641013368 | 0.0133333 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1011 |         29 |       122 |     122 |        0 |       93 |  1011 |     1011 | 1000 | 1004 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | g1                   | jobid_1011 | NA     | 2022-01-01 05:02:03 | 2022-01-01 05:02:03 | 2022-01-01 05:03:36 | 2022-01-01 05:03:36 |                  0s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |       2800 | TRUE          | 1641013323 | 1641013416 | 1641013416 | 0.0258333 | 0.0000000 | 0.0000000 |     0.0258333 |     0.0166667 |
+| test1      |      79 |      1 |     1012 |         32 |        91 |     162 |       71 |       59 |  1012 |     1012 | 1000 | 1005 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | b1                   | jobid_1012 | NA     | 2022-01-01 05:02:06 | 2022-01-01 05:02:06 | 2022-01-01 05:03:05 | 2022-01-01 05:04:16 | 71s (~1.18 minutes) | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | TIMEOUT   | normal |       2800 | TRUE          | 1641013326 | 1641013385 | 1641013456 | 0.0163889 | 0.0197222 | 0.0197222 |     0.0166667 |     0.0197222 |
+| test1      |      79 |      1 |     1013 |         36 |        91 |      91 |        0 |       55 |  1013 |     1013 | 1000 | 1002 |         1 |     1 |       1 | billing=1,cpu=1,mem=500000M,node=1   | b1                   | jobid_1013 | NA     | 2022-01-01 05:02:10 | 2022-01-01 05:02:10 | 2022-01-01 05:03:05 | 2022-01-01 05:03:05 |                  0s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user2 | 0:0      | COMPLETED | normal |     500000 | TRUE          | 1641013330 | 1641013385 | 1641013385 | 0.0152778 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1014 |         36 |        74 |      81 |        7 |       38 |  1014 |     1014 | 1000 | 1005 |         2 |    24 |      24 | billing=24,cpu=24,mem=67200M,node=1  | n\[1-2\]             | jobid_1014 | NA     | 2022-01-01 05:02:10 | 2022-01-01 05:02:10 | 2022-01-01 05:02:48 | 2022-01-01 05:02:55 |                  7s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user5 | 0:0      | COMPLETED | normal |      67200 | TRUE          | 1641013330 | 1641013368 | 1641013375 | 0.0105556 | 0.0019444 | 0.0038889 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1015 |         39 |        74 |      92 |       18 |       35 |  1015 |     1015 | 1000 | 1002 |         1 |     6 |       6 | billing=6,cpu=6,mem=16800M,node=1    | n4                   | jobid_1015 | NA     | 2022-01-01 05:02:13 | 2022-01-01 05:02:13 | 2022-01-01 05:02:48 | 2022-01-01 05:03:06 |                 18s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user2 | 0:0      | COMPLETED | normal |      16800 | TRUE          | 1641013333 | 1641013368 | 1641013386 | 0.0097222 | 0.0050000 | 0.0050000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1016 |         40 |        97 |     122 |       25 |       57 |  1016 |     1016 | 1000 | 1001 |         1 |     2 |       2 | billing=2,cpu=2,mem=5600M,node=1     | g1                   | jobid_1016 | NA     | 2022-01-01 05:02:14 | 2022-01-01 05:02:14 | 2022-01-01 05:03:11 | 2022-01-01 05:03:36 |                 25s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |       5600 | TRUE          | 1641013334 | 1641013391 | 1641013416 | 0.0158333 | 0.0069444 | 0.0069444 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1017 |         42 |        72 |      73 |        1 |       30 |  1017 |     1017 | 1000 | 1001 |         4 |    48 |      48 | billing=48,cpu=48,mem=134400M,node=1 | n\[1-4\]             | jobid_1017 | NA     | 2022-01-01 05:02:16 | 2022-01-01 05:02:16 | 2022-01-01 05:02:46 | 2022-01-01 05:02:47 |                  1s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |     134400 | TRUE          | 1641013336 | 1641013366 | 1641013367 | 0.0083333 | 0.0002778 | 0.0011111 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1018 |         42 |        61 |      61 |        0 |       19 |  1018 |     1018 | 1000 | 1003 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | m4                   | jobid_1018 | NA     | 2022-01-01 05:02:16 | 2022-01-01 05:02:16 | 2022-01-01 05:02:35 | 2022-01-01 05:02:35 |                  0s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user3 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013336 | 1641013355 | 1641013355 | 0.0052778 | 0.0000000 | 0.0000000 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1019 |         43 |        61 |      95 |       34 |       18 |  1019 |     1019 | 1000 | 1004 |         1 |    12 |      12 | billing=12,cpu=12,mem=33600M,node=1  | g1                   | jobid_1019 | NA     | 2022-01-01 05:02:17 | 2022-01-01 05:02:17 | 2022-01-01 05:02:35 | 2022-01-01 05:03:09 |                 34s | 60s (~1 minutes) | micro   | normal    | account2 | slurm | user4 | 0:0      | COMPLETED | normal |      33600 | TRUE          | 1641013337 | 1641013355 | 1641013389 | 0.0050000 | 0.0094444 | 0.0094444 |     0.0166667 |     0.0166667 |
+| test1      |      79 |      1 |     1020 |         43 |        91 |     105 |       14 |       48 |  1020 |     1020 | 1000 | 1001 |         1 |     1 |       1 | billing=1,cpu=1,mem=2800M,node=1     | n1                   | jobid_1020 | NA     | 2022-01-01 05:02:17 | 2022-01-01 05:02:17 | 2022-01-01 05:03:05 | 2022-01-01 05:03:19 |                 14s | 60s (~1 minutes) | micro   | normal    | account1 | slurm | user1 | 0:0      | COMPLETED | normal |       2800 | TRUE          | 1641013337 | 1641013385 | 1641013399 | 0.0133333 | 0.0038889 | 0.0038889 |     0.0166667 |     0.0166667 |
+
+</div>
 
 `read_sacct_out_multiple` also recalculates `SubmitTime`, `StartTime`
 and `EndTime` in reference to the submission of first job.
@@ -1110,30 +814,748 @@ events_time <- read_events_multiple(
 events_time
 ```
 
-    ##                       ts slurm_mode dtstart run_id job_rec_id
-    ##   1: 2022-01-01 05:00:15      test1      59      1         NA
-    ##   2: 2022-01-01 05:00:16      test1      59      1         NA
-    ##   3: 2022-01-01 05:00:17      test1      59      1         NA
-    ##   4: 2022-01-01 05:00:17      test1      59      1         NA
-    ##   5: 2022-01-01 05:00:17      test1      59      1         NA
-    ##  ---                                                         
-    ## 732: 2022-01-01 05:04:16      test1      79      1         NA
-    ## 733: 2022-01-01 05:04:16      test1      79      1       1012
-    ## 734: 2022-01-01 05:04:16      test1      79      1       1012
-    ## 735: 2022-01-01 05:04:16      test1      79      1         NA
-    ## 736: 2022-01-01 05:04:16      test1      79      1         NA
-    ##                                metric         t                        value
-    ##   1:                 slurm_start_time -58.19048                         <NA>
-    ##   2:             slurmctld_background -57.44375                         <NA>
-    ##   3:         process_create_real_time -56.44371      2024-03-21T18:29:01.170
-    ##   4:          process_create_sim_time -56.44371      2022-01-01T05:00:15.472
-    ##   5:         queue_job_scheduler:from -56.44351 _slurm_rpc_node_registration
-    ##  ---                                                                        
-    ## 732: _slurmctld_background_call_sched 162.72634                   1641013456
-    ## 733:             request_complete_job 162.72636                         <NA>
-    ## 734:              job_epilog_complete 162.72636                    localhost
-    ## 735:                 calling_schedule 162.72637              epilog_complete
-    ## 736:                            sched 162.72638                        start
+<div class="kable-table">
+
+| ts                  | slurm_mode | dtstart | run_id | job_rec_id | metric                            |          t | value                         |
+|:--------------------|:-----------|--------:|-------:|-----------:|:----------------------------------|-----------:|:------------------------------|
+| 2022-01-01 05:00:15 | test1      |      59 |      1 |         NA | slurm_start_time                  | -58.190481 | NA                            |
+| 2022-01-01 05:00:16 | test1      |      59 |      1 |         NA | slurmctld_background              | -57.443749 | NA                            |
+| 2022-01-01 05:00:17 | test1      |      59 |      1 |         NA | process_create_real_time          | -56.443711 | 2024-03-21T18:29:01.170       |
+| 2022-01-01 05:00:17 | test1      |      59 |      1 |         NA | process_create_sim_time           | -56.443711 | 2022-01-01T05:00:15.472       |
+| 2022-01-01 05:00:17 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          | -56.443514 | \_slurm_rpc_node_registration |
+| 2022-01-01 05:00:17 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt | -56.443514 | 1                             |
+| 2022-01-01 05:00:19 | test1      |      59 |      1 |         NA | calling_schedule                  | -54.388569 | \_slurmctld_background        |
+| 2022-01-01 05:00:19 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched | -54.388569 | 1641013219                    |
+| 2022-01-01 05:00:19 | test1      |      59 |      1 |         NA | sched                             | -54.388501 | start                         |
+| 2022-01-01 05:00:46 | test1      |      59 |      1 |         NA | backfill                          | -27.892218 | start                         |
+| 2022-01-01 05:00:46 | test1      |      59 |      1 |         NA | job_time_limits_testing           | -27.388534 | NA                            |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | job_name                          |   0.000000 | jobid_1001                    |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | uid                               |   0.000000 | 1005                          |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | submit_job                        |   0.000000 | NA                            |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | initial_priority                  |   0.000000 | 1070000                       |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |   0.000676 | submit_batch_job              |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |   0.000678 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   0.000678 | 1                             |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | calling_schedule                  |   0.000684 | \_slurmctld_background        |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |   0.000684 | 1641013274                    |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | sched                             |   0.000691 | start                         |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | launch_job                        |   0.000767 | sched                         |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | nodes                             |   0.000767 | b1                            |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | request_complete_job              |   0.001106 | NA                            |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |       1001 | job_epilog_complete               |   0.001170 | localhost                     |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |   0.001173 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:14 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   0.001173 | 1                             |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |       1002 | job_name                          |   0.999902 | jobid_1002                    |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |       1002 | uid                               |   0.999902 | 1001                          |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |       1002 | submit_job                        |   0.999902 | NA                            |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |       1002 | initial_priority                  |   0.999902 | 1060833                       |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |   1.000281 | submit_batch_job              |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |   1.000283 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:15 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   1.000283 | 2                             |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | job_name                          |   1.999947 | jobid_1003                    |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | uid                               |   1.999947 | 1004                          |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | submit_job                        |   1.999947 | NA                            |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | initial_priority                  |   1.999947 | 1060833                       |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |   2.000802 | submit_batch_job              |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |   2.000803 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   2.000803 | 3                             |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | job_time_limits_testing           |   2.000812 | NA                            |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | calling_schedule                  |   2.000820 | \_slurmctld_background        |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |   2.000820 | 1641013276                    |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | sched                             |   2.000833 | start                         |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1002 | launch_job                        |   2.000930 | sched                         |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1002 | nodes                             |   2.000930 | n1                            |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | launch_job                        |   2.001130 | sched                         |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |       1003 | nodes                             |   2.001130 | b1                            |
+| 2022-01-01 05:01:16 | test1      |      59 |      1 |         NA | backfill                          |   2.107794 | start                         |
+| 2022-01-01 05:01:21 | test1      |      59 |      1 |       1003 | request_complete_job              |   7.001244 | NA                            |
+| 2022-01-01 05:01:21 | test1      |      59 |      1 |       1003 | job_epilog_complete               |   7.001349 | localhost                     |
+| 2022-01-01 05:01:21 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |   7.001353 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:21 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   7.001353 | 1                             |
+| 2022-01-01 05:01:22 | test1      |      59 |      1 |         NA | calling_schedule                  |   8.000845 | \_slurmctld_background        |
+| 2022-01-01 05:01:22 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |   8.000845 | 1641013282                    |
+| 2022-01-01 05:01:22 | test1      |      59 |      1 |         NA | sched                             |   8.000860 | start                         |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | job_name                          |  15.999885 | jobid_1004                    |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | uid                               |  15.999885 | 1003                          |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | submit_job                        |  15.999885 | NA                            |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | initial_priority                  |  15.999885 | 1080000                       |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  16.001086 | submit_batch_job              |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  16.001088 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  16.001088 | 1                             |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | calling_schedule                  |  16.001102 | \_slurmctld_background        |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  16.001102 | 1641013290                    |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |         NA | sched                             |  16.001113 | start                         |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | launch_job                        |  16.001215 | sched                         |
+| 2022-01-01 05:01:30 | test1      |      59 |      1 |       1004 | nodes                             |  16.001215 | b1,g1                         |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1005 | job_name                          |  18.999930 | jobid_1005                    |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1005 | uid                               |  18.999930 | 1005                          |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1005 | submit_job                        |  18.999930 | NA                            |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1005 | initial_priority                  |  18.999930 | 1070000                       |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  19.000397 | submit_batch_job              |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  19.000399 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.000399 | 1                             |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | job_name                          |  19.000602 | jobid_1006                    |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | uid                               |  19.000602 | 1003                          |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | submit_job                        |  19.000602 | NA                            |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | initial_priority                  |  19.000602 | 1100000                       |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  19.001056 | submit_batch_job              |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  19.001057 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.001057 | 2                             |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1007 | job_name                          |  19.001244 | jobid_1007                    |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1007 | uid                               |  19.001244 | 1004                          |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1007 | submit_job                        |  19.001244 | NA                            |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1007 | initial_priority                  |  19.001244 | 1080000                       |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  19.001783 | submit_batch_job              |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  19.001784 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.001784 | 3                             |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | calling_schedule                  |  19.001789 | \_slurmctld_background        |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  19.001789 | 1641013293                    |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |         NA | sched                             |  19.001798 | start                         |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | launch_job                        |  19.001874 | sched                         |
+| 2022-01-01 05:01:33 | test1      |      59 |      1 |       1006 | nodes                             |  19.001874 | m\[1-4\]                      |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |       1008 | job_name                          |  21.999904 | jobid_1008                    |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |       1008 | uid                               |  21.999904 | 1004                          |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |       1008 | submit_job                        |  21.999904 | NA                            |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |       1008 | initial_priority                  |  21.999904 | 1070000                       |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  22.001121 | submit_batch_job              |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  22.001123 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  22.001123 | 1                             |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | calling_schedule                  |  22.001132 | \_slurmctld_background        |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  22.001132 | 1641013296                    |
+| 2022-01-01 05:01:36 | test1      |      59 |      1 |         NA | sched                             |  22.001140 | start                         |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1009 | job_name                          |  25.999896 | jobid_1009                    |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1009 | uid                               |  25.999896 | 1001                          |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1009 | submit_job                        |  25.999896 | NA                            |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1009 | initial_priority                  |  25.999896 | 1140000                       |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  26.000684 | submit_batch_job              |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  26.000686 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  26.000686 | 1                             |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1010 | job_name                          |  26.000893 | jobid_1010                    |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1010 | uid                               |  26.000893 | 1005                          |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1010 | submit_job                        |  26.000893 | NA                            |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |       1010 | initial_priority                  |  26.000893 | 1070000                       |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  26.001386 | submit_batch_job              |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  26.001387 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  26.001387 | 2                             |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | calling_schedule                  |  26.001393 | \_slurmctld_background        |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  26.001393 | 1641013300                    |
+| 2022-01-01 05:01:40 | test1      |      59 |      1 |         NA | sched                             |  26.001401 | start                         |
+| 2022-01-01 05:01:42 | test1      |      59 |      1 |       1006 | request_complete_job              |  28.001966 | NA                            |
+| 2022-01-01 05:01:42 | test1      |      59 |      1 |       1006 | job_epilog_complete               |  28.002050 | localhost                     |
+| 2022-01-01 05:01:42 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  28.002057 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:42 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  28.002057 | 1                             |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |       1011 | job_name                          |  28.999919 | jobid_1011                    |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |       1011 | uid                               |  28.999919 | 1004                          |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |       1011 | submit_job                        |  28.999919 | NA                            |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |       1011 | initial_priority                  |  28.999919 | 1060833                       |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  29.001201 | submit_batch_job              |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  29.001206 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  29.001206 | 2                             |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | calling_schedule                  |  29.001252 | \_slurmctld_background        |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  29.001252 | 1641013303                    |
+| 2022-01-01 05:01:43 | test1      |      59 |      1 |         NA | sched                             |  29.001279 | start                         |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |       1012 | job_name                          |  31.999887 | jobid_1012                    |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |       1012 | uid                               |  31.999887 | 1005                          |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |       1012 | submit_job                        |  31.999887 | NA                            |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |       1012 | initial_priority                  |  31.999887 | 1060833                       |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  32.000466 | submit_batch_job              |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  32.000467 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  32.000467 | 1                             |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | job_time_limits_testing           |  32.000473 | NA                            |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | calling_schedule                  |  32.000483 | \_slurmctld_background        |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  32.000483 | 1641013306                    |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | sched                             |  32.000493 | start                         |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | backfill                          |  32.107804 | start                         |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | backfill_cycle_n                  |  32.108174 | 7                             |
+| 2022-01-01 05:01:46 | test1      |      59 |      1 |         NA | backfill_cycle_time               |  32.108174 | 370000000\.0                  |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1013 | job_name                          |  35.999956 | jobid_1013                    |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1013 | uid                               |  35.999956 | 1002                          |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1013 | submit_job                        |  35.999956 | NA                            |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1013 | initial_priority                  |  35.999956 | 1060833                       |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  36.000385 | submit_batch_job              |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  36.000386 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  36.000386 | 1                             |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1014 | job_name                          |  36.000582 | jobid_1014                    |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1014 | uid                               |  36.000582 | 1005                          |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1014 | submit_job                        |  36.000582 | NA                            |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |       1014 | initial_priority                  |  36.000582 | 1080000                       |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  36.000901 | submit_batch_job              |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  36.000902 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  36.000902 | 2                             |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | calling_schedule                  |  36.000906 | \_slurmctld_background        |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  36.000906 | 1641013310                    |
+| 2022-01-01 05:01:50 | test1      |      59 |      1 |         NA | sched                             |  36.000915 | start                         |
+| 2022-01-01 05:01:51 | test1      |      59 |      1 |       1004 | request_complete_job              |  37.001394 | NA                            |
+| 2022-01-01 05:01:51 | test1      |      59 |      1 |       1004 | job_epilog_complete               |  37.001505 | localhost                     |
+| 2022-01-01 05:01:51 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  37.001512 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:51 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  37.001512 | 1                             |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1015 | job_name                          |  38.999883 | jobid_1015                    |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1015 | uid                               |  38.999883 | 1002                          |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1015 | submit_job                        |  38.999883 | NA                            |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1015 | initial_priority                  |  38.999883 | 1065000                       |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  39.000503 | submit_batch_job              |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  39.000505 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  39.000505 | 2                             |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | calling_schedule                  |  39.000512 | \_slurmctld_background        |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  39.000512 | 1641013313                    |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |         NA | sched                             |  39.000524 | start                         |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1009 | launch_job                        |  39.000628 | sched                         |
+| 2022-01-01 05:01:53 | test1      |      59 |      1 |       1009 | nodes                             |  39.000628 | b1,m\[1-4\],n\[2-4\]          |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |       1016 | job_name                          |  39.999825 | jobid_1016                    |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |       1016 | uid                               |  39.999825 | 1001                          |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |       1016 | submit_job                        |  39.999825 | NA                            |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |       1016 | initial_priority                  |  39.999825 | 1061666                       |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  40.000334 | submit_batch_job              |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  40.000335 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:54 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  40.000335 | 1                             |
+| 2022-01-01 05:01:55 | test1      |      59 |      1 |       1009 | request_complete_job              |  41.000674 | NA                            |
+| 2022-01-01 05:01:55 | test1      |      59 |      1 |       1009 | job_epilog_complete               |  41.000709 | localhost                     |
+| 2022-01-01 05:01:55 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  41.000712 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:55 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  41.000712 | 2                             |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1017 | job_name                          |  41.999907 | jobid_1017                    |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1017 | uid                               |  41.999907 | 1001                          |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1017 | submit_job                        |  41.999907 | NA                            |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1017 | initial_priority                  |  41.999907 | 1100000                       |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  42.000509 | submit_batch_job              |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  42.000511 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  42.000511 | 3                             |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1018 | job_name                          |  42.000713 | jobid_1018                    |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1018 | uid                               |  42.000713 | 1003                          |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1018 | submit_job                        |  42.000713 | NA                            |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |       1018 | initial_priority                  |  42.000713 | 1070000                       |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  42.001191 | submit_batch_job              |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  42.001193 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  42.001193 | 4                             |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | calling_schedule                  |  42.001200 | \_slurmctld_background        |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  42.001200 | 1641013316                    |
+| 2022-01-01 05:01:56 | test1      |      59 |      1 |         NA | sched                             |  42.001210 | start                         |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1019 | job_name                          |  42.999806 | jobid_1019                    |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1019 | uid                               |  42.999806 | 1004                          |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1019 | submit_job                        |  42.999806 | NA                            |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1019 | initial_priority                  |  42.999806 | 1070000                       |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  43.000099 | submit_batch_job              |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  43.000101 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  43.000101 | 1                             |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1020 | job_name                          |  43.000299 | jobid_1020                    |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1020 | uid                               |  43.000299 | 1001                          |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1020 | submit_job                        |  43.000299 | NA                            |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |       1020 | initial_priority                  |  43.000299 | 1060833                       |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | calling_queue_job_scheduler       |  43.000574 | submit_batch_job              |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  43.000575 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:57 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  43.000575 | 2                             |
+| 2022-01-01 05:01:59 | test1      |      59 |      1 |         NA | calling_schedule                  |  45.000589 | \_slurmctld_background        |
+| 2022-01-01 05:01:59 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  45.000589 | 1641013319                    |
+| 2022-01-01 05:01:59 | test1      |      59 |      1 |         NA | sched                             |  45.000648 | start                         |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | job_time_limits_testing           |  62.000628 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1002 | time_limit_exhausted              |  62.000632 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | calling_schedule                  |  62.000712 | \_slurmctld_background        |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  62.000712 | 1641013336                    |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1002 | request_complete_job              |  62.000728 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1002 | job_epilog_complete               |  62.000731 | localhost                     |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | calling_schedule                  |  62.000735 | epilog_complete               |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | sched                             |  62.000746 | start                         |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1017 | launch_job                        |  62.000855 | sched                         |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1017 | nodes                             |  62.000855 | n\[1-4\]                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1007 | launch_job                        |  62.000993 | sched                         |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1007 | nodes                             |  62.000993 | m\[1-2\]                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | backfill                          |  62.108181 | start                         |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1005 | launch_job                        |  62.108290 | backfill                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1005 | nodes                             |  62.108290 | b1                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1008 | launch_job                        |  62.108362 | backfill                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1008 | nodes                             |  62.108362 | m3                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1018 | launch_job                        |  62.108451 | backfill                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1018 | nodes                             |  62.108451 | m4                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1019 | launch_job                        |  62.108546 | backfill                      |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1019 | nodes                             |  62.108546 | g1                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | backfill_cycle_n                  |  62.109001 | 12                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | backfill_cycle_time               |  62.109001 | 820000000\.0                  |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1008 | request_complete_job              |  62.109012 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1008 | job_epilog_complete               |  62.109039 | localhost                     |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  62.109042 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  62.109042 | 1                             |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1018 | request_complete_job              |  62.109052 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |       1018 | job_epilog_complete               |  62.109071 | localhost                     |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  62.109072 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  62.109072 | 2                             |
+| 2022-01-01 05:02:17 | test1      |      59 |      1 |       1017 | request_complete_job              |  63.000942 | NA                            |
+| 2022-01-01 05:02:17 | test1      |      59 |      1 |       1017 | job_epilog_complete               |  63.000963 | localhost                     |
+| 2022-01-01 05:02:17 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  63.000965 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:17 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  63.000965 | 3                             |
+| 2022-01-01 05:02:18 | test1      |      59 |      1 |       1005 | request_complete_job              |  64.108323 | NA                            |
+| 2022-01-01 05:02:18 | test1      |      59 |      1 |       1005 | job_epilog_complete               |  64.108344 | localhost                     |
+| 2022-01-01 05:02:18 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  64.108346 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:18 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  64.108346 | 4                             |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |         NA | calling_schedule                  |  65.000731 | \_slurmctld_background        |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  65.000731 | 1641013339                    |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |         NA | sched                             |  65.000817 | start                         |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1014 | launch_job                        |  65.000961 | sched                         |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1014 | nodes                             |  65.000961 | n\[1-2\]                      |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1010 | launch_job                        |  65.001071 | sched                         |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1010 | nodes                             |  65.001071 | n3                            |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1015 | launch_job                        |  65.001138 | sched                         |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1015 | nodes                             |  65.001138 | n4                            |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1010 | request_complete_job              |  65.001103 | NA                            |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |       1010 | job_epilog_complete               |  65.001136 | localhost                     |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  65.001140 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:19 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  65.001140 | 1                             |
+| 2022-01-01 05:02:22 | test1      |      59 |      1 |         NA | calling_schedule                  |  68.000756 | \_slurmctld_background        |
+| 2022-01-01 05:02:22 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  68.000756 | 1641013342                    |
+| 2022-01-01 05:02:22 | test1      |      59 |      1 |         NA | sched                             |  68.000762 | start                         |
+| 2022-01-01 05:02:26 | test1      |      59 |      1 |       1014 | request_complete_job              |  72.001031 | NA                            |
+| 2022-01-01 05:02:26 | test1      |      59 |      1 |       1014 | job_epilog_complete               |  72.001051 | localhost                     |
+| 2022-01-01 05:02:26 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  72.001053 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:26 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  72.001053 | 1                             |
+| 2022-01-01 05:02:27 | test1      |      59 |      1 |         NA | calling_schedule                  |  73.000762 | \_slurmctld_background        |
+| 2022-01-01 05:02:27 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  73.000762 | 1641013347                    |
+| 2022-01-01 05:02:27 | test1      |      59 |      1 |         NA | sched                             |  73.000768 | start                         |
+| 2022-01-01 05:02:37 | test1      |      59 |      1 |       1015 | request_complete_job              |  83.001254 | NA                            |
+| 2022-01-01 05:02:37 | test1      |      59 |      1 |       1015 | job_epilog_complete               |  83.001379 | localhost                     |
+| 2022-01-01 05:02:37 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  83.001385 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:37 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  83.001385 | 1                             |
+| 2022-01-01 05:02:38 | test1      |      59 |      1 |         NA | calling_schedule                  |  84.000782 | \_slurmctld_background        |
+| 2022-01-01 05:02:38 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  84.000782 | 1641013358                    |
+| 2022-01-01 05:02:38 | test1      |      59 |      1 |         NA | sched                             |  84.000800 | start                         |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | job_time_limits_testing           |  92.000800 | NA                            |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | backfill                          |  92.109009 | start                         |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1012 | launch_job                        |  92.109329 | backfill                      |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1012 | nodes                             |  92.109329 | b1                            |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1013 | launch_job                        |  92.109443 | backfill                      |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1013 | nodes                             |  92.109443 | b1                            |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1020 | launch_job                        |  92.109517 | backfill                      |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1020 | nodes                             |  92.109517 | n1                            |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | backfill_cycle_n                  |  92.109539 | 5                             |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | backfill_cycle_time               |  92.109539 | 530000000\.0                  |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1013 | request_complete_job              |  92.109549 | NA                            |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |       1013 | job_epilog_complete               |  92.109619 | localhost                     |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  92.109623 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:46 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  92.109623 | 1                             |
+| 2022-01-01 05:02:47 | test1      |      59 |      1 |         NA | calling_schedule                  |  93.000817 | \_slurmctld_background        |
+| 2022-01-01 05:02:47 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  93.000817 | 1641013367                    |
+| 2022-01-01 05:02:47 | test1      |      59 |      1 |         NA | sched                             |  93.000830 | start                         |
+| 2022-01-01 05:02:50 | test1      |      59 |      1 |       1019 | request_complete_job              |  96.108607 | NA                            |
+| 2022-01-01 05:02:50 | test1      |      59 |      1 |       1019 | job_epilog_complete               |  96.108694 | localhost                     |
+| 2022-01-01 05:02:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          |  96.108715 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:50 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  96.108715 | 1                             |
+| 2022-01-01 05:02:50 | test1      |      59 |      1 |       1019 | request_complete_job              |  96.108718 | NA                            |
+| 2022-01-01 05:02:51 | test1      |      59 |      1 |         NA | calling_schedule                  |  97.000829 | \_slurmctld_background        |
+| 2022-01-01 05:02:51 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched |  97.000829 | 1641013371                    |
+| 2022-01-01 05:02:51 | test1      |      59 |      1 |         NA | sched                             |  97.000841 | start                         |
+| 2022-01-01 05:02:51 | test1      |      59 |      1 |       1016 | launch_job                        |  97.000955 | sched                         |
+| 2022-01-01 05:02:51 | test1      |      59 |      1 |       1016 | nodes                             |  97.000955 | g1                            |
+| 2022-01-01 05:03:00 | test1      |      59 |      1 |       1020 | request_complete_job              | 106.109583 | NA                            |
+| 2022-01-01 05:03:00 | test1      |      59 |      1 |       1020 | job_epilog_complete               | 106.109739 | localhost                     |
+| 2022-01-01 05:03:00 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          | 106.109746 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:00 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 106.109746 | 1                             |
+| 2022-01-01 05:03:01 | test1      |      59 |      1 |         NA | calling_schedule                  | 107.000851 | \_slurmctld_background        |
+| 2022-01-01 05:03:01 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched | 107.000851 | 1641013381                    |
+| 2022-01-01 05:03:01 | test1      |      59 |      1 |         NA | sched                             | 107.000869 | start                         |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | job_time_limits_testing           | 122.000875 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1007 | time_limit_exhausted              | 122.000879 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | calling_schedule                  | 122.000988 | \_slurmctld_background        |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched | 122.000988 | 1641013396                    |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1007 | request_complete_job              | 122.001003 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1007 | job_epilog_complete               | 122.001006 | localhost                     |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | calling_schedule                  | 122.001011 | epilog_complete               |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1016 | request_complete_job              | 122.001023 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1016 | job_epilog_complete               | 122.001050 | localhost                     |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          | 122.001052 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 122.001052 | 1                             |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | sched                             | 122.001064 | start                         |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1011 | launch_job                        | 122.001176 | sched                         |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1011 | nodes                             | 122.001176 | g1                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1011 | request_complete_job              | 122.001234 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |       1011 | job_epilog_complete               | 122.001268 | localhost                     |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:from          | 122.001270 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 122.001270 | 2                             |
+| 2022-01-01 05:03:16 | test1      |      59 |      1 |         NA | backfill                          | 122.109546 | start                         |
+| 2022-01-01 05:03:19 | test1      |      59 |      1 |         NA | calling_schedule                  | 125.001004 | \_slurmctld_background        |
+| 2022-01-01 05:03:19 | test1      |      59 |      1 |         NA | \_slurmctld_background_call_sched | 125.001004 | 1641013399                    |
+| 2022-01-01 05:03:19 | test1      |      59 |      1 |         NA | sched                             | 125.001066 | start                         |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |         NA | job_time_limits_testing           | 152.001032 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |       1012 | time_limit_exhausted              | 152.001035 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |       1012 | request_complete_job              | 152.001112 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |       1012 | job_epilog_complete               | 152.001115 | localhost                     |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |         NA | calling_schedule                  | 152.001119 | epilog_complete               |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |         NA | sched                             | 152.001125 | start                         |
+| 2022-01-01 05:03:46 | test1      |      59 |      1 |         NA | backfill                          | 152.109555 | start                         |
+| 2022-01-01 05:00:15 | test1      |      79 |      1 |         NA | slurm_start_time                  | -78.381604 | NA                            |
+| 2022-01-01 05:00:16 | test1      |      79 |      1 |         NA | slurmctld_background              | -77.667172 | NA                            |
+| 2022-01-01 05:00:17 | test1      |      79 |      1 |         NA | process_create_real_time          | -76.667134 | 2024-03-15T15:17:51.470       |
+| 2022-01-01 05:00:17 | test1      |      79 |      1 |         NA | process_create_sim_time           | -76.667134 | 2022-01-01T05:00:15.563       |
+| 2022-01-01 05:00:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          | -76.666917 | \_slurm_rpc_node_registration |
+| 2022-01-01 05:00:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt | -76.666917 | 1                             |
+| 2022-01-01 05:00:19 | test1      |      79 |      1 |         NA | calling_schedule                  | -74.603987 | \_slurmctld_background        |
+| 2022-01-01 05:00:19 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | -74.603987 | 1641013219                    |
+| 2022-01-01 05:00:19 | test1      |      79 |      1 |         NA | sched                             | -74.603943 | start                         |
+| 2022-01-01 05:00:46 | test1      |      79 |      1 |         NA | backfill                          | -48.115643 | start                         |
+| 2022-01-01 05:00:46 | test1      |      79 |      1 |         NA | job_time_limits_testing           | -47.603948 | NA                            |
+| 2022-01-01 05:01:16 | test1      |      79 |      1 |         NA | job_time_limits_testing           | -17.603933 | NA                            |
+| 2022-01-01 05:01:16 | test1      |      79 |      1 |         NA | calling_schedule                  | -17.603930 | \_slurmctld_background        |
+| 2022-01-01 05:01:16 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | -17.603930 | 1641013276                    |
+| 2022-01-01 05:01:16 | test1      |      79 |      1 |         NA | sched                             | -17.603923 | start                         |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | job_name                          |   0.000000 | jobid_1001                    |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | uid                               |   0.000000 | 1005                          |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | submit_job                        |   0.000000 | NA                            |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | initial_priority                  |   0.000000 | 1070000                       |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |   0.000431 | submit_batch_job              |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |   0.000437 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   0.000437 | 1                             |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | calling_schedule                  |   0.000441 | \_slurmctld_background        |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |   0.000441 | 1641013294                    |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | sched                             |   0.000447 | start                         |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | launch_job                        |   0.000528 | sched                         |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | nodes                             |   0.000528 | b1                            |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | request_complete_job              |   0.000805 | NA                            |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |       1001 | job_epilog_complete               |   0.000852 | localhost                     |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |   0.000855 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:34 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   0.000855 | 1                             |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |         NA | backfill                          |   0.884382 | start                         |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |       1002 | job_name                          |   0.999866 | jobid_1002                    |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |       1002 | uid                               |   0.999866 | 1001                          |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |       1002 | submit_job                        |   0.999866 | NA                            |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |       1002 | initial_priority                  |   0.999866 | 1060833                       |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |   1.000168 | submit_batch_job              |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |   1.000169 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   1.000169 | 2                             |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |       1003 | job_name                          |   2.000003 | jobid_1003                    |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |       1003 | uid                               |   2.000003 | 1004                          |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |       1003 | submit_job                        |   2.000003 | NA                            |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |       1003 | initial_priority                  |   2.000003 | 1060833                       |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |   2.000438 | submit_batch_job              |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |   2.000439 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   2.000439 | 3                             |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |         NA | calling_schedule                  |   3.000448 | \_slurmctld_background        |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |   3.000448 | 1641013297                    |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |         NA | sched                             |   3.000455 | start                         |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |       1002 | launch_job                        |   3.000556 | sched                         |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |       1002 | nodes                             |   3.000556 | n1                            |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |       1003 | launch_job                        |   3.000685 | sched                         |
+| 2022-01-01 05:01:37 | test1      |      79 |      1 |       1003 | nodes                             |   3.000685 | b1                            |
+| 2022-01-01 05:01:42 | test1      |      79 |      1 |       1003 | request_complete_job              |   8.000759 | NA                            |
+| 2022-01-01 05:01:42 | test1      |      79 |      1 |       1003 | job_epilog_complete               |   8.000850 | localhost                     |
+| 2022-01-01 05:01:42 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |   8.000855 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:01:42 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |   8.000855 | 1                             |
+| 2022-01-01 05:01:43 | test1      |      79 |      1 |         NA | calling_schedule                  |   9.000467 | \_slurmctld_background        |
+| 2022-01-01 05:01:43 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |   9.000467 | 1641013303                    |
+| 2022-01-01 05:01:43 | test1      |      79 |      1 |         NA | sched                             |   9.000478 | start                         |
+| 2022-01-01 05:01:46 | test1      |      79 |      1 |         NA | job_time_limits_testing           |  12.000470 | NA                            |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | job_name                          |  15.999930 | jobid_1004                    |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | uid                               |  15.999930 | 1003                          |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | submit_job                        |  15.999930 | NA                            |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | initial_priority                  |  15.999930 | 1080000                       |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  16.000473 | submit_batch_job              |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  16.000475 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  16.000475 | 1                             |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | calling_schedule                  |  16.000500 | \_slurmctld_background        |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  16.000500 | 1641013310                    |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |         NA | sched                             |  16.000510 | start                         |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | launch_job                        |  16.000591 | sched                         |
+| 2022-01-01 05:01:50 | test1      |      79 |      1 |       1004 | nodes                             |  16.000591 | b1,g1                         |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1005 | job_name                          |  18.999939 | jobid_1005                    |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1005 | uid                               |  18.999939 | 1005                          |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1005 | submit_job                        |  18.999939 | NA                            |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1005 | initial_priority                  |  18.999939 | 1070000                       |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  19.000407 | submit_batch_job              |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  19.000409 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.000409 | 1                             |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | job_name                          |  19.000605 | jobid_1006                    |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | uid                               |  19.000605 | 1003                          |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | submit_job                        |  19.000605 | NA                            |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | initial_priority                  |  19.000605 | 1100000                       |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  19.000882 | submit_batch_job              |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  19.000883 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.000883 | 2                             |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1007 | job_name                          |  19.001052 | jobid_1007                    |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1007 | uid                               |  19.001052 | 1004                          |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1007 | submit_job                        |  19.001052 | NA                            |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1007 | initial_priority                  |  19.001052 | 1080000                       |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  19.001292 | submit_batch_job              |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  19.001293 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  19.001293 | 3                             |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | calling_schedule                  |  19.001297 | \_slurmctld_background        |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  19.001297 | 1641013313                    |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |         NA | sched                             |  19.001304 | start                         |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | launch_job                        |  19.001374 | sched                         |
+| 2022-01-01 05:01:53 | test1      |      79 |      1 |       1006 | nodes                             |  19.001374 | m\[1-4\]                      |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |       1008 | job_name                          |  21.999908 | jobid_1008                    |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |       1008 | uid                               |  21.999908 | 1004                          |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |       1008 | submit_job                        |  21.999908 | NA                            |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |       1008 | initial_priority                  |  21.999908 | 1070000                       |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  22.000229 | submit_batch_job              |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  22.000231 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  22.000231 | 1                             |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | calling_schedule                  |  22.000236 | \_slurmctld_background        |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  22.000236 | 1641013316                    |
+| 2022-01-01 05:01:56 | test1      |      79 |      1 |         NA | sched                             |  22.000243 | start                         |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1009 | job_name                          |  25.999939 | jobid_1009                    |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1009 | uid                               |  25.999939 | 1001                          |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1009 | submit_job                        |  25.999939 | NA                            |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1009 | initial_priority                  |  25.999939 | 1140000                       |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  26.000356 | submit_batch_job              |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  26.000358 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  26.000358 | 1                             |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1010 | job_name                          |  26.000546 | jobid_1010                    |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1010 | uid                               |  26.000546 | 1005                          |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1010 | submit_job                        |  26.000546 | NA                            |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |       1010 | initial_priority                  |  26.000546 | 1070000                       |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  26.000880 | submit_batch_job              |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  26.000881 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  26.000881 | 2                             |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | calling_schedule                  |  26.000888 | \_slurmctld_background        |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  26.000888 | 1641013320                    |
+| 2022-01-01 05:02:00 | test1      |      79 |      1 |         NA | sched                             |  26.000895 | start                         |
+| 2022-01-01 05:02:02 | test1      |      79 |      1 |       1006 | request_complete_job              |  28.001444 | NA                            |
+| 2022-01-01 05:02:02 | test1      |      79 |      1 |       1006 | job_epilog_complete               |  28.001536 | localhost                     |
+| 2022-01-01 05:02:02 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  28.001541 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:02 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  28.001541 | 1                             |
+| 2022-01-01 05:02:02 | test1      |      79 |      1 |       1006 | request_complete_job              |  28.001544 | NA                            |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |       1011 | job_name                          |  28.999965 | jobid_1011                    |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |       1011 | uid                               |  28.999965 | 1004                          |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |       1011 | submit_job                        |  28.999965 | NA                            |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |       1011 | initial_priority                  |  28.999965 | 1060833                       |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  29.000432 | submit_batch_job              |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  29.000434 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  29.000434 | 2                             |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | calling_schedule                  |  29.000439 | \_slurmctld_background        |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  29.000439 | 1641013323                    |
+| 2022-01-01 05:02:03 | test1      |      79 |      1 |         NA | sched                             |  29.000447 | start                         |
+| 2022-01-01 05:02:05 | test1      |      79 |      1 |         NA | backfill                          |  30.884389 | start                         |
+| 2022-01-01 05:02:05 | test1      |      79 |      1 |         NA | backfill_cycle_n                  |  30.884690 | 6                             |
+| 2022-01-01 05:02:05 | test1      |      79 |      1 |         NA | backfill_cycle_time               |  30.884690 | 301000000\.0                  |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |       1012 | job_name                          |  31.999974 | jobid_1012                    |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |       1012 | uid                               |  31.999974 | 1005                          |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |       1012 | submit_job                        |  31.999974 | NA                            |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |       1012 | initial_priority                  |  31.999974 | 1060833                       |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  32.000410 | submit_batch_job              |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  32.000412 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  32.000412 | 1                             |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | calling_schedule                  |  32.000418 | \_slurmctld_background        |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  32.000418 | 1641013326                    |
+| 2022-01-01 05:02:06 | test1      |      79 |      1 |         NA | sched                             |  32.000447 | start                         |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1013 | job_name                          |  35.999926 | jobid_1013                    |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1013 | uid                               |  35.999926 | 1002                          |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1013 | submit_job                        |  35.999926 | NA                            |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1013 | initial_priority                  |  35.999926 | 1060833                       |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  36.000370 | submit_batch_job              |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  36.000372 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  36.000372 | 1                             |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1014 | job_name                          |  36.000572 | jobid_1014                    |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1014 | uid                               |  36.000572 | 1005                          |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1014 | submit_job                        |  36.000572 | NA                            |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |       1014 | initial_priority                  |  36.000572 | 1080000                       |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  36.000792 | submit_batch_job              |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  36.000793 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  36.000793 | 2                             |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | calling_schedule                  |  36.000797 | \_slurmctld_background        |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  36.000797 | 1641013330                    |
+| 2022-01-01 05:02:10 | test1      |      79 |      1 |         NA | sched                             |  36.000805 | start                         |
+| 2022-01-01 05:02:11 | test1      |      79 |      1 |       1004 | request_complete_job              |  37.000744 | NA                            |
+| 2022-01-01 05:02:11 | test1      |      79 |      1 |       1004 | job_epilog_complete               |  37.000812 | localhost                     |
+| 2022-01-01 05:02:11 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  37.000816 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:11 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  37.000816 | 1                             |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1015 | job_name                          |  38.999914 | jobid_1015                    |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1015 | uid                               |  38.999914 | 1002                          |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1015 | submit_job                        |  38.999914 | NA                            |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1015 | initial_priority                  |  38.999914 | 1065000                       |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  39.000308 | submit_batch_job              |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  39.000309 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  39.000309 | 2                             |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | calling_schedule                  |  39.000314 | \_slurmctld_background        |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  39.000314 | 1641013333                    |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |         NA | sched                             |  39.000325 | start                         |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1009 | launch_job                        |  39.000461 | sched                         |
+| 2022-01-01 05:02:13 | test1      |      79 |      1 |       1009 | nodes                             |  39.000461 | b1,m\[1-4\],n\[2-4\]          |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |       1016 | job_name                          |  39.999917 | jobid_1016                    |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |       1016 | uid                               |  39.999917 | 1001                          |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |       1016 | submit_job                        |  39.999917 | NA                            |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |       1016 | initial_priority                  |  39.999917 | 1061666                       |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  40.000153 | submit_batch_job              |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  40.000154 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:14 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  40.000154 | 1                             |
+| 2022-01-01 05:02:15 | test1      |      79 |      1 |       1009 | request_complete_job              |  41.000503 | NA                            |
+| 2022-01-01 05:02:15 | test1      |      79 |      1 |       1009 | job_epilog_complete               |  41.000531 | localhost                     |
+| 2022-01-01 05:02:15 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  41.000534 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:15 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  41.000534 | 2                             |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1017 | job_name                          |  41.999959 | jobid_1017                    |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1017 | uid                               |  41.999959 | 1001                          |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1017 | submit_job                        |  41.999959 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1017 | initial_priority                  |  41.999959 | 1100000                       |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  42.000327 | submit_batch_job              |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  42.000328 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  42.000328 | 3                             |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1018 | job_name                          |  42.000590 | jobid_1018                    |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1018 | uid                               |  42.000590 | 1003                          |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1018 | submit_job                        |  42.000590 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |       1018 | initial_priority                  |  42.000590 | 1070000                       |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  42.000814 | submit_batch_job              |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  42.000816 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  42.000816 | 4                             |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | job_time_limits_testing           |  42.000824 | NA                            |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | calling_schedule                  |  42.000835 | \_slurmctld_background        |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  42.000835 | 1641013336                    |
+| 2022-01-01 05:02:16 | test1      |      79 |      1 |         NA | sched                             |  42.000843 | start                         |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1019 | job_name                          |  42.999858 | jobid_1019                    |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1019 | uid                               |  42.999858 | 1004                          |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1019 | submit_job                        |  42.999858 | NA                            |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1019 | initial_priority                  |  42.999858 | 1070000                       |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  43.000060 | submit_batch_job              |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  43.000062 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  43.000062 | 1                             |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1020 | job_name                          |  43.000236 | jobid_1020                    |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1020 | uid                               |  43.000236 | 1001                          |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1020 | submit_job                        |  43.000236 | NA                            |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |       1020 | initial_priority                  |  43.000236 | 1060833                       |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | calling_queue_job_scheduler       |  43.000467 | submit_batch_job              |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  43.000468 | \_slurm_rpc_submit_batch_job  |
+| 2022-01-01 05:02:17 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  43.000468 | 2                             |
+| 2022-01-01 05:02:19 | test1      |      79 |      1 |         NA | calling_schedule                  |  45.000483 | \_slurmctld_background        |
+| 2022-01-01 05:02:19 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  45.000483 | 1641013339                    |
+| 2022-01-01 05:02:19 | test1      |      79 |      1 |         NA | sched                             |  45.000527 | start                         |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | backfill                          |  60.884696 | start                         |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1007 | launch_job                        |  60.884888 | backfill                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1007 | nodes                             |  60.884888 | m\[1-2\]                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1005 | launch_job                        |  60.885152 | backfill                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1005 | nodes                             |  60.885152 | b1                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1008 | launch_job                        |  60.885255 | backfill                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1008 | nodes                             |  60.885255 | m3                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1018 | launch_job                        |  60.885376 | backfill                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1018 | nodes                             |  60.885376 | m4                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1019 | launch_job                        |  60.885460 | backfill                      |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1019 | nodes                             |  60.885460 | g1                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | backfill_cycle_n                  |  60.885860 | 14                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | backfill_cycle_time               |  60.885860 | 1164000000.0                  |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1008 | request_complete_job              |  60.885874 | NA                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1008 | job_epilog_complete               |  60.885925 | localhost                     |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  60.885928 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  60.885928 | 1                             |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1018 | request_complete_job              |  60.885934 | NA                            |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |       1018 | job_epilog_complete               |  60.885950 | localhost                     |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  60.885951 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  60.885951 | 2                             |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | calling_schedule                  |  61.000528 | \_slurmctld_background        |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  61.000528 | 1641013355                    |
+| 2022-01-01 05:02:35 | test1      |      79 |      1 |         NA | sched                             |  61.000539 | start                         |
+| 2022-01-01 05:02:37 | test1      |      79 |      1 |       1005 | request_complete_job              |  62.885185 | NA                            |
+| 2022-01-01 05:02:37 | test1      |      79 |      1 |       1005 | job_epilog_complete               |  62.885219 | localhost                     |
+| 2022-01-01 05:02:37 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  62.885221 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:37 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  62.885221 | 1                             |
+| 2022-01-01 05:02:38 | test1      |      79 |      1 |         NA | calling_schedule                  |  64.029707 | \_slurmctld_background        |
+| 2022-01-01 05:02:38 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  64.029707 | 1641013358                    |
+| 2022-01-01 05:02:38 | test1      |      79 |      1 |         NA | sched                             |  64.029751 | start                         |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |         NA | job_time_limits_testing           |  72.029730 | NA                            |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |       1002 | time_limit_exhausted              |  72.029733 | NA                            |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |       1002 | request_complete_job              |  72.029851 | NA                            |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |       1002 | job_epilog_complete               |  72.029854 | localhost                     |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |         NA | calling_schedule                  |  72.029858 | epilog_complete               |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |         NA | sched                             |  72.029863 | start                         |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |       1017 | launch_job                        |  72.029963 | sched                         |
+| 2022-01-01 05:02:46 | test1      |      79 |      1 |       1017 | nodes                             |  72.029963 | n\[1-4\]                      |
+| 2022-01-01 05:02:47 | test1      |      79 |      1 |       1017 | request_complete_job              |  73.030008 | NA                            |
+| 2022-01-01 05:02:47 | test1      |      79 |      1 |       1017 | job_epilog_complete               |  73.030031 | localhost                     |
+| 2022-01-01 05:02:47 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  73.030034 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:47 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  73.030034 | 1                             |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |         NA | calling_schedule                  |  74.129116 | \_slurmctld_background        |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  74.129116 | 1641013368                    |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |         NA | sched                             |  74.129169 | start                         |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1014 | launch_job                        |  74.129291 | sched                         |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1014 | nodes                             |  74.129291 | n\[1-2\]                      |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1010 | launch_job                        |  74.129386 | sched                         |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1010 | nodes                             |  74.129386 | n3                            |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1015 | launch_job                        |  74.129449 | sched                         |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1015 | nodes                             |  74.129449 | n4                            |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1010 | request_complete_job              |  74.129418 | NA                            |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |       1010 | job_epilog_complete               |  74.129452 | localhost                     |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  74.129456 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:48 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  74.129456 | 1                             |
+| 2022-01-01 05:02:51 | test1      |      79 |      1 |         NA | calling_schedule                  |  77.129164 | \_slurmctld_background        |
+| 2022-01-01 05:02:51 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  77.129164 | 1641013371                    |
+| 2022-01-01 05:02:51 | test1      |      79 |      1 |         NA | sched                             |  77.129170 | start                         |
+| 2022-01-01 05:02:55 | test1      |      79 |      1 |       1014 | request_complete_job              |  81.129349 | NA                            |
+| 2022-01-01 05:02:55 | test1      |      79 |      1 |       1014 | job_epilog_complete               |  81.129367 | localhost                     |
+| 2022-01-01 05:02:55 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  81.129369 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:02:55 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  81.129369 | 1                             |
+| 2022-01-01 05:02:56 | test1      |      79 |      1 |         NA | calling_schedule                  |  82.129168 | \_slurmctld_background        |
+| 2022-01-01 05:02:56 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  82.129168 | 1641013376                    |
+| 2022-01-01 05:02:56 | test1      |      79 |      1 |         NA | sched                             |  82.129174 | start                         |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | backfill                          |  90.885869 | start                         |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1012 | launch_job                        |  90.886207 | backfill                      |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1012 | nodes                             |  90.886207 | b1                            |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1013 | launch_job                        |  90.886338 | backfill                      |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1013 | nodes                             |  90.886338 | b1                            |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1020 | launch_job                        |  90.886421 | backfill                      |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1020 | nodes                             |  90.886421 | n1                            |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | backfill_cycle_n                  |  90.886467 | 5                             |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | backfill_cycle_time               |  90.886467 | 598000000\.0                  |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1013 | request_complete_job              |  90.886479 | NA                            |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |       1013 | job_epilog_complete               |  90.886514 | localhost                     |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  90.886518 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  90.886518 | 1                             |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | calling_schedule                  |  91.228290 | \_slurmctld_background        |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  91.228290 | 1641013385                    |
+| 2022-01-01 05:03:05 | test1      |      79 |      1 |         NA | sched                             |  91.228307 | start                         |
+| 2022-01-01 05:03:06 | test1      |      79 |      1 |       1015 | request_complete_job              |  92.129551 | NA                            |
+| 2022-01-01 05:03:06 | test1      |      79 |      1 |       1015 | job_epilog_complete               |  92.129580 | localhost                     |
+| 2022-01-01 05:03:06 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  92.129592 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:06 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  92.129592 | 1                             |
+| 2022-01-01 05:03:08 | test1      |      79 |      1 |         NA | calling_schedule                  |  94.327654 | \_slurmctld_background        |
+| 2022-01-01 05:03:08 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  94.327654 | 1641013388                    |
+| 2022-01-01 05:03:08 | test1      |      79 |      1 |         NA | sched                             |  94.327690 | start                         |
+| 2022-01-01 05:03:09 | test1      |      79 |      1 |       1019 | request_complete_job              |  94.885491 | NA                            |
+| 2022-01-01 05:03:09 | test1      |      79 |      1 |       1019 | job_epilog_complete               |  94.885538 | localhost                     |
+| 2022-01-01 05:03:09 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          |  94.885542 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:09 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt |  94.885542 | 1                             |
+| 2022-01-01 05:03:11 | test1      |      79 |      1 |         NA | calling_schedule                  |  97.327672 | \_slurmctld_background        |
+| 2022-01-01 05:03:11 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched |  97.327672 | 1641013391                    |
+| 2022-01-01 05:03:11 | test1      |      79 |      1 |         NA | sched                             |  97.327678 | start                         |
+| 2022-01-01 05:03:11 | test1      |      79 |      1 |       1016 | launch_job                        |  97.327746 | sched                         |
+| 2022-01-01 05:03:11 | test1      |      79 |      1 |       1016 | nodes                             |  97.327746 | g1                            |
+| 2022-01-01 05:03:16 | test1      |      79 |      1 |         NA | job_time_limits_testing           | 102.327678 | NA                            |
+| 2022-01-01 05:03:16 | test1      |      79 |      1 |         NA | calling_schedule                  | 102.327690 | \_slurmctld_background        |
+| 2022-01-01 05:03:16 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | 102.327690 | 1641013396                    |
+| 2022-01-01 05:03:16 | test1      |      79 |      1 |         NA | sched                             | 102.327695 | start                         |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |       1020 | request_complete_job              | 104.886488 | NA                            |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |       1020 | job_epilog_complete               | 104.886569 | localhost                     |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          | 104.886573 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 104.886573 | 1                             |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |         NA | calling_schedule                  | 105.427115 | \_slurmctld_background        |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | 105.427115 | 1641013399                    |
+| 2022-01-01 05:03:19 | test1      |      79 |      1 |         NA | sched                             | 105.427133 | start                         |
+| 2022-01-01 05:03:35 | test1      |      79 |      1 |         NA | backfill                          | 120.886476 | start                         |
+| 2022-01-01 05:03:35 | test1      |      79 |      1 |         NA | backfill_cycle_n                  | 120.886608 | 1                             |
+| 2022-01-01 05:03:35 | test1      |      79 |      1 |         NA | backfill_cycle_time               | 120.886608 | 132000000\.0                  |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1016 | request_complete_job              | 122.327801 | NA                            |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1016 | job_epilog_complete               | 122.327855 | localhost                     |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          | 122.327859 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 122.327859 | 1                             |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | calling_schedule                  | 122.526836 | \_slurmctld_background        |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | 122.526836 | 1641013416                    |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | sched                             | 122.526846 | start                         |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1011 | launch_job                        | 122.526916 | sched                         |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1011 | nodes                             | 122.526916 | g1                            |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1011 | request_complete_job              | 122.526962 | NA                            |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |       1011 | job_epilog_complete               | 122.526983 | localhost                     |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:from          | 122.526985 | sim_notify_slurmctld_nodes    |
+| 2022-01-01 05:03:36 | test1      |      79 |      1 |         NA | queue_job_scheduler:job_sched_cnt | 122.526985 | 1                             |
+| 2022-01-01 05:03:39 | test1      |      79 |      1 |         NA | calling_schedule                  | 125.626436 | \_slurmctld_background        |
+| 2022-01-01 05:03:39 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | 125.626436 | 1641013419                    |
+| 2022-01-01 05:03:39 | test1      |      79 |      1 |         NA | sched                             | 125.626471 | start                         |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |         NA | job_time_limits_testing           | 132.626456 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |       1007 | time_limit_exhausted              | 132.626460 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |       1007 | request_complete_job              | 132.626524 | NA                            |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |       1007 | job_epilog_complete               | 132.626527 | localhost                     |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |         NA | calling_schedule                  | 132.626530 | epilog_complete               |
+| 2022-01-01 05:03:46 | test1      |      79 |      1 |         NA | sched                             | 132.626535 | start                         |
+| 2022-01-01 05:04:05 | test1      |      79 |      1 |         NA | backfill                          | 150.886615 | start                         |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |         NA | job_time_limits_testing           | 162.726236 | NA                            |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |       1012 | time_limit_exhausted              | 162.726240 | NA                            |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |         NA | calling_schedule                  | 162.726344 | \_slurmctld_background        |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |         NA | \_slurmctld_background_call_sched | 162.726344 | 1641013456                    |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |       1012 | request_complete_job              | 162.726361 | NA                            |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |       1012 | job_epilog_complete               | 162.726364 | localhost                     |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |         NA | calling_schedule                  | 162.726367 | epilog_complete               |
+| 2022-01-01 05:04:16 | test1      |      79 |      1 |         NA | sched                             | 162.726380 | start                         |
+
+</div>
 
 ## Make Events Plot
 
@@ -1151,9 +1573,9 @@ plot_grid(
 )
 ```
 
-![](micro_cluster_tutorial_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-You can find that even though submit time is same between two
-realization the start time can be substantially different.
+![](readme_files/figure-gfm/submit_start-1.png)<!-- --> You can find
+that even though submit time is same between two realization the start
+time can be substantially different.
 
 What are the reasons for such behavior? Many Slurm routines are executed
 in cyclic manner: some will go to sleep for predefined amount of time
@@ -1182,10 +1604,10 @@ make_events_diagramm(
 
     ## Warning in RColorBrewer::brewer.pal(N, "Set2"): minimal value for n is 3, returning requested palette with 3 different levels
 
-![](micro_cluster_tutorial_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-The event diagram shows most events importent for scheduling. X-axis
-shows the time, zero correspontd to the submision time of first job. The
-jobs submit, start and end time are show as horizontal segments and the
+![](readme_files/figure-gfm/events_diagramm-1.png)<!-- --> The event
+diagram shows most events importent for scheduling. X-axis shows the
+time, zero correspontd to the submision time of first job. The jobs
+submit, start and end time are show as horizontal segments and the
 y-axis correspontd to job-id. The diagram allow comparison of two
 simulations the jobs from first one is slightly below the second one.
 The jobs horizontal segment starts with submit time (grey circle),
