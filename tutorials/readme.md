@@ -167,5 +167,4 @@ Get to `/home/slurm/work/micro_cluster` directory and start
 `micro_cluster_tutorial.Rmd` notebook. Follow the directions in a
 notebook.
 
-[Next: Micro Cluster
-Tutorial](./micro_cluster/micro_cluster_tutorial.md)
+[Next: Micro Cluster Tutorial](./micro_cluster/readme.md)
