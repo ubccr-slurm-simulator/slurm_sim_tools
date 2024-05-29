@@ -20,7 +20,6 @@ editor_options:
     wrap: 80
 ---
 
-
 # Slurm Simulator: Micro Cluster Tutorial
 
 ```{r setup, include=FALSE}
@@ -73,16 +72,16 @@ allocation of jobs with large memory requests.
 
 | Node Type       | Node Name | Number of Cores | CPU Type | Memory Size | Number of GPUs |
 |-----------------|-----------|-----------------|----------|-------------|----------------|
-| General Compute | n[1-4]    | 12              | CPU-N    | 48GiB       | -              |
-| General Compute | m[1-4]    | 12              | CPU-M    | 48GiB       | -              |
+| General Compute | n[1-4]    | 12              | CPU-N    | 48GiB       | \-             |
+| General Compute | m[1-4]    | 12              | CPU-M    | 48GiB       | \-             |
 | GPU node        | g1        | 12              | CPU-G    | 48GiB       | 2              |
-| Big memory      | b1        | 12              | CPU-G    | 512GiB      | -              |
+| Big memory      | b1        | 12              | CPU-G    | 512GiB      | \-             |
 
 : Micro-Cluster compute nodes description
 
 The nodes are connected as follows:
 
-```
+```         
 Top Switch
  ├─IBN Switch
  │  ├─Node n1
@@ -97,8 +96,6 @@ Top Switch
  └─IBG Switch
     ├─Node g1
    `└─Node b1
-
-
 ```
 
 ## Slurm Simulation Configuration
@@ -139,7 +136,7 @@ mode. In the following sub-section, we will list those changes.
 
 #### Changes in `slurm.conf`
 
-```ini
+``` ini
 # (optional) Different cluster name might be useful
 ClusterName=micro
 
@@ -175,7 +172,7 @@ FrontEndName=localhost
 
 #### Changes in `slurmdbd.conf`
 
-```ini
+``` ini
 # Change Slurm Database daemon address to localhost
 DbdHost=localhost
 # Authentication is turned off
@@ -197,7 +194,7 @@ StorageLoc=slurmdb_micro
 
 #### Changes to `gres.conf`
 
-```ini
+``` ini
 # There is no actual hardware everything should be specified manually
 AutoDetect=off
 ```
@@ -219,13 +216,13 @@ users and accounts.
 and ids. The file format is one line per user with colon (`:`) separated four
 fields:
 
-```
+```         
 <user named>:<user id>:<group name>:<group id>
 ```
 
 The used `users.sim` file is as follows:
 
-```
+```         
 admin:1000:admin:1000
 user1:1001:group1:1001
 user2:1002:group2:1002
@@ -242,7 +239,7 @@ will do with sacctmgr.
 
 Below is a listing of used `sacctmgr.script`:
 
-```shell
+``` shell
 # add/modify QOS
 modify QOS set normal Priority=0
 add QOS Name=supporters Priority=100
@@ -284,7 +281,7 @@ accounts)
 
 In the etc directory, you can find several configuration files:
 
-```ini
+``` ini
 # Simulation Configuration
 
 ## Unix time stamp for the simulated start time
@@ -316,7 +313,7 @@ cluster.
 
 Here is the listing of `small.events`:
 
-```bash
+``` bash
 -dt 0 -e submit_batch_job | -J jobid_1001 -sim-walltime 0 --uid=user5 -t 00:01:00 -n 12 --ntasks-per-node=12 -A account2 -p normal -q normal pseudo.job
 -dt 1 -e submit_batch_job | -J jobid_1002 -sim-walltime -1 --uid=user1 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account1 -p normal -q normal --constraint=CPU-N pseudo.job
 -dt 2 -e submit_batch_job | -J jobid_1003 -sim-walltime 5 --uid=user4 -t 00:01:00 -n 1 --ntasks-per-node=1 -A account2 -p normal -q normal --mem=500000 pseudo.job
@@ -347,7 +344,7 @@ processed by the same function), there are some additional arguments and some
 normal `sbatch` arguments which have to follow certain format. Bellow is the
 format:
 
-```
+```         
 -dt <time to submit since the start of slurm controller> -e submit_batch_job | -J jobid_<jobid> -sim-walltime <walltime in seconds> --uid=<user> -t <requested time> -A <account> <Other Normal Slurm Arguments> pseudo.job
 ```
 
@@ -399,7 +396,7 @@ slurmsim -v run_sim  -d \
             -dtstart $dtstart
 ```
 
-```
+```         
     Logger initialization
     [INFO] Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
     [INFO] NumExpr defaulting to 8 threads.
@@ -558,70 +555,83 @@ slurmsim -v run_sim  -d \
     [INFO] Done
 ```
 
-While it is running, we can take a look at specified arguments.
-First, we started with setting some bash variables, which will be convenient later when we automate runs for multiple simulations.
-We will go through all of them and describe what it is and why we are doing it in this way.
+While it is running, we can take a look at specified arguments. First, we
+started with setting some bash variables, which will be convenient later when we
+automate runs for multiple simulations. We will go through all of them and
+describe what it is and why we are doing it in this way.
 
-```bash
+``` bash
 export CLUS_DIR=$(pwd)
 ```
 
-It is convenient to specify pathways relative to our cluster simulation directory:
+It is convenient to specify pathways relative to our cluster simulation
+directory:
 
-```bash
+``` bash
 export MACHINE_NAME="slurmsimcont"
 ```
-It specify machine name. 
-Just like with real Slurm, the speed of actual hardware can affect the scheduling, so it is helpful to track which hardware was used for simulation.
 
-```bash
+It specify machine name. Just like with real Slurm, the speed of actual hardware
+can affect the scheduling, so it is helpful to track which hardware was used for
+simulation.
+
+``` bash
 export RUN_NAME="test1"
 ```
 
-`RUN_NAME` is used to label a particular test, for example, control, high-priority, and so on.
+`RUN_NAME` is used to label a particular test, for example, control,
+high-priority, and so on.
 
-```bash
+``` bash
 export dtstart=59
 export replica=1
 ```
 
-Due to *stochasticity*, we need to have multiple runs. 
-We track them with `replica` parameter for identical run and `dtstart` for additional randomization.
+Due to *stochasticity*, we need to have multiple runs. We track them with
+`replica` parameter for identical run and `dtstart` for additional
+randomization.
 
 `replica` parameter is usually having values like 1,2,3,....
 
-`dtstart` specifies the time delay between the slurm controller start-up and the first job submission.
-It is the main randomization mechanism in Slurm Simulator.
-
+`dtstart` specifies the time delay between the slurm controller start-up and the
+first job submission. It is the main randomization mechanism in Slurm Simulator.
 
 The following arguments were used for `slurmsim` CLI:
 
-* `-v` for extra messages
-* `run_sim` command to run single Slurm simulation.
-* `-d` remove results from the previous simulation
-* `-e` specify the location of slurm `etc.` directory `slurm.conf` and friends should be where
-* `-a` specify the sacctmgr script to set up accounts, users, qos and other things
-* `-w` specify workload event file (a.k.a. job traces file)
-*  `-r` specify results storage directory, we use following format:
-  `${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}`
-* `-dtstart` specifies the time delay between the slurm controller start-up and the first job submission.
+-   `-v` for extra messages
+-   `run_sim` command to run single Slurm simulation.
+-   `-d` remove results from the previous simulation
+-   `-e` specify the location of slurm `etc.` directory `slurm.conf` and friends
+    should be where
+-   `-a` specify the sacctmgr script to set up accounts, users, qos and other
+    things
+-   `-w` specify workload event file (a.k.a. job traces file)
+-   `-r` specify results storage directory, we use following format:
+    `${CLUS_DIR}/results/${MACHINE_NAME}/${RUN_NAME}/dtstart_${dtstart}_${replica}`
+-   `-dtstart` specifies the time delay between the slurm controller start-up
+    and the first job submission.
 
+The `run_sim` command simplifies the execution of the Slurm Simulator. It does
+the following:
 
-The `run_sim` command simplifies the execution of the Slurm Simulator. It does the following:
+1.  With `-d` option, it removes results from the previous simulation (clean DB,
+    remove logs, shared memory, etc)
+2.  Check the configuration files; some of the options are not supported in the
+    Simulator, and some others should be set to a particular value. The
+    configuration checking helps to run the simulation. Note that not everything
+    is checked.
+3.  Create missing directories
+4.  Launch `slurmdbd`
+5.  Execute `sacctmgr` script
+6.  Launch `slurmctld` and start simulation
+7.  On finishing `slurmctld` process termenate `slurmdbd`.
+8.  Prepocess some outputs so that they can be loaded to R.
+9.  Copy all resulting files to the results directory (set with `-r` option)
 
-1.  With `-d` option, it removes results from the previous simulation (clean DB, remove logs, shared memory, etc)
-2. Check the configuration files; some of the options are not supported in the Simulator, and some others should be set to a particular value. The configuration checking helps to run the simulation. Note that not everything is checked.
-3. Create missing directories
-4. Launch `slurmdbd`
-5. Execute `sacctmgr` script
-6. Launch `slurmctld` and start simulation
-7. On finishing `slurmctld` process termenate `slurmdbd`.
-8. Prepocess some outputs so that they can be loaded to R.
-9. Copy all resulting files to the results directory (set with `-r` option)
+Now take a closer look at the output, you should be able to see the above steps.
+At the end you will see something like this:
 
-
-Now take a closer look at the output, you should be able to see the above steps. At the end you will see something like this:
-```
+```         
 [INFO] Simulated time: 0:03:41.973954
 [INFO] Real time: 0:00:30.056383
 [INFO] Acceleration: 7.3852
@@ -635,7 +645,7 @@ Take look at result directory:
 ls results/slurmsimcont/test1/dtstart_59_1
 ```
 
-```
+```         
 jobcomp.log
 perf_profile.log
 perf_stat.log
@@ -662,11 +672,11 @@ There are a lot of logs and output files:
 
 Lets take a look at `slurm_acct.out`
 
-```bash
+``` bash
 head -n 5 results/slurmsimcont/test1/dtstart_59_1/slurm_acct.out
 ```
 
-```
+```         
     JobID|JobIDRaw|Cluster|Partition|Account|Group|GID|User|UID|Submit|Eligible|Start|End|Elapsed|ExitCode|State|NNodes|NCPUS|ReqCPUS|ReqMem|ReqTRES|Timelimit|QOS|NodeList|JobName|NTasks
     1001|1001|micro|normal|account2|slurm|1000|user5|1005|2022-01-01T05:01:14|2022-01-01T05:01:14|2022-01-01T05:01:14|2022-01-01T05:01:14|00:00:00|0:0|COMPLETED|1|12|12|33600M|billing=12,cpu=12,mem=33600M,node=1|00:01:00|normal|b1|jobid_1001|
     1002|1002|micro|normal|account1|slurm|1000|user1|1001|2022-01-01T05:01:15|2022-01-01T05:01:15|2022-01-01T05:01:16|2022-01-01T05:02:16|00:01:00|0:0|TIMEOUT|1|1|1|2800M|billing=1,cpu=1,mem=2800M,node=1|00:01:00|normal|n1|jobid_1002|
@@ -683,7 +693,7 @@ results directory.
 We rarely would have only one simulation (need statistics), so before moving to
 results reading lets make another simulation:
 
-```bash
+``` bash
 export CLUS_DIR=$(pwd)
 export MACHINE_NAME="slurmsimcont"
 export RUN_NAME="test1"
@@ -700,10 +710,9 @@ slurmsim -v run_sim  -d \
 
 ## Read Results
 
-Because there is a need to handle multiple runs at a same time we have developed a 
-tools which help us with that.
-`read_sacct_out_multiple` will read multiple `slurm_acct.out` from simulations 
-with different start time and replicas.
+Because there is a need to handle multiple runs at a same time we have developed
+a tools which help us with that. `read_sacct_out_multiple` will read multiple
+`slurm_acct.out` from simulations with different start time and replicas.
 
 ```{r}
 sacct <- read_sacct_out_multiple(
@@ -714,10 +723,11 @@ sacct <- read_sacct_out_multiple(
     # sacct_out="slurm_acct.out"  # non-standard name of sacct_out
 )
 
-sacct
+sacct |> head()
 ```
-`read_sacct_out_multiple` also recalculates `SubmitTime`, `StartTime` and `EndTime` 
-in reference to the submission of first job.
+
+`read_sacct_out_multiple` also recalculates `SubmitTime`, `StartTime` and
+`EndTime` in reference to the submission of first job.
 
 `read_events_multiple` read events which ever extracted from slurmctrl logs:
 
@@ -729,7 +739,7 @@ events_time <- read_events_multiple(
     run_id_list=1, # replicas list
     #events_csv="slurmctld_log.csv" # non-standard name of slurmctld_log.csv
 )
-events_time
+events_time |> head()
 ```
 
 ## Make Events Plot
@@ -747,24 +757,25 @@ plot_grid(
   labels = c("A","B"), nrow=2
 )
 ```
-You can find that even though submit time is same between two realization the start time can be substantially different.
 
-What are the reasons for such behavior? 
-Many Slurm routines are executed in cyclic manner: some will go to sleep for 
-predefined amount of time before repeating the cycle, others will check time to time
-was a predefined amount of time passed since the last time cycle was started.
+You can find that even though submit time is same between two realization the
+start time can be substantially different.
 
-For example the function that 
-kills jobs running over the requested walltime, start a new cycle 
-if 30 seconds passed from last run and then it willcheck all jobs. 
-The thread which do the job also do other things so time between checks is not always exact 30 seconds.
+What are the reasons for such behavior? Many Slurm routines are executed in
+cyclic manner: some will go to sleep for predefined amount of time before
+repeating the cycle, others will check time to time was a predefined amount of
+time passed since the last time cycle was started.
 
-In addition we don't know a-priori. at which stage of these varying stop and start cycles the job submission ended up.
-So we have to try all different possibilities and report an average behaiviour.
+For example the function that kills jobs running over the requested walltime,
+start a new cycle if 30 seconds passed from last run and then it willcheck all
+jobs. The thread which do the job also do other things so time between checks is
+not always exact 30 seconds.
+
+In addition we don't know a-priori. at which stage of these varying stop and
+start cycles the job submission ended up. So we have to try all different
+possibilities and report an average behaiviour.
 
 To identify what exactly went different we can use event diagramm:
-
-
 
 ```{r events_diagramm}
 make_events_diagramm(
@@ -772,12 +783,27 @@ make_events_diagramm(
   events_time |> filter(slurm_mode=="test1" & dtstart==79 & run_id==1L)
 )
 ```
-The event diagram shows most events importent for scheduling. X-axis shows the time, zero correspontd to the submision time of first job. The jobs submit, start and end time are show as horizontal segments and the y-axis correspontd to job-id. The diagram allow comparison of two simulations the jobs from first one is slightly below the second one. The jobs horizontal segment starts with submit time (grey circle), followed by start time (blue plus if scheduled by main scheduler and green plus if scheduled by backfiller) and ends with jobs finish time (red cross). The segment between submit time and start time is highlighted by grey segment line and from start to end time by red line. Different scheduler related events are also shown by vertical lines at time they occur. The events from first simulation are shown by solid line and events from second by dash line. Different event are shown by different colors. This is interactive plot, click/double click on legend or plot to hide or select the plots elements.
+
+The event diagram shows most events importent for scheduling. X-axis shows the
+time, zero correspontd to the submision time of first job. The jobs submit,
+start and end time are show as horizontal segments and the y-axis correspontd to
+job-id. The diagram allow comparison of two simulations the jobs from first one
+is slightly below the second one. The jobs horizontal segment starts with submit
+time (grey circle), followed by start time (blue plus if scheduled by main
+scheduler and green plus if scheduled by backfiller) and ends with jobs finish
+time (red cross). The segment between submit time and start time is highlighted
+by grey segment line and from start to end time by red line. Different scheduler
+related events are also shown by vertical lines at time they occur. The events
+from first simulation are shown by solid line and events from second by dash
+line. Different event are shown by different colors. This is interactive plot,
+click/double click on legend or plot to hide or select the plots elements.
 
 # Run and Analyse Multiple Independent Simulations
 
-Due to stochasticity we have to run multiple simulations and report on averaged numbers.
-So we need somehow to randomize each run, we are doing it by randomizing the time between the simulation start and the submission of first jobs (relative time between jobs stays the same).
+Due to stochasticity we have to run multiple simulations and report on averaged
+numbers. So we need somehow to randomize each run, we are doing it by
+randomizing the time between the simulation start and the submission of first
+jobs (relative time between jobs stays the same).
 
 Lets get these random start times:
 
@@ -788,6 +814,7 @@ np.random.seed(seed=20211214)
 start_times = np.random.randint(low=30, high=150, size=10)
 " ".join([str(v) for v in start_times])
 ```
+
 I got '59 58 99 126 79 89 146 105 114 68'.
 
 Now run them all:
@@ -830,7 +857,6 @@ cp -r ${SLURM_ETC} ${RESULTS_ROOT_DIR}
 cp ${WORKLOAD} ${RESULTS_ROOT_DIR}
 cp ${SACCTMGR_SCRIPT} ${RESULTS_ROOT_DIR}
 ```
-
 
 ```{r}
 sacct <- read_sacct_out_multiple(
