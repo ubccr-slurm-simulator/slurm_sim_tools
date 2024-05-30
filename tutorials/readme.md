@@ -1,8 +1,8 @@
 Slurm Simulator Tutorial
 ================
-<nikolays@buffalo.edu>
-28 May, 2024
+30 May, 2024
 
+- [Table of Content](#table-of-content)
 - [Overview](#overview)
   - [Some vocabulary](#some-vocabulary)
 - [Installation](#installation)
@@ -16,8 +16,18 @@ Slurm Simulator Tutorial
     - [For Development work: With X11 Forwarding and Directories
       Binding](#for-development-work-with-x11-forwarding-and-directories-binding)
     - [Users Id Mapping](#users-id-mapping)
-- [Get Tutorial Files and Starting
-  Tutorial](#get-tutorial-files-and-starting-tutorial)
+  - [Containter Directory Layout](#containter-directory-layout)
+- [Get Tutorial Files and Start
+  Tutorial](#get-tutorial-files-and-start-tutorial)
+
+# Table of Content
+
+- Tutorial Overview (this page)
+- [Micro Cluster Tutorial](./micro_cluster/)
+- [Medium Cluster Tutorial](./micro_cluster/)
+- Other Topics
+  - Slurm `sacct log` conversion to `sacctmng` script
+  - SWF conversion
 
 # Overview
 
@@ -37,9 +47,10 @@ We support two approaches for Slurm modeling:
     month. VC is largely used by us to calculate reference workload
     realization.
 
-Both approaches use same format to specify submitted jobs (events file).
+Both approaches use the same format to specify submitted jobs (events
+file).
 
-Here we will concentrate on Slurm Simulator.
+Here, we will concentrate on the Slurm Simulator.
 
 ## Some vocabulary
 
@@ -58,17 +69,17 @@ workload realization.
 
 # Installation
 
-The easiest way to start using Slurm Simulator is by using a docker
+The easiest way to start using Slurm Simulator is to use a docker
 container. The Slurm simulator container contains Slurm simulator
 binaries and all necessary libraries and tools for running the
-simulator, analyzing results, and doing full development.
+simulator, analyzing results, and full development.
 
 The Slurm simulator container is built on top of
 <https://github.com/jupyter/docker-stacks> with bits from
 <https://github.com/rocker-org/rocker-versioned>.
 
 The provided container has `mariadb` with user account `slurm` and
-password `slurm`. The password for user `slurm` is `slurm`.
+password `slurm`. The **password** for the user `slurm` is `slurm`.
 
 ## Install proper docker on your System
 
@@ -151,9 +162,24 @@ Because the container is built on top of
 <https://github.com/jupyter/docker-stacks> it supports some of the
 docker-stacks magics.
 
-# Get Tutorial Files and Starting Tutorial
+## Containter Directory Layout
 
-If you haven’t did it alread launch RStudio server at
+Most of applications are installed in `/opt` directory:
+
+- `/opt/slurm_sim_tools` - Slurm Simulator Toolkit with Slurm Simulator
+  code (`/opt/slurm_sim_tools/slurm_simulator`)
+- `/opt/slurm_sim` - Slurm Simulator built with release flags.
+- `/opt/slurm_sim_deb` - Slurm Simulator built with debug flags.
+- `/opt/conda` - Conda (actually Mamba) folder with python and R
+  installation.
+- `/opt/eclipse` - Eclipse IDE for C Slurm Simulator code developments
+  and debug runs (with `gdb`).
+
+For work user `slurm` user and mounted `/home/slurm/work` directory.
+
+# Get Tutorial Files and Start Tutorial
+
+If you haven’t done it already launch the RStudio server at
 <http://localhost:8787> (username is `slurm` and password is also
 `slurm`). In the terminal window copy all tutorial files to
 `/home/slurm/work`:
@@ -163,8 +189,13 @@ cd /home/slurm/work
 cp -r /opt/slurm_sim_tools/tutorials/* /home/slurm/work/
 ```
 
-Get to `/home/slurm/work/micro_cluster` directory and start
-`micro_cluster_tutorial.Rmd` notebook. Follow the directions in a
-notebook.
+Get to `/home/slurm/work/micro_cluster` directory and start `readme.Rmd`
+notebook. Follow the directions in a notebook, see
+[micro_cluster/readme.md](./micro_cluster/) for executed example (and
+Figure 1 for snapshot).
+
+<center>
+<img src="https://github.com/ubccr-slurm-simulator/slurm_sim_tools/raw/v3.0-branch/doc/images/rserver_screenshot.png" width="100%" height="100%">
+</center>
 
 [Next: Micro Cluster Tutorial](./micro_cluster/)

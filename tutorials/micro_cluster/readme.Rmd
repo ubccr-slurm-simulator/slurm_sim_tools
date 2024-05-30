@@ -3,11 +3,6 @@ title: "Slurm Simulator: Micro Cluster Tutorial"
 author: nikolays@buffalo.edu
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  github_document:
-    toc: true
-    toc_depth: 4
-    html_preview: false
-    df_print: kable
   html_document: 
     toc: yes
     toc_float: yes
@@ -15,6 +10,11 @@ output:
     mathjax: null
     css: ../doc.css
     df_print: paged
+  github_document:
+    toc: true
+    toc_depth: 4
+    html_preview: false
+    df_print: kable
 editor_options: 
   markdown: 
     wrap: 80
@@ -710,9 +710,9 @@ slurmsim -v run_sim  -d \
 
 ## Read Results
 
-Because there is a need to handle multiple runs at a same time we have developed
-a tools which help us with that. `read_sacct_out_multiple` will read multiple
-`slurm_acct.out` from simulations with different start time and replicas.
+Because we need to handle multiple runs simultaneously, we have developed tools
+that help us with that. `read_sacct_out_multiple` will read multiple
+`slurm_acct.out` from simulations with different start times and replicas.
 
 ```{r}
 sacct <- read_sacct_out_multiple(
@@ -758,24 +758,24 @@ plot_grid(
 )
 ```
 
-You can find that even though submit time is same between two realization the
-start time can be substantially different.
+You can find that even though the submit time is the same between two
+realizations, the start time can be substantially different.
 
-What are the reasons for such behavior? Many Slurm routines are executed in
-cyclic manner: some will go to sleep for predefined amount of time before
-repeating the cycle, others will check time to time was a predefined amount of
-time passed since the last time cycle was started.
+What are the reasons for such behavior? Many Slurm routines are executed in a
+cyclic manner: some will go to sleep for a predefined amount of time before
+repeating the cycle, and others will check from time to time if a predefined
+amount of time passed since the last time the cycle was started.
 
-For example the function that kills jobs running over the requested walltime,
-start a new cycle if 30 seconds passed from last run and then it willcheck all
-jobs. The thread which do the job also do other things so time between checks is
-not always exact 30 seconds.
+For example, the function that kills jobs running over the requested wall time
+starts a new cycle if 30 seconds have passed from the last run, and then it will
+check all jobs. The thread that does the job also does other things, so the time
+between checks is not always exactly 30 seconds.
 
-In addition we don't know a-priori. at which stage of these varying stop and
-start cycles the job submission ended up. So we have to try all different
-possibilities and report an average behaiviour.
+In addition, we don't know apriori at which stage of these varying
+stop-and-start cycles the job submission ended up. So we have to try all
+different possibilities and report an average behavior.
 
-To identify what exactly went different we can use event diagramm:
+To identify what exactly went differently we can use event diagram:
 
 ```{r events_diagramm}
 make_events_diagramm(
@@ -784,9 +784,9 @@ make_events_diagramm(
 )
 ```
 
-The event diagram shows most events importent for scheduling. X-axis shows the
-time, zero correspontd to the submision time of first job. The jobs submit,
-start and end time are show as horizontal segments and the y-axis correspontd to
+The event diagram shows most events important for scheduling. X-axis shows the
+time, zero corresponds to the submission time of first job. The jobs submit,
+start and end time are show as horizontal segments and the y-axis correspond to
 job-id. The diagram allow comparison of two simulations the jobs from first one
 is slightly below the second one. The jobs horizontal segment starts with submit
 time (grey circle), followed by start time (blue plus if scheduled by main
@@ -805,9 +805,12 @@ numbers. So we need somehow to randomize each run, we are doing it by
 randomizing the time between the simulation start and the submission of first
 jobs (relative time between jobs stays the same).
 
-Lets get these random start times:
+## Generate Random Start Times Delay
+
+Lets get these random start times delay (additional time between start time of first job and starting time of `slurmctld`):
 
 ```{python}
+# Note that this is a python chunk
 # generate random start time for small
 import numpy as np
 np.random.seed(seed=20211214)
@@ -816,6 +819,8 @@ start_times = np.random.randint(low=30, high=150, size=10)
 ```
 
 I got '59 58 99 126 79 89 146 105 114 68'.
+
+## Run the Similations
 
 Now run them all:
 
@@ -858,6 +863,9 @@ cp ${WORKLOAD} ${RESULTS_ROOT_DIR}
 cp ${SACCTMGR_SCRIPT} ${RESULTS_ROOT_DIR}
 ```
 
+
+## Read Results
+
 ```{r}
 sacct <- read_sacct_out_multiple(
     slurm_mode="test2", # name of simulation
@@ -874,3 +882,23 @@ events_time <- read_events_multiple(
     #events_csv="slurmctld_log.csv" # non-standard name of slurmctld_log.csv
 )
 ```
+
+## Analyse the Results
+
+
+```{r submit_start2}
+plot_grid(
+  ggplot(sacct, aes(
+    x=SubmitTime,y=JobRecID))+
+    geom_point(alpha=0.2),
+  ggplot(sacct, aes(
+    x=StartTime,y=JobRecID))+
+    geom_point(alpha=0.2),
+  labels = c("A","B"), nrow=2
+)
+```
+In the plot above the submit time (A) and start time (B) for each job (shown on X-Axis) are overlayed from the ten independent runs. Note that submit times relative to the first job are exactly the same but the start time can be almost deterministic (jobs 1001,1002,1003,1004 and 1009), vary a little (jobs 1005-1008, 1011-1013,1016,1018-1020) or vary a lot (jobs 1010,1014,1015,1017). In lager HPC resources with longer jobs and high resource utilization the starting time difference can be substantial.
+
+
+Next: [Medium Cluster Tutorial](./medium_cluster/`r if(knitr::pandoc_to()=='gfm') "" else "readme.html"`)
+
