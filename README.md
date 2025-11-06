@@ -5,7 +5,7 @@ Center for Computational Research, University at Buffalo, SUNY
 ## News
 
 -   05/30/2024. The new version (v3.0) of Slurm Simulation is out. It is based on Slurm 23.02. The goal of the new version is to be sufficiently fast and reasonably accurate. See Figure 1 for comparison of Slurm simulator results with unmodified Slurm run.
-    -   To run Slurm Simulator user docker container [nsimakov/slurm_sim:v3.0](https://hub.docker.com/repository/docker/nsimakov/slurm_sim/general).
+    -   To run Slurm Simulator user docker container [nsimakov/slurm_sim:v3.0](https://hub.docker.com/r/nsimakov/slurm_sim).
     -   See [tutorials](tutorials/) on how to run it.
     -   Use [v3.0-branch](https://github.com/ubccr-slurm-simulator/slurm_sim_tools/tree/v3.0-branch) for the toolkit and [slurm-23-02-sim branch](https://github.com/ubccr-slurm-simulator/slurm_simulator/tree/slurm-23-02-sim) for Slurm simulator. Use
 
